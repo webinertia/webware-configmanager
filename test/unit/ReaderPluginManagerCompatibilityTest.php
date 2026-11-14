@@ -4,56 +4,75 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager;
 
+use Laminas\ServiceManager\Exception\InvalidServiceException;
 use Laminas\ServiceManager\ServiceManager;
-use Laminas\ServiceManager\Test\CommonPluginManagerTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Webware\ConfigManager\Exception\InvalidArgumentException;
-use Webware\ConfigManager\Reader\ReaderInterface;
+use ReflectionProperty;
+use stdClass;
+use Webware\ConfigManager\Reader;
 use Webware\ConfigManager\ReaderPluginManager;
 
 #[CoversClass(ReaderPluginManager::class)]
 final class ReaderPluginManagerCompatibilityTest extends TestCase
 {
-    use CommonPluginManagerTrait;
-
     /**
-     * @return ReaderPluginManager
+     * @return array<class-string<Reader\ReaderInterface>, array{class-string<Reader\ReaderInterface>}>
      */
-    protected static function getPluginManager()
+    public static function knownReaderProvider(): array
+    {
+        return [
+            Reader\Ini::class            => [Reader\Ini::class],
+            Reader\Json::class           => [Reader\Json::class],
+            Reader\Xml::class            => [Reader\Xml::class],
+            Reader\Yaml::class           => [Reader\Yaml::class],
+            Reader\JavaProperties::class => [Reader\JavaProperties::class],
+        ];
+    }
+
+    private static function manager(): ReaderPluginManager
     {
         return new ReaderPluginManager(new ServiceManager());
     }
 
-    /**
-     * The trait declares its data provider with a docblock annotation, which PHPUnit 13 no longer reads.
-     */
-    #[DataProvider('aliasProvider')]
     #[Test]
-    public function testPluginAliasesResolve(string $alias, string $expected): void
+    public function testInstanceOfMatchesTheReaderInterface(): void
     {
-        static::assertInstanceOf(
-            $expected,
-            static::getPluginManager()->get($alias),
-            "Alias '{$alias}' does not resolve",
-        );
+        $instanceOf = new ReflectionProperty(ReaderPluginManager::class, 'instanceOf');
+
+        static::assertSame(Reader\ReaderInterface::class, $instanceOf->getValue(self::manager()));
+    }
+
+    #[Test]
+    public function testLoadingInvalidElementRaisesException(): void
+    {
+        $manager = self::manager();
+        $manager->setInvokableClass('invalid', stdClass::class);
+
+        $this->expectException(InvalidServiceException::class);
+        $manager->get('invalid');
+    }
+
+    #[Test]
+    public function testRegisteringInvalidElementRaisesException(): void
+    {
+        $this->expectException(InvalidServiceException::class);
+
+        self::manager()->setService('invalid', $this);
     }
 
     /**
-     * @return string
+     * @param class-string<Reader\ReaderInterface> $name
      */
-    protected function getInstanceOf()
+    #[DataProvider('knownReaderProvider')]
+    #[Test]
+    public function testResolvesKnownReaderByClassName(string $name): void
     {
-        return ReaderInterface::class;
-    }
+        $manager = self::manager();
 
-    /**
-     * @return string
-     */
-    protected function getV2InvalidPluginException()
-    {
-        return InvalidArgumentException::class;
+        static::assertTrue($manager->has($name));
+        static::assertInstanceOf($name, $manager->get($name));
     }
 }

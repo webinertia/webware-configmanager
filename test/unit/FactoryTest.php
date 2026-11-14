@@ -78,11 +78,11 @@ final class FactoryTest extends TestCase
         $services      = $this->createStub(ContainerInterface::class);
         $pluginManager = new ReaderPluginManager($services, [
             'services' => [
-                'DummyReader' => new Reader\TestAssets\DummyReader(),
+                Reader\TestAssets\DummyReader::class => new Reader\TestAssets\DummyReader(),
             ],
         ]);
         Factory::setReaderPluginManager($pluginManager);
-        Factory::registerReader('dum', 'DummyReader');
+        Factory::registerReader('dum', Reader\TestAssets\DummyReader::class);
 
         $configObject = Factory::fromFile(__DIR__ . '/TestAssets/dummy.dum', true);
         static::assertInstanceOf(Config::class, $configObject);
@@ -108,11 +108,11 @@ final class FactoryTest extends TestCase
         $services      = $this->createStub(ContainerInterface::class);
         $pluginManager = new WriterPluginManager($services, [
             'services' => [
-                'DummyWriter' => new Writer\TestAssets\DummyWriter(),
+                Writer\TestAssets\DummyWriter::class => new Writer\TestAssets\DummyWriter(),
             ],
         ]);
         Factory::setWriterPluginManager($pluginManager);
-        Factory::registerWriter('dum', 'DummyWriter');
+        Factory::registerWriter('dum', Writer\TestAssets\DummyWriter::class);
 
         $file = $this->getTestAssetFileName('dum');
 
@@ -132,6 +132,40 @@ final class FactoryTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         Factory::registerWriter('dum', new Reader\TestAssets\DummyReader());
+    }
+
+    #[Test]
+    public function testFactoryRegisterReaderRejectsAClassThatDoesNotImplementTheInterface()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Factory::registerReader('dum', stdClass::class);
+    }
+
+    #[Test]
+    public function testFactoryRegisterReaderRejectsAPluginName()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Reader should be a class-string of');
+
+        Factory::registerReader('dum', 'ini');
+    }
+
+    #[Test]
+    public function testFactoryRegisterWriterRejectsAClassThatIsNotAWriter()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Factory::registerWriter('dum', stdClass::class);
+    }
+
+    #[Test]
+    public function testFactoryRegisterWriterRejectsAPluginName()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Writer should be a class-string of');
+
+        Factory::registerWriter('dum', 'php');
     }
 
     #[Test]

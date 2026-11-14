@@ -7,7 +7,6 @@ namespace WebwareTest\ConfigManager;
 use ArrayIterator;
 use InvalidArgumentException;
 use Laminas\ServiceManager;
-use Laminas\ServiceManager\Config as SMConfig;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -45,11 +44,40 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
+    public function testCanCreateReturnsFalseWhenConfigServiceIsNotAnArray()
+    {
+        $container = $this->nonArrayConfigContainer();
+
+        static::assertFalse(new AbstractConfigFactory()->canCreate(
+            container    : $container,
+            requestedName: 'config-mymodule',
+        ));
+    }
+
+    #[Test]
+    public function testCanCreateReturnsFalseWhenConfigurationKeyIsMissing()
+    {
+        static::assertFalse(new AbstractConfigFactory()->canCreate(
+            container    : $this->serviceManager,
+            requestedName: 'config-missing',
+        ));
+    }
+
+    #[Test]
     public function testCanCreateReturnsFalseWhenContainerHasNoConfigService()
     {
         $container = new ServiceManager\ServiceManager();
 
         static::assertFalse(new AbstractConfigFactory()->canCreate($container, 'MyModule\Config'));
+    }
+
+    #[Test]
+    public function testCanCreateReturnsFalseWhenNoPatternMatches()
+    {
+        static::assertFalse(new AbstractConfigFactory()->canCreate(
+            container    : $this->serviceManager,
+            requestedName: 'NoMatch',
+        ));
     }
 
     /**
@@ -65,14 +93,6 @@ final class AbstractConfigFactoryTest extends TestCase
         static::assertTrue($factory->canCreate($serviceLocator, 'MyModule\Config'));
     }
 
-    #[Test]
-    public function testCanCreateServiceWithNameProxiesToCanCreate()
-    {
-        $factory = new AbstractConfigFactory();
-
-        static::assertTrue($factory->canCreateServiceWithName($this->serviceManager, 'config', 'MyModule\Config'));
-    }
-
     /**
      * @return void
      */
@@ -86,17 +106,6 @@ final class AbstractConfigFactoryTest extends TestCase
         static::assertIsArray($serviceLocator->get('phly-blog.config'));
         static::assertIsArray($serviceLocator->get('phly-blog-config'));
         static::assertIsArray($serviceLocator->get('config-phly-blog'));
-    }
-
-    #[Test]
-    public function testCreateServiceWithNameProxiesToInvoke()
-    {
-        $factory = new AbstractConfigFactory();
-
-        static::assertSame(
-            $this->config['MyModule'],
-            $factory->createServiceWithName($this->serviceManager, 'config', 'MyModule\Config'),
-        );
     }
 
     #[Test]
@@ -134,6 +143,50 @@ final class AbstractConfigFactoryTest extends TestCase
 
         static::assertSame($this->config['MyModule'], $result);
         static::assertTrue($factory->canCreate($this->serviceManager, 'MyModule\Config'));
+    }
+
+    #[Test]
+    public function testInvokeThrowsWhenConfigServiceIsNotAnArray()
+    {
+        $container = $this->nonArrayConfigContainer();
+
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Unable to resolve a configuration value for the requested service name "config-mymodule"',
+        );
+
+        new AbstractConfigFactory()(
+            container    : $container,
+            requestedName: 'config-mymodule',
+        );
+    }
+
+    #[Test]
+    public function testInvokeThrowsWhenConfigurationKeyIsMissing()
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Unable to resolve a configuration value for the requested service name "config-missing"',
+        );
+
+        new AbstractConfigFactory()(
+            container    : $this->serviceManager,
+            requestedName: 'config-missing',
+        );
+    }
+
+    #[Test]
+    public function testInvokeThrowsWhenNoPatternMatches()
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Unable to resolve a configuration value for the requested service name "NoMatch"',
+        );
+
+        new AbstractConfigFactory()(
+            container    : $this->serviceManager,
+            requestedName: 'NoMatch',
+        );
     }
 
     /**
@@ -196,8 +249,7 @@ final class AbstractConfigFactoryTest extends TestCase
             ],
         ];
 
-        $this->serviceManager = new ServiceManager\ServiceManager();
-        $smConfig             = new SMConfig([
+        $this->serviceManager = new ServiceManager\ServiceManager([
             'abstract_factories' => [
                 AbstractConfigFactory::class,
             ],
@@ -205,6 +257,14 @@ final class AbstractConfigFactoryTest extends TestCase
                 'config' => $this->config,
             ],
         ]);
-        $smConfig->configureServiceManager($this->serviceManager);
+    }
+
+    private function nonArrayConfigContainer(): ServiceManager\ServiceManager
+    {
+        return new ServiceManager\ServiceManager([
+            'services' => [
+                'config' => 'not-an-array',
+            ],
+        ]);
     }
 }
