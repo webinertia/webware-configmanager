@@ -5,56 +5,103 @@ declare(strict_types=1);
 namespace Webware\ConfigManager;
 
 use InvalidArgumentException;
-use Laminas\ServiceManager\AbstractFactoryInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
+use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Override;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Traversable;
 
 use function array_key_exists;
-use function array_unshift;
 use function is_array;
 use function is_string;
 use function iterator_to_array;
 use function preg_match;
+use function sprintf;
 
 class AbstractConfigFactory implements AbstractFactoryInterface
 {
-    /** @var array */
-    protected $configs = [];
+    /** @var array<string, mixed> */
+    protected array $configs = [];
 
-    /** @var string[] */
-    protected $defaultPatterns = [
+    /** @var list<string> */
+    protected array $defaultPatterns = [
         '#config[\._-](.*)$#i',
         '#^(.*)[\\\\\._-]config$#i',
     ];
 
-    /** @var string[] */
-    protected $patterns;
+    /** @var array<array-key, string>|null */
+    protected ?array $patterns = null;
 
     /**
-     * @param string $pattern
-     * @return self
      * @throws Exception\InvalidArgumentException
      */
-    public function addPattern($pattern)
+    public function addPattern(mixed $pattern): self
     {
         if (! is_string($pattern)) {
             throw new Exception\InvalidArgumentException('pattern must be string');
         }
 
-        $patterns = $this->getPatterns();
-        array_unshift($patterns, $pattern);
-        $this->setPatterns($patterns);
+        return $this->setPatterns([$pattern, ...$this->getPatterns()]);
+    }
+
+    /**
+     * @throws Exception\InvalidArgumentException
+     */
+    public function addPatterns(mixed $patterns): self
+    {
+        foreach ($this->assertPatternList($patterns) as $pattern) {
+            $this->addPattern($pattern);
+        }
+
         return $this;
     }
 
     /**
-     * @param array|Traversable $patterns
-     * @return self
+     * Determine if the requested service name maps to a configuration key.
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[Override]
+    public function canCreate(ContainerInterface $container, string $requestedName): bool
+    {
+        return null !== $this->find($container, $requestedName);
+    }
+
+    /**
+     * @return array<array-key, string>
+     */
+    public function getPatterns(): array
+    {
+        return $this->patterns ?? $this->defaultPatterns;
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function setPatterns(mixed $patterns): self
+    {
+        $this->patterns = $this->assertPatternList($patterns);
+        return $this;
+    }
+
+    protected function match(string $requestedName): ?string
+    {
+        foreach ($this->getPatterns() as $pattern) {
+            if (preg_match($pattern, $requestedName, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<array-key, string>
      * @throws Exception\InvalidArgumentException
      */
-    public function addPatterns($patterns)
+    private function assertPatternList(mixed $patterns): array
     {
         if ($patterns instanceof Traversable) {
             $patterns = iterator_to_array($patterns);
@@ -64,133 +111,52 @@ class AbstractConfigFactory implements AbstractFactoryInterface
             throw new Exception\InvalidArgumentException('patterns must be array or Traversable');
         }
 
-        foreach ($patterns as $pattern) {
-            $this->addPattern($pattern);
-        }
-
-        return $this;
+        /** @var array<array-key, string> */
+        return $patterns;
     }
 
     /**
-     * Determine if we can create a service (SM v3)
+     * Resolve the configuration key and value for a requested service name.
      *
-     * @param string $requestedName
-     * @return bool
+     * @return array{key: string, value: mixed}|null
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
-    #[Override]
-    public function canCreate(ContainerInterface $container, $requestedName)
+    private function find(ContainerInterface $container, string $requestedName): ?array
     {
-        if (array_key_exists($requestedName, $this->configs)) {
-            return true;
-        }
-
-        if (! $container->has('config')) {
-            return false;
-        }
-
         $key = $this->match($requestedName);
         if (null === $key) {
-            return false;
+            return null;
         }
 
-        $config = $container->get('config');
-        return array_key_exists($key, $config);
-    }
-
-    /**
-     * Determine if we can create a service with name (SM v2)
-     *
-     * @param string $name
-     * @param string $requestedName
-     * @return bool
-     */
-    #[Override]
-    public function canCreateServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
-    {
-        return $this->canCreate($serviceLocator, $requestedName);
-    }
-
-    /**
-     * Create service with name (SM v2)
-     *
-     * @param string $name
-     * @param string $requestedName
-     * @return string|mixed|array
-     */
-    #[Override]
-    public function createServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
-    {
-        return $this($serviceLocator, $requestedName);
-    }
-
-    /**
-     * @return array
-     */
-    public function getPatterns()
-    {
-        if (null === $this->patterns) {
-            $this->setPatterns($this->defaultPatterns);
-        }
-        return $this->patterns;
-    }
-
-    /**
-     * @param array|Traversable $patterns
-     * @return self
-     * @throws InvalidArgumentException
-     */
-    public function setPatterns($patterns)
-    {
-        if ($patterns instanceof Traversable) {
-            $patterns = iterator_to_array($patterns);
-        }
-
-        if (! is_array($patterns)) {
-            throw new InvalidArgumentException('patterns must be array or Traversable');
-        }
-
-        $this->patterns = $patterns;
-        return $this;
-    }
-
-    /**
-     * @param string $requestedName
-     * @return null|string
-     */
-    protected function match($requestedName)
-    {
-        foreach ($this->getPatterns() as $pattern) {
-            if (preg_match($pattern, $requestedName, $matches)) {
-                return $matches[1];
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Create service with name (SM v3)
-     *
-     * @param string $requestedName
-     * @return string|mixed|array
-     */
-    #[Override]
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
-    {
-        if (array_key_exists($requestedName, $this->configs)) {
-            return $this->configs[$requestedName];
-        }
-
-        $key = $this->match($requestedName);
         if (array_key_exists($key, $this->configs)) {
-            $this->configs[$requestedName] = $this->configs[$key];
-            return $this->configs[$key];
+            return ['key' => $key, 'value' => $this->configs[$key]];
         }
 
-        $config = $container->get('config');
+        $config = $container->has('config') ? $container->get('config') : [];
+        if (! is_array($config) || ! array_key_exists($key, $config)) {
+            return null;
+        }
 
-        $this->configs[$requestedName] = $config[$key];
-        $this->configs[$key]           = $config[$key];
+        return ['key' => $key, 'value' => $config[$key]];
+    }
 
-        return $config[$key];
+    /**
+     * @param array<array-key, mixed>|null $options
+     * @throws Exception\InvalidArgumentException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    #[Override]
+    public function __invoke(ContainerInterface $container, string $requestedName, ?array $options = null): mixed
+    {
+        $entry = $this->find($container, $requestedName) ?? throw new Exception\InvalidArgumentException(
+            sprintf('Unable to resolve a configuration value for the requested service name "%s"', $requestedName),
+        );
+
+        $this->configs[$requestedName] = $entry['value'];
+        $this->configs[$entry['key']]  = $entry['value'];
+
+        return $entry['value'];
     }
 }

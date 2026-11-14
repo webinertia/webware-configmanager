@@ -49,6 +49,8 @@ $config = Factory::fromFiles(['config/autoload/global.php', 'config/autoload/loc
 
 Readers and writers are resolved through `ReaderPluginManager` and `WriterPluginManager` when
 `laminas/laminas-servicemanager` is installed, and through the standalone plugin managers otherwise.
+Both plugin managers identify plugins by fully qualified class name only; no short names or aliases
+are registered. The extension map used by `Factory` points at those class names.
 
 ## Relation to laminas-config-aggregator
 

@@ -112,7 +112,7 @@ count = 2
 file = "test/unit/AbstractConfigFactoryTest.php"
 code = "no-literal-namespace-string"
 message = "Use `::class` notation instead of a hardcoded namespace string."
-count = 10
+count = 8
 
 [[issues]]
 file = "test/unit/ConfigTest.php"

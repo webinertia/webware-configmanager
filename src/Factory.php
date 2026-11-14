@@ -13,6 +13,7 @@ use function file_exists;
 use function file_put_contents;
 use function get_include_path;
 use function gettype;
+use function is_a;
 use function is_array;
 use function is_dir;
 use function is_file;
@@ -45,32 +46,32 @@ class Factory
 
     /**
      * Registered config file extensions.
-     * key is extension, value is reader instance or plugin name
+     * key is extension, value is reader instance or reader class name
      *
-     * @var array
+     * @var array<string, class-string<Reader\ReaderInterface>|Reader\ReaderInterface>
      */
     protected static $extensions = [
-        'ini'        => 'ini',
-        'json'       => 'json',
-        'xml'        => 'xml',
-        'yaml'       => 'yaml',
-        'yml'        => 'yaml',
-        'properties' => 'javaproperties',
+        'ini'        => Reader\Ini::class,
+        'json'       => Reader\Json::class,
+        'xml'        => Reader\Xml::class,
+        'yaml'       => Reader\Yaml::class,
+        'yml'        => Reader\Yaml::class,
+        'properties' => Reader\JavaProperties::class,
     ];
 
     /**
      * Register config file extensions for writing
-     * key is extension, value is writer instance or plugin name
+     * key is extension, value is writer instance or writer class name
      *
-     * @var array
+     * @var array<string, class-string<Writer\AbstractWriter>|Writer\AbstractWriter>
      */
     protected static $writerExtensions = [
-        'php'  => 'php',
-        'ini'  => 'ini',
-        'json' => 'json',
-        'xml'  => 'xml',
-        'yaml' => 'yaml',
-        'yml'  => 'yaml',
+        'php'  => Writer\PhpArray::class,
+        'ini'  => Writer\Ini::class,
+        'json' => Writer\Json::class,
+        'xml'  => Writer\Xml::class,
+        'yaml' => Writer\Yaml::class,
+        'yml'  => Writer\Yaml::class,
     ];
 
     /**
@@ -203,7 +204,7 @@ class Factory
      * Set config reader for file extension
      *
      * @param  string $extension
-     * @param  string|Reader\ReaderInterface $reader
+     * @param  class-string<Reader\ReaderInterface>|Reader\ReaderInterface $reader
      * @throws Exception\InvalidArgumentException
      * @return void
      */
@@ -211,23 +212,14 @@ class Factory
     {
         $extension = strtolower($extension);
 
-        if (! is_string($reader) && ! $reader instanceof Reader\ReaderInterface) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'Reader should be plugin name, class name or '
-                    . 'instance of %s\Reader\ReaderInterface; received "%s"',
-                __NAMESPACE__,
-                is_object($reader) ? $reader::class : gettype($reader),
-            ));
-        }
-
-        static::$extensions[$extension] = $reader;
+        static::$extensions[$extension] = self::assertPlugin($reader, Reader\ReaderInterface::class, 'Reader');
     }
 
     /**
      * Set config writer for file extension
      *
-     * @param string $extension
-     * @param string|Writer\AbstractWriter $writer
+     * @param  string $extension
+     * @param  class-string<Writer\AbstractWriter>|Writer\AbstractWriter $writer
      * @throws Exception\InvalidArgumentException
      * @return void
      */
@@ -235,16 +227,7 @@ class Factory
     {
         $extension = strtolower($extension);
 
-        if (! is_string($writer) && ! $writer instanceof Writer\AbstractWriter) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'Writer should be plugin name, class name or '
-                    . 'instance of %s\Writer\AbstractWriter; received "%s"',
-                __NAMESPACE__,
-                is_object($writer) ? $writer::class : gettype($writer),
-            ));
-        }
-
-        static::$writerExtensions[$extension] = $writer;
+        static::$writerExtensions[$extension] = self::assertPlugin($writer, Writer\AbstractWriter::class, 'Writer');
     }
 
     /**
@@ -327,5 +310,29 @@ class Factory
         $content = $writer->processConfig($config);
 
         return file_put_contents($filename, $content) !== false;
+    }
+
+    /**
+     * Accept only an instance of the given type, or the class name of a class of that type.
+     *
+     * @param class-string $type
+     * @throws Exception\InvalidArgumentException
+     */
+    private static function assertPlugin(mixed $plugin, string $type, string $label): string|object
+    {
+        if (is_object($plugin) && $plugin instanceof $type) {
+            return $plugin;
+        }
+
+        if (! is_string($plugin) || ! is_a($plugin, $type, allow_string: true)) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                '%s should be a class-string of %s or an instance of it; received "%s"',
+                $label,
+                $type,
+                is_object($plugin) ? $plugin::class : gettype($plugin),
+            ));
+        }
+
+        return $plugin;
     }
 }

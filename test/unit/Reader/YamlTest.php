@@ -6,16 +6,43 @@ namespace WebwareTest\ConfigManager\Reader;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionProperty;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader\Yaml as YamlReader;
 
+use function function_exists;
 use function is_array;
 
 #[CoversClass(YamlReader::class)]
 final class YamlTest extends AbstractReaderTestCase
 {
+    /**
+     * The constructor wires yaml_parse() when ext-yaml is loaded, so clear it to
+     * reach the missing-decoder path regardless of the host environment.
+     */
+    private static function withoutDecoder(): YamlReader
+    {
+        $reader = new YamlReader();
+        new ReflectionProperty(YamlReader::class, 'yamlDecoder')->setValue($reader, null);
+
+        return $reader;
+    }
+
+    #[Test]
+    public function testConstructorUsesTheYamlExtensionWhenItIsAvailable()
+    {
+        $reader = new YamlReader();
+
+        if (function_exists('yaml_parse')) {
+            static::assertSame('yaml_parse', $reader->getYamlDecoder());
+            return;
+        }
+
+        static::assertNull($reader->getYamlDecoder());
+    }
+
     #[Test]
     public function testDecoderReturningNullIsReportedAsParseError()
     {
@@ -84,7 +111,7 @@ final class YamlTest extends AbstractReaderTestCase
         $this->expectException(Exception\RuntimeException::class);
         $this->expectExceptionMessage("You didn't specify a Yaml callback decoder");
 
-        new YamlReader()->fromFile($this->getTestAssetPath('include-target'));
+        self::withoutDecoder()->fromFile($this->getTestAssetPath('include-target'));
     }
 
     #[Test]
@@ -93,7 +120,7 @@ final class YamlTest extends AbstractReaderTestCase
         $this->expectException(Exception\RuntimeException::class);
         $this->expectExceptionMessage("You didn't specify a Yaml callback decoder");
 
-        new YamlReader()->fromString('foo: bar');
+        self::withoutDecoder()->fromString('foo: bar');
     }
 
     #[Test]

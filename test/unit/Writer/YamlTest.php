@@ -6,6 +6,7 @@ namespace WebwareTest\ConfigManager\Writer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionProperty;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 use Webware\ConfigManager\Config;
@@ -13,11 +14,25 @@ use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader\Yaml as YamlReader;
 use Webware\ConfigManager\Writer\Yaml as YamlWriter;
 
+use function function_exists;
 use function is_array;
 
 #[CoversClass(YamlWriter::class)]
 final class YamlTest extends AbstractWriterTestCase
 {
+    #[Test]
+    public function testConstructorUsesTheYamlExtensionWhenItIsAvailable()
+    {
+        $writer = new YamlWriter();
+
+        if (function_exists('yaml_emit')) {
+            static::assertSame('yaml_emit', $writer->getYamlEncoder());
+            return;
+        }
+
+        static::assertNull($writer->getYamlEncoder());
+    }
+
     #[Test]
     public function testEncoderReturningNullIsReportedAsGenerationError()
     {
@@ -79,7 +94,10 @@ final class YamlTest extends AbstractWriterTestCase
         $this->expectException(Exception\RuntimeException::class);
         $this->expectExceptionMessage("You didn't specify a Yaml callback encoder");
 
-        new YamlWriter()->processConfig(['test' => 'foo']);
+        $writer = new YamlWriter();
+        new ReflectionProperty(YamlWriter::class, 'yamlEncoder')->setValue($writer, null);
+
+        $writer->processConfig(['test' => 'foo']);
     }
 
     protected function setUp(): void

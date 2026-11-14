@@ -8,141 +8,9 @@ count = 1
 
 [[issues]]
 file = "src/AbstractConfigFactory.php"
-code = "impossible-condition"
-message = "This condition (type `false`) will always evaluate to false."
-count = 4
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "incompatible-return-type"
-message = 'Return type `array<array-key, mixed>|mixed|string` of `Webware\ConfigManager\AbstractConfigFactory::__invoke()` is incompatible with parent return type `object` of `Laminas\ServiceManager\Factory\FactoryInterface::__invoke()`'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-parameter-type"
-message = "Parameter `$pattern` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-parameter-type"
-message = "Parameter `$patterns` is missing a type hint."
-count = 2
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-parameter-type"
-message = "Parameter `$requestedName` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-property-type"
-message = "Property `$configs` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-property-type"
-message = "Property `$defaultPatterns` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-property-type"
-message = "Property `$patterns` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-return-type"
-message = "Function `addPattern` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-return-type"
-message = "Function `addPatterns` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-return-type"
-message = "Function `getPatterns` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-return-type"
-message = "Function `match` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "missing-return-type"
-message = "Function `setPatterns` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "mixed-argument"
-message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\AbstractConfigFactory::addPattern`: expected `string`, but found `mixed`.'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #1 of `preg_match`: expected `string`, but found `mixed`."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #2 of `array_key_exists`: expected `array<array-key, mixed>`, but found `mixed`."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "mixed-array-access"
-message = "Unsafe array access on type `mixed`."
-count = 3
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 4
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "mixed-property-type-coercion"
-message = "A value with a less specific type `array<array-key, mixed>` is being assigned to property `$patterns` (array<array-key, string>)."
 count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "mixed-return-statement"
-message = 'Could not infer a precise return type for function `Webware\ConfigManager\AbstractConfigFactory::__invoke`. Saw type `mixed`.'
-count = 3
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "possibly-null-argument"
-message = "Argument #1 of function `array_key_exists` is possibly `null`, but parameter type `bool|float|int|string` does not accept it."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "possibly-null-array-index"
-message = "Possibly using `null` as an array index to access element."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "possibly-null-array-index"
-message = "Possibly using `null` as an array index to access elementof variable $config."
-count = 3
 
 [[issues]]
 file = "src/AbstractConfigFactory.php"
@@ -158,62 +26,8 @@ count = 1
 
 [[issues]]
 file = "src/AbstractConfigFactory.php"
-code = "redundant-comparison"
-message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "redundant-type-comparison"
-message = "Redundant type assertion: `$pattern` is already `string`."
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "redundant-type-comparison"
-message = "Redundant type assertion: `$patterns` is already `array<array-key, mixed>`."
-count = 2
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
 code = "unhandled-thrown-type"
 message = 'Potentially unhandled exception `InvalidArgumentException` in `Webware\ConfigManager\AbstractConfigFactory::addPattern`.'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `InvalidArgumentException` in `Webware\ConfigManager\AbstractConfigFactory::getPatterns`.'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotCreatedException` in `Webware\ConfigManager\AbstractConfigFactory::createServiceWithName`.'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotFoundException` in `Webware\ConfigManager\AbstractConfigFactory::createServiceWithName`.'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `Webware\ConfigManager\AbstractConfigFactory::canCreate`.'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `Webware\ConfigManager\AbstractConfigFactory::createServiceWithName`.'
-count = 1
-
-[[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `Webware\ConfigManager\AbstractConfigFactory::canCreate`.'
 count = 1
 
 [[issues]]
@@ -615,12 +429,6 @@ count = 1
 [[issues]]
 file = "src/Factory.php"
 code = "mixed-argument"
-message = 'Invalid argument type for argument #1 of `Psr\Container\ContainerInterface::get`: expected `string`, but found `mixed`.'
-count = 2
-
-[[issues]]
-file = "src/Factory.php"
-code = "mixed-argument"
 message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Config::__construct`: expected `array<array-key, mixed>`, but found `mixed`.'
 count = 1
 
@@ -634,7 +442,7 @@ count = 1
 file = "src/Factory.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 7
+count = 5
 
 [[issues]]
 file = "src/Factory.php"
@@ -1172,86 +980,14 @@ count = 1
 
 [[issues]]
 file = "src/Processor/Translator.php"
-code = "incompatible-parameter-type"
-message = 'Parameter `$value` of `Webware\ConfigManager\Processor\Translator::processvalue()` expects type `string` but parent `Webware\ConfigManager\Processor\ProcessorInterface::processvalue()` expects type `mixed`'
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
 code = "invalid-member-selector"
 message = "Invalid type `mixed` used as a member selector; a string is expected."
 count = 1
 
 [[issues]]
 file = "src/Processor/Translator.php"
-code = "missing-parameter-type"
-message = "Parameter `$locale` is missing a type hint."
-count = 2
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-parameter-type"
-message = "Parameter `$textDomain` is missing a type hint."
-count = 2
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-property-type"
-message = "Property `$locale` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-property-type"
-message = "Property `$textDomain` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
 code = "missing-property-type"
 message = "Property `$translator` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-return-type"
-message = "Function `getLocale` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-return-type"
-message = "Function `getTextDomain` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-return-type"
-message = "Function `getTranslator` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-return-type"
-message = "Function `setLocale` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-return-type"
-message = "Function `setTextDomain` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "missing-return-type"
-message = "Function `setTranslator` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/Processor/Translator.php"
-code = "mixed-argument"
-message = 'Invalid argument type for argument #1 of `Laminas\I18n\Translator\Translator::translate`: expected `string`, but found `mixed`.'
 count = 1
 
 [[issues]]
@@ -1963,201 +1699,15 @@ message = "Type `array` in parameter `$config` is imprecise, equivalent to `arra
 count = 1
 
 [[issues]]
-file = "src/ReaderPluginManager.php"
-code = "incompatible-property-type"
-message = 'Property `Webware\ConfigManager\ReaderPluginManager::$factories` has an incompatible type declaration from docblock.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "incompatible-property-type"
-message = 'Property `Webware\ConfigManager\ReaderPluginManager::$instanceOf` has an incompatible type declaration from docblock.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "less-specific-nested-argument-type"
-message = '''Argument type mismatch for argument #2 of `Laminas\ServiceManager\AbstractPluginManager::__construct`: expected `array{'abstract_factories'?: array<array-key, Laminas\ServiceManager\Factory\AbstractFactoryInterface|class-string<Laminas\ServiceManager\Factory\AbstractFactoryInterface>>, 'aliases'?: array<string, string>, 'delegators'?: array<string, array<array-key, (callable(Psr\Container\ContainerInterface, string, (callable(): object), array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\DelegatorFactoryInterface|class-string<Laminas\ServiceManager\Factory\DelegatorFactoryInterface>>>, 'factories'?: array<string, (callable(Psr\Container\ContainerInterface, null|string, array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\FactoryInterface|class-string<Laminas\ServiceManager\Factory\FactoryInterface>>, 'initializers'?: array<array-key, (callable(Psr\Container\ContainerInterface, object): void)|Laminas\ServiceManager\Initializer\InitializerInterface|class-string<Laminas\ServiceManager\Initializer\InitializerInterface>>, 'invokables'?: array<string, string>, 'lazy_services'?: array{'class_map'?: array<string, class-string>, 'proxies_namespace'?: non-empty-string, 'proxies_target_dir'?: non-empty-string, 'write_proxy_files'?: bool}, 'services'?: array<string, array<array-key, mixed>|object>, 'shared'?: array<string, bool>, 'shared_by_default'?: bool, ...}`, but provided type `array<array-key, mixed>` is less specific.'''
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "missing-parameter-type"
-message = "Parameter `$instance` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "missing-return-type"
-message = "Function `validatePlugin` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "missing-template-parameter"
-message = 'Too few template arguments for `Laminas\ServiceManager\AbstractPluginManager`: expected at least 1, but found 0.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Reader\Ini` not found.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Reader\JavaProperties` not found.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Reader\Json` not found.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Reader\Xml` not found.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Reader\Yaml` not found.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Ini` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\JavaProperties` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Json` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Xml` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Yaml` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/ReaderPluginManager.php"
-code = "possibly-invalid-argument"
-message = "Possible argument type mismatch for argument #2 of `Exception::__construct`: expected `int`, but possibly received `int|string`."
-count = 1
-
-[[issues]]
 file = "src/StandaloneReaderPluginManager.php"
 code = "class-must-be-final"
 message = 'Class `Webware\ConfigManager\StandaloneReaderPluginManager` should be declared `final`.'
 count = 1
 
 [[issues]]
-file = "src/StandaloneReaderPluginManager.php"
-code = "incompatible-parameter-name"
-message = 'Parameter #1 of `Webware\ConfigManager\StandaloneReaderPluginManager::get()` is named `$plugin` but parent `Psr\Container\ContainerInterface::get()` names it `$id`'
-count = 1
-
-[[issues]]
-file = "src/StandaloneReaderPluginManager.php"
-code = "incompatible-parameter-name"
-message = 'Parameter #1 of `Webware\ConfigManager\StandaloneReaderPluginManager::has()` is named `$plugin` but parent `Psr\Container\ContainerInterface::has()` names it `$id`'
-count = 1
-
-[[issues]]
-file = "src/StandaloneReaderPluginManager.php"
-code = "less-specific-return-statement"
-message = 'Returned type `object` is less specific than the declared return type `Webware\ConfigManager\Reader\ReaderInterface` for function `Webware\ConfigManager\StandaloneReaderPluginManager::get`.'
-count = 1
-
-[[issues]]
-file = "src/StandaloneReaderPluginManager.php"
-code = "missing-property-type"
-message = "Property `$knownPlugins` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/StandaloneReaderPluginManager.php"
-code = "possibly-null-property-access"
-message = "Attempting static access on a possibly `null` value."
-count = 1
-
-[[issues]]
-file = "src/StandaloneReaderPluginManager.php"
-code = "possibly-undefined-string-array-index"
-message = "Possibly undefined array key `lowercase-non-empty-string|string('')` accessed on `array<string, class-string>`."
-count = 1
-
-[[issues]]
-file = "src/StandaloneReaderPluginManager.php"
-code = "unknown-class-instantiation"
-message = "Cannot determine the concrete class for instantiation."
-count = 1
-
-[[issues]]
 file = "src/StandaloneWriterPluginManager.php"
 code = "class-must-be-final"
 message = 'Class `Webware\ConfigManager\StandaloneWriterPluginManager` should be declared `final`.'
-count = 1
-
-[[issues]]
-file = "src/StandaloneWriterPluginManager.php"
-code = "incompatible-parameter-name"
-message = 'Parameter #1 of `Webware\ConfigManager\StandaloneWriterPluginManager::get()` is named `$plugin` but parent `Psr\Container\ContainerInterface::get()` names it `$id`'
-count = 1
-
-[[issues]]
-file = "src/StandaloneWriterPluginManager.php"
-code = "incompatible-parameter-name"
-message = 'Parameter #1 of `Webware\ConfigManager\StandaloneWriterPluginManager::has()` is named `$plugin` but parent `Psr\Container\ContainerInterface::has()` names it `$id`'
-count = 1
-
-[[issues]]
-file = "src/StandaloneWriterPluginManager.php"
-code = "less-specific-return-statement"
-message = 'Returned type `object` is less specific than the declared return type `Webware\ConfigManager\Reader\ReaderInterface` for function `Webware\ConfigManager\StandaloneWriterPluginManager::get`.'
-count = 1
-
-[[issues]]
-file = "src/StandaloneWriterPluginManager.php"
-code = "missing-property-type"
-message = "Property `$knownPlugins` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/StandaloneWriterPluginManager.php"
-code = "possibly-null-property-access"
-message = "Attempting static access on a possibly `null` value."
-count = 1
-
-[[issues]]
-file = "src/StandaloneWriterPluginManager.php"
-code = "possibly-undefined-string-array-index"
-message = "Possibly undefined array key `lowercase-non-empty-string|string('')` accessed on `array<string, class-string>`."
-count = 1
-
-[[issues]]
-file = "src/StandaloneWriterPluginManager.php"
-code = "unknown-class-instantiation"
-message = "Cannot determine the concrete class for instantiation."
 count = 1
 
 [[issues]]
@@ -2764,118 +2314,4 @@ count = 1
 file = "src/WriterPluginManager.php"
 code = "imprecise-type"
 message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "incompatible-property-type"
-message = 'Property `Webware\ConfigManager\WriterPluginManager::$factories` has an incompatible type declaration from docblock.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "incompatible-property-type"
-message = 'Property `Webware\ConfigManager\WriterPluginManager::$instanceOf` has an incompatible type declaration from docblock.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "less-specific-nested-argument-type"
-message = '''Argument type mismatch for argument #2 of `Laminas\ServiceManager\AbstractPluginManager::__construct`: expected `array{'abstract_factories'?: array<array-key, Laminas\ServiceManager\Factory\AbstractFactoryInterface|class-string<Laminas\ServiceManager\Factory\AbstractFactoryInterface>>, 'aliases'?: array<string, string>, 'delegators'?: array<string, array<array-key, (callable(Psr\Container\ContainerInterface, string, (callable(): object), array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\DelegatorFactoryInterface|class-string<Laminas\ServiceManager\Factory\DelegatorFactoryInterface>>>, 'factories'?: array<string, (callable(Psr\Container\ContainerInterface, null|string, array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\FactoryInterface|class-string<Laminas\ServiceManager\Factory\FactoryInterface>>, 'initializers'?: array<array-key, (callable(Psr\Container\ContainerInterface, object): void)|Laminas\ServiceManager\Initializer\InitializerInterface|class-string<Laminas\ServiceManager\Initializer\InitializerInterface>>, 'invokables'?: array<string, string>, 'lazy_services'?: array{'class_map'?: array<string, class-string>, 'proxies_namespace'?: non-empty-string, 'proxies_target_dir'?: non-empty-string, 'write_proxy_files'?: bool}, 'services'?: array<string, array<array-key, mixed>|object>, 'shared'?: array<string, bool>, 'shared_by_default'?: bool, ...}`, but provided type `array<array-key, mixed>` is less specific.'''
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "missing-parameter-type"
-message = "Parameter `$instance` is missing a type hint."
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "missing-return-type"
-message = "Function `validatePlugin` is missing a return type hint."
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "missing-template-parameter"
-message = 'Too few template arguments for `Laminas\ServiceManager\AbstractPluginManager`: expected at least 1, but found 0.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Writer\Ini` not found.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Writer\JavaProperties` not found.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Writer\Json` not found.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Writer\PhpArray` not found.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Writer\Xml` not found.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-class-like"
-message = 'Class, interface, enum, or trait `Zend\Config\Writer\Yaml` not found.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Ini` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\JavaProperties` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Json` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\PhpArray` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Xml` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "non-existent-use-import"
-message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Yaml` does not exist.'
-count = 1
-
-[[issues]]
-file = "src/WriterPluginManager.php"
-code = "possibly-invalid-argument"
-message = "Possible argument type mismatch for argument #2 of `Exception::__construct`: expected `int`, but possibly received `int|string`."
 count = 1

@@ -9,25 +9,26 @@ use Override;
 use Webware\ConfigManager\Config;
 use Webware\ConfigManager\Exception;
 
+use function is_string;
+
 class Translator implements ProcessorInterface
 {
     /** @var LaminasTranslator */
     protected $translator;
 
-    /** @var string|null */
-    protected $locale;
+    /** @var non-empty-string|null */
+    protected ?string $locale = null;
 
-    /** @var string */
-    protected $textDomain = 'default';
+    /** @var non-empty-string */
+    protected string $textDomain = 'default';
 
     /**
      * Translator uses the supplied Laminas\I18n\Translator\Translator to find
      * and translate language strings in config.
      *
-     * @param string $textDomain
-     * @param string|null $locale
+     * @throws Exception\InvalidArgumentException If the text domain or locale is an empty string.
      */
-    public function __construct(LaminasTranslator $translator, $textDomain = 'default', $locale = null)
+    public function __construct(LaminasTranslator $translator, string $textDomain = 'default', ?string $locale = null)
     {
         $this->setTranslator($translator);
         $this->setTextDomain($textDomain);
@@ -35,25 +36,22 @@ class Translator implements ProcessorInterface
     }
 
     /**
-     * @return string|null
+     * @return non-empty-string|null
      */
-    public function getLocale()
+    public function getLocale(): ?string
     {
         return $this->locale;
     }
 
     /**
-     * @return string
+     * @return non-empty-string
      */
-    public function getTextDomain()
+    public function getTextDomain(): string
     {
         return $this->textDomain;
     }
 
-    /**
-     * @return LaminasTranslator
-     */
-    public function getTranslator()
+    public function getTranslator(): LaminasTranslator
     {
         return $this->translator;
     }
@@ -65,7 +63,7 @@ class Translator implements ProcessorInterface
      * @throws Exception\InvalidArgumentException
      */
     #[Override]
-    public function process(Config $config)
+    public function process(Config $config): Config
     {
         if ($config->isReadOnly()) {
             throw new Exception\InvalidArgumentException('Cannot process config because it is read-only');
@@ -80,7 +78,7 @@ class Translator implements ProcessorInterface
                 continue;
             }
 
-            $config->{$key} = $this->translator->translate($val, $this->textDomain, $this->locale);
+            $config->{$key} = $this->processValue($val);
         }
 
         return $config;
@@ -88,32 +86,41 @@ class Translator implements ProcessorInterface
 
     /**
      * Process a single value
-     *
-     * @param string $value
-     * @return string
      */
     #[Override]
-    public function processValue($value)
+    public function processValue(mixed $value): mixed
     {
+        if (! is_string($value) || '' === $value) {
+            return $value;
+        }
+
         return $this->translator->translate($value, $this->textDomain, $this->locale);
     }
 
     /**
-     * @param string|null $locale
      * @return self
+     * @throws Exception\InvalidArgumentException If the locale is an empty string.
      */
-    public function setLocale($locale)
+    public function setLocale(?string $locale): self
     {
+        if ('' === $locale) {
+            throw new Exception\InvalidArgumentException('locale must be a non-empty string or null');
+        }
+
         $this->locale = $locale;
         return $this;
     }
 
     /**
-     * @param string $textDomain
      * @return self
+     * @throws Exception\InvalidArgumentException If the text domain is an empty string.
      */
-    public function setTextDomain($textDomain)
+    public function setTextDomain(string $textDomain): self
     {
+        if ('' === $textDomain) {
+            throw new Exception\InvalidArgumentException('textDomain must be a non-empty string');
+        }
+
         $this->textDomain = $textDomain;
         return $this;
     }
@@ -121,7 +128,7 @@ class Translator implements ProcessorInterface
     /**
      * @return self
      */
-    public function setTranslator(LaminasTranslator $translator)
+    public function setTranslator(LaminasTranslator $translator): self
     {
         $this->translator = $translator;
         return $this;

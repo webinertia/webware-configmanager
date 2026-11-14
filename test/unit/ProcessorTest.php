@@ -7,8 +7,11 @@ namespace WebwareTest\ConfigManager;
 use Laminas\Filter\PregReplace;
 use Laminas\Filter\StringToLower;
 use Laminas\Filter\StringToUpper;
-use Laminas\I18n\Exception as I18nException;
+use Laminas\I18n\Translator\LoaderPluginManager;
+use Laminas\I18n\Translator\TranslationCollector\FileListCollector;
 use Laminas\I18n\Translator\Translator;
+use Laminas\I18n\Translator\Value\TranslationFile;
+use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +25,6 @@ use Webware\ConfigManager\Processor\Translator as TranslatorProcessor;
 
 use function define;
 use function defined;
-use function extension_loaded;
 use function gettype;
 use function realpath;
 
@@ -194,7 +196,7 @@ final class ProcessorTest extends TestCase
         $config           = new Config($this->filter, 1);
         $lower            = new StringToLower();
         $upper            = new StringToUpper();
-        $replace          = new PregReplace('/[a-z]/', '');
+        $replace          = new PregReplace(['pattern' => '/[a-z]/']);
         $lowerProcessor   = new FilterProcessor($lower);
         $upperProcessor   = new FilterProcessor($upper);
         $replaceProcessor = new FilterProcessor($replace);
@@ -400,14 +402,9 @@ final class ProcessorTest extends TestCase
     #[Test]
     public function testTranslator()
     {
-        if (! extension_loaded('intl')) {
-            static::markTestSkipped('ext/intl not enabled');
-        }
-
         $config     = new Config($this->translatorData, true);
-        $translator = new Translator();
-        $translator->addTranslationFile('phparray', $this->translatorFile);
-        $processor = new TranslatorProcessor($translator);
+        $translator = $this->createTranslator();
+        $processor  = new TranslatorProcessor($translator);
 
         static::assertSame($translator, $processor->getTranslator());
         static::assertSame('default', $processor->getTextDomain());
@@ -422,10 +419,21 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
+    public function testTranslatorProcessValueLeavesNonStringValuesUntouched()
+    {
+        $translator = $this->createTranslator();
+        $processor  = new TranslatorProcessor($translator);
+
+        static::assertSame(42, $processor->processValue(42));
+        static::assertSame('', $processor->processValue(''));
+        static::assertNull($processor->processValue(null));
+    }
+
+    #[Test]
     public function testTranslatorReadOnly()
     {
         $config     = new Config($this->translatorData, false);
-        $translator = new Translator();
+        $translator = $this->createTranslator();
         $processor  = new TranslatorProcessor($translator);
 
         $this->expectException(Exception\InvalidArgumentException::class);
@@ -434,54 +442,30 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
+    public function testTranslatorRejectsEmptyLocale()
+    {
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessage('locale must be a non-empty string or null');
+
+        new TranslatorProcessor($this->createTranslator())->setLocale('');
+    }
+
+    #[Test]
+    public function testTranslatorRejectsEmptyTextDomain()
+    {
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessage('textDomain must be a non-empty string');
+
+        new TranslatorProcessor($this->createTranslator())->setTextDomain('');
+    }
+
+    #[Test]
     public function testTranslatorSingleValue()
     {
-        if (! extension_loaded('intl')) {
-            static::markTestSkipped('ext/intl not enabled');
-        }
-
-        $translator = new Translator();
-        $translator->addTranslationFile('phparray', $this->translatorFile);
-        $processor = new TranslatorProcessor($translator);
+        $translator = $this->createTranslator();
+        $processor  = new TranslatorProcessor($translator);
 
         static::assertSame('ein Hund', $processor->processValue('one dog'));
-    }
-
-    #[Test]
-    public function testTranslatorSingleValueWithoutIntl()
-    {
-        if (extension_loaded('intl')) {
-            static::markTestSkipped('ext/intl enabled');
-        }
-
-        $this->expectException(I18nException\ExtensionNotLoadedException::class);
-        $this->expectExceptionMessage('Laminas\I18n\Translator component requires the intl PHP extension');
-
-        $translator = new Translator();
-        $translator->addTranslationFile('phparray', $this->translatorFile);
-        $processor = new TranslatorProcessor($translator);
-
-        static::assertSame('ein Hund', $processor->processValue('one dog'));
-    }
-
-    #[Test]
-    public function testTranslatorWithoutIntl()
-    {
-        if (extension_loaded('intl')) {
-            static::markTestSkipped('ext/intl enabled');
-        }
-
-        $this->expectException(I18nException\ExtensionNotLoadedException::class);
-        $this->expectExceptionMessage(
-            'Laminas\I18n\Translator component requires the intl PHP extension',
-        );
-
-        $config     = new Config($this->translatorData, true);
-        $translator = new Translator();
-        $translator->addTranslationFile('phparray', $this->translatorFile);
-        $processor = new TranslatorProcessor($translator);
-
-        $processor->process($config);
     }
 
     #[Test]
@@ -629,5 +613,22 @@ final class ProcessorTest extends TestCase
                 'phpVersionInside' => 'Current PHP version is: PHP_VERSION',
             ],
         ];
+    }
+
+    private function createTranslator(): Translator
+    {
+        $loader    = new LoaderPluginManager(new ServiceManager());
+        $collector = new FileListCollector(
+            [
+                'default' => [
+                    'de_DE' => [
+                        new TranslationFile('phparray', $this->translatorFile, 'de_DE', 'default'),
+                    ],
+                ],
+            ],
+            $loader,
+        );
+
+        return new Translator($collector, 'de_DE');
     }
 }
