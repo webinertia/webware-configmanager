@@ -1,7 +1,7 @@
 <?php
 
-namespace Laminas\Config\Exception;
+declare(strict_types=1);
 
-class UnprocessableConfigException extends RuntimeException
-{
-}
+namespace Webware\ConfigManager\Exception;
+
+class UnprocessableConfigException extends RuntimeException {}

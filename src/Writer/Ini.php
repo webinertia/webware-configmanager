@@ -1,16 +1,18 @@
 <?php
 
-namespace Laminas\Config\Writer;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Writer;
 
-use function array_merge;
+use Override;
+use Webware\ConfigManager\Exception;
+
 use function implode;
 use function is_array;
 use function is_bool;
 use function is_float;
 use function is_int;
-use function strpos;
+use function str_contains;
 
 class Ini extends AbstractWriter
 {
@@ -30,6 +32,46 @@ class Ini extends AbstractWriter
     protected $renderWithoutSections = false;
 
     /**
+     * Get nest separator.
+     *
+     * @return string
+     */
+    public function getNestSeparator()
+    {
+        return $this->nestSeparator;
+    }
+
+    /**
+     * processConfig(): defined by AbstractWriter.
+     *
+     * @return string
+     */
+    #[Override]
+    public function processConfig(array $config)
+    {
+        $iniString = '';
+
+        if ($this->shouldRenderWithoutSections()) {
+            $iniString .= $this->addBranch($config);
+
+            return $iniString;
+        }
+
+        $config = $this->sortRootElements($config);
+
+        foreach ($config as $sectionName => $data) {
+            if (! is_array($data)) {
+                $iniString .= "{$sectionName} = {$this->prepareValue($data)}\n";
+                continue;
+            }
+
+            $iniString .= "[{$sectionName}]\n{$this->addBranch($data)}\n";
+        }
+
+        return $iniString;
+    }
+
+    /**
      * Set nest separator.
      *
      * @param  string $separator
@@ -39,16 +81,6 @@ class Ini extends AbstractWriter
     {
         $this->nestSeparator = $separator;
         return $this;
-    }
-
-    /**
-     * Get nest separator.
-     *
-     * @return string
-     */
-    public function getNestSeparator()
-    {
-        return $this->nestSeparator;
     }
 
     /**
@@ -62,7 +94,7 @@ class Ini extends AbstractWriter
      */
     public function setRenderWithoutSectionsFlags($withoutSections)
     {
-        $this->renderWithoutSections = (bool) $withoutSections;
+        $this->renderWithoutSections = $withoutSections;
         return $this;
     }
 
@@ -77,37 +109,6 @@ class Ini extends AbstractWriter
     }
 
     /**
-     * processConfig(): defined by AbstractWriter.
-     *
-     * @return string
-     */
-    public function processConfig(array $config)
-    {
-        $iniString = '';
-
-        if ($this->shouldRenderWithoutSections()) {
-            $iniString .= $this->addBranch($config);
-        } else {
-            $config = $this->sortRootElements($config);
-
-            foreach ($config as $sectionName => $data) {
-                if (! is_array($data)) {
-                    $iniString .= $sectionName
-                               . ' = '
-                               . $this->prepareValue($data)
-                               . "\n";
-                } else {
-                    $iniString .= '[' . $sectionName . ']' . "\n"
-                               . $this->addBranch($data)
-                               . "\n";
-                }
-            }
-        }
-
-        return $iniString;
-    }
-
-    /**
      * Add a branch to an INI string recursively.
      *
      * @param  array $parents
@@ -118,16 +119,18 @@ class Ini extends AbstractWriter
         $iniString = '';
 
         foreach ($config as $key => $value) {
-            $group = array_merge($parents, [$key]);
+            $group = [...$parents, $key];
 
             if (is_array($value)) {
                 $iniString .= $this->addBranch($value, $group);
-            } else {
-                $iniString .= implode($this->nestSeparator, $group)
-                           . ' = '
-                           . $this->prepareValue($value)
-                           . "\n";
+                continue;
             }
+
+            $iniString .=
+                implode($this->nestSeparator, $group)
+                . ' = '
+                . $this->prepareValue($value)
+                . "\n";
         }
 
         return $iniString;
@@ -150,8 +153,8 @@ class Ini extends AbstractWriter
             return $value ? 'true' : 'false';
         }
 
-        if (false === strpos($value, '"')) {
-            return '"' . $value . '"';
+        if (! str_contains($value, '"')) {
+            return "\"{$value}\"";
         }
 
         throw new Exception\RuntimeException('Value can not contain double quotes');
@@ -169,10 +172,12 @@ class Ini extends AbstractWriter
 
         // Remove sections from config array.
         foreach ($config as $key => $value) {
-            if (is_array($value)) {
-                $sections[$key] = $value;
-                unset($config[$key]);
+            if (! is_array($value)) {
+                continue;
             }
+
+            $sections[$key] = $value;
+            unset($config[$key]);
         }
 
         // Read sections to the end.

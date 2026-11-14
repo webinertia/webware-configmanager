@@ -1,7 +1,10 @@
 <?php
 
-namespace Laminas\Config;
+declare(strict_types=1);
 
+namespace Webware\ConfigManager;
+
+use Override;
 use Psr\Container\ContainerInterface;
 
 use function array_keys;
@@ -26,28 +29,16 @@ class StandaloneWriterPluginManager implements ContainerInterface
 
     /**
      * @param string $plugin
-     * @return bool
-     */
-    public function has($plugin)
-    {
-        if (in_array($plugin, array_values($this->knownPlugins), true)) {
-            return true;
-        }
-
-        return in_array(strtolower($plugin), array_keys($this->knownPlugins), true);
-    }
-
-    /**
-     * @param string $plugin
      * @return Reader\ReaderInterface
      * @throws Exception\PluginNotFoundException
      */
+    #[Override]
     public function get($plugin)
     {
         if (! $this->has($plugin)) {
             throw new Exception\PluginNotFoundException(sprintf(
                 'Config writer plugin by name %s not found',
-                $plugin
+                $plugin,
             ));
         }
 
@@ -56,5 +47,19 @@ class StandaloneWriterPluginManager implements ContainerInterface
         }
 
         return new $plugin();
+    }
+
+    /**
+     * @param string $plugin
+     * @return bool
+     */
+    #[Override]
+    public function has($plugin)
+    {
+        if (in_array($plugin, array_values($this->knownPlugins), strict: true)) {
+            return true;
+        }
+
+        return in_array(strtolower($plugin), array_keys($this->knownPlugins), strict: true);
     }
 }

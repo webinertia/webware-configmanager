@@ -1,6 +1,8 @@
 <?php
 
-namespace Laminas\Config\Writer;
+declare(strict_types=1);
+
+namespace Webware\ConfigManager\Writer;
 
 interface WriterInterface
 {

@@ -1,0 +1,193 @@
+variant = "loose"
+
+[[issues]]
+file = "src/Config.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "halstead"
+message = "Method has a high halstead difficulty"
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "kan-defect"
+message = "Class has a high kan defect score."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "kan-defect"
+message = "Class has a high kan defect score."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "halstead"
+message = "Method has a high halstead difficulty"
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "kan-defect"
+message = "Class has a high kan defect score."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "no-array-accumulation-in-loop"
+message = "`array_merge_recursive()` called inside a loop causes O(n²) array copying."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "halstead"
+message = "Method has a high halstead difficulty"
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "no-array-accumulation-in-loop"
+message = "Array spread in reassignment inside a loop causes O(n²) array copying."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "cyclomatic-complexity"
+message = "Class has high complexity."
+count = 1
+
+[[issues]]
+file = "test/unit/AbstractConfigFactoryTest.php"
+code = "literal-named-argument"
+message = '''Literal argument `'MyModule\Config'` should be passed as a named argument for clarity.'''
+count = 2
+
+[[issues]]
+file = "test/unit/AbstractConfigFactoryTest.php"
+code = "no-literal-namespace-string"
+message = "Use `::class` notation instead of a hardcoded namespace string."
+count = 10
+
+[[issues]]
+file = "test/unit/ConfigTest.php"
+code = "kan-defect"
+message = "Class has a high kan defect score."
+count = 1
+
+[[issues]]
+file = "test/unit/ConfigTest.php"
+code = "no-debug-symbols"
+message = "Do not commit debug functions."
+count = 1
+
+[[issues]]
+file = "test/unit/ConfigTest.php"
+code = "no-isset"
+message = "Use of the `isset` construct."
+count = 12
+
+[[issues]]
+file = "test/unit/ConfigTest.php"
+code = "no-redundant-variable"
+message = "Variable `$value` is assigned but never used."
+count = 3
+
+[[issues]]
+file = "test/unit/FactoryTest.php"
+code = "no-error-control-operator"
+message = "Unsafe use of error control operator `@`."
+count = 1
+
+[[issues]]
+file = "test/unit/Processor/TokenTest.php"
+code = "no-literal-password"
+message = "Literal passwords or sensitive data should not be stored in code."
+count = 3
+
+[[issues]]
+file = "test/unit/ProcessorTest.php"
+code = "no-literal-password"
+message = "Literal passwords or sensitive data should not be stored in code."
+count = 5
+
+[[issues]]
+file = "test/unit/ProcessorTest.php"
+code = "too-many-properties"
+message = "Class has too many properties."
+count = 1
+
+[[issues]]
+file = "test/unit/Writer/AbstractWriterTestCase.php"
+code = "no-error-control-operator"
+message = "Unsafe use of error control operator `@`."
+count = 1
+
+[[issues]]
+file = "test/unit/Writer/PhpArrayTest.php"
+code = "no-literal-namespace-string"
+message = "Use `::class` notation instead of a hardcoded namespace string."
+count = 1
+
+[[issues]]
+file = "test/unit/Writer/XmlTest.php"
+code = "no-literal-password"
+message = "Literal passwords or sensitive data should not be stored in code."
+count = 1
+
+[[issues]]
+file = "test/unit/Writer/YamlTest.php"
+code = "prefer-arrow-function"
+message = "This closure can be simplified to a more concise arrow function."
+count = 1
+
+[[issues]]
+file = "test/unit/Writer/YamlTest.php"
+code = "prefer-first-class-callable"
+message = "Use first-class callable syntax `...` instead of a arrow function."
+count = 1

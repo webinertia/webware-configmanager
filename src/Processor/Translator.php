@@ -1,10 +1,13 @@
 <?php
 
-namespace Laminas\Config\Processor;
+declare(strict_types=1);
 
-use Laminas\Config\Config;
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Processor;
+
 use Laminas\I18n\Translator\Translator as LaminasTranslator;
+use Override;
+use Webware\ConfigManager\Config;
+use Webware\ConfigManager\Exception;
 
 class Translator implements ProcessorInterface
 {
@@ -32,12 +35,19 @@ class Translator implements ProcessorInterface
     }
 
     /**
-     * @return self
+     * @return string|null
      */
-    public function setTranslator(LaminasTranslator $translator)
+    public function getLocale()
     {
-        $this->translator = $translator;
-        return $this;
+        return $this->locale;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTextDomain()
+    {
+        return $this->textDomain;
     }
 
     /**
@@ -46,6 +56,46 @@ class Translator implements ProcessorInterface
     public function getTranslator()
     {
         return $this->translator;
+    }
+
+    /**
+     * Process
+     *
+     * @return Config
+     * @throws Exception\InvalidArgumentException
+     */
+    #[Override]
+    public function process(Config $config)
+    {
+        if ($config->isReadOnly()) {
+            throw new Exception\InvalidArgumentException('Cannot process config because it is read-only');
+        }
+
+        /**
+         * Walk through config and replace values
+         */
+        foreach ($config as $key => $val) {
+            if ($val instanceof Config) {
+                $this->process($val);
+                continue;
+            }
+
+            $config->{$key} = $this->translator->translate($val, $this->textDomain, $this->locale);
+        }
+
+        return $config;
+    }
+
+    /**
+     * Process a single value
+     *
+     * @param string $value
+     * @return string
+     */
+    #[Override]
+    public function processValue($value)
+    {
+        return $this->translator->translate($value, $this->textDomain, $this->locale);
     }
 
     /**
@@ -59,14 +109,6 @@ class Translator implements ProcessorInterface
     }
 
     /**
-     * @return string|null
-     */
-    public function getLocale()
-    {
-        return $this->locale;
-    }
-
-    /**
      * @param string $textDomain
      * @return self
      */
@@ -77,47 +119,11 @@ class Translator implements ProcessorInterface
     }
 
     /**
-     * @return string
+     * @return self
      */
-    public function getTextDomain()
+    public function setTranslator(LaminasTranslator $translator)
     {
-        return $this->textDomain;
-    }
-
-    /**
-     * Process
-     *
-     * @return Config
-     * @throws Exception\InvalidArgumentException
-     */
-    public function process(Config $config)
-    {
-        if ($config->isReadOnly()) {
-            throw new Exception\InvalidArgumentException('Cannot process config because it is read-only');
-        }
-
-        /**
-         * Walk through config and replace values
-         */
-        foreach ($config as $key => $val) {
-            if ($val instanceof Config) {
-                $this->process($val);
-            } else {
-                $config->{$key} = $this->translator->translate($val, $this->textDomain, $this->locale);
-            }
-        }
-
-        return $config;
-    }
-
-    /**
-     * Process a single value
-     *
-     * @param string $value
-     * @return string
-     */
-    public function processValue($value)
-    {
-        return $this->translator->translate($value, $this->textDomain, $this->locale);
+        $this->translator = $translator;
+        return $this;
     }
 }

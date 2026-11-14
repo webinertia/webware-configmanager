@@ -1,11 +1,14 @@
 <?php
 
-namespace Laminas\Config;
+declare(strict_types=1);
+
+namespace Webware\ConfigManager;
 
 use ArrayAccess;
 use Countable;
 use Iterator;
 // @codingStandardsIgnoreLine
+use Override;
 use ReturnTypeWillChange;
 
 use function array_key_exists;
@@ -57,15 +60,42 @@ class Config implements Countable, Iterator, ArrayAccess
      */
     public function __construct(array $array, $allowModifications = false)
     {
-        $this->allowModifications = (bool) $allowModifications;
+        $this->allowModifications = $allowModifications;
 
         foreach ($array as $key => $value) {
-            if (is_array($value)) {
-                $this->data[$key] = new static($value, $this->allowModifications);
-            } else {
-                $this->data[$key] = $value;
-            }
+            $this->data[$key] = is_array($value)
+                ? new static($value, $this->allowModifications)
+                : $value;
         }
+    }
+
+    /**
+     * count(): defined by Countable interface.
+     *
+     * @see    Countable::count()
+     *
+     * @return int
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function count()
+    {
+        return count($this->data);
+    }
+
+    /**
+     * current(): defined by Iterator interface.
+     *
+     * @see    Iterator::current()
+     *
+     * @return mixed
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function current()
+    {
+        $this->skipNextIteration = false;
+        return current($this->data);
     }
 
     /**
@@ -85,140 +115,13 @@ class Config implements Countable, Iterator, ArrayAccess
     }
 
     /**
-     * Magic function so that $obj->value will work.
+     * Returns whether this Config object is read only or not.
      *
-     * @param  string $name
-     * @return mixed
-     */
-    public function __get($name)
-    {
-        return $this->get($name);
-    }
-
-    /**
-     * Set a value in the config.
-     *
-     * Only allow setting of a property if $allowModifications  was set to true
-     * on construction. Otherwise, throw an exception.
-     *
-     * @param  string $name
-     * @param  mixed  $value
-     * @return void
-     * @throws Exception\RuntimeException
-     */
-    public function __set($name, $value)
-    {
-        if ($this->allowModifications) {
-            if (is_array($value)) {
-                $value = new static($value, true);
-            }
-
-            if (null === $name) {
-                $this->data[] = $value;
-            } else {
-                $this->data[$name] = $value;
-            }
-        } else {
-            throw new Exception\RuntimeException('Config is read only');
-        }
-    }
-
-    /**
-     * Deep clone of this instance to ensure that nested Laminas\Configs are also
-     * cloned.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        $array = [];
-
-        foreach ($this->data as $key => $value) {
-            if ($value instanceof self) {
-                $array[$key] = clone $value;
-            } else {
-                $array[$key] = $value;
-            }
-        }
-
-        $this->data = $array;
-    }
-
-    /**
-     * Return an associative array of the stored data.
-     *
-     * @return array
-     */
-    public function toArray()
-    {
-        $array = [];
-        $data  = $this->data;
-
-        /** @var self $value */
-        foreach ($data as $key => $value) {
-            if ($value instanceof self) {
-                $array[$key] = $value->toArray();
-            } else {
-                $array[$key] = $value;
-            }
-        }
-
-        return $array;
-    }
-
-    /**
-     * isset() overloading
-     *
-     * @param  string $name
      * @return bool
      */
-    public function __isset($name)
+    public function isReadOnly()
     {
-        return isset($this->data[$name]);
-    }
-
-    /**
-     * unset() overloading
-     *
-     * @param  string $name
-     * @return void
-     * @throws Exception\InvalidArgumentException
-     */
-    public function __unset($name)
-    {
-        if (! $this->allowModifications) {
-            throw new Exception\InvalidArgumentException('Config is read only');
-        } elseif (isset($this->data[$name])) {
-            unset($this->data[$name]);
-            $this->skipNextIteration = true;
-        }
-    }
-
-    /**
-     * count(): defined by Countable interface.
-     *
-     * @see    Countable::count()
-     *
-     * @return int
-     */
-    #[ReturnTypeWillChange]
-    public function count()
-    {
-        return count($this->data);
-    }
-
-    /**
-     * current(): defined by Iterator interface.
-     *
-     * @see    Iterator::current()
-     *
-     * @return mixed
-     */
-    #[ReturnTypeWillChange]
-    public function current()
-    {
-        $this->skipNextIteration = false;
-        return current($this->data);
+        return ! $this->allowModifications;
     }
 
     /**
@@ -228,112 +131,11 @@ class Config implements Countable, Iterator, ArrayAccess
      *
      * @return mixed
      */
+    #[Override]
     #[ReturnTypeWillChange]
     public function key()
     {
         return key($this->data);
-    }
-
-    /**
-     * next(): defined by Iterator interface.
-     *
-     * @see    Iterator::next()
-     *
-     * @return void
-     */
-    #[ReturnTypeWillChange]
-    public function next()
-    {
-        if ($this->skipNextIteration) {
-            $this->skipNextIteration = false;
-            return;
-        }
-
-        next($this->data);
-    }
-
-    /**
-     * rewind(): defined by Iterator interface.
-     *
-     * @see    Iterator::rewind()
-     *
-     * @return void
-     */
-    #[ReturnTypeWillChange]
-    public function rewind()
-    {
-        $this->skipNextIteration = false;
-        reset($this->data);
-    }
-
-    /**
-     * valid(): defined by Iterator interface.
-     *
-     * @see    Iterator::valid()
-     *
-     * @return bool
-     */
-    #[ReturnTypeWillChange]
-    public function valid()
-    {
-        return $this->key() !== null;
-    }
-
-    /**
-     * offsetExists(): defined by ArrayAccess interface.
-     *
-     * @see    ArrayAccess::offsetExists()
-     *
-     * @param  mixed $offset
-     * @return bool
-     */
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset)
-    {
-        return $this->__isset($offset);
-    }
-
-    /**
-     * offsetGet(): defined by ArrayAccess interface.
-     *
-     * @see    ArrayAccess::offsetGet()
-     *
-     * @param  mixed $offset
-     * @return mixed
-     */
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset)
-    {
-        return $this->__get($offset);
-    }
-
-    /**
-     * offsetSet(): defined by ArrayAccess interface.
-     *
-     * @see    ArrayAccess::offsetSet()
-     *
-     * @param  mixed $offset
-     * @param  mixed $value
-     * @return void
-     */
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value)
-    {
-        $this->__set($offset, $value);
-    }
-
-    /**
-     * offsetUnset(): defined by ArrayAccess interface.
-     *
-     * @see    ArrayAccess::offsetUnset()
-     *
-     * @param  mixed $offset
-     * @return void
-     */
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset)
-    {
-        $this->__unset($offset);
     }
 
     /**
@@ -350,28 +152,124 @@ class Config implements Countable, Iterator, ArrayAccess
     {
         /** @var Config $value */
         foreach ($merge as $key => $value) {
-            if (array_key_exists($key, $this->data)) {
-                if (is_int($key)) {
-                    $this->data[] = $value;
-                } elseif ($value instanceof self && $this->data[$key] instanceof self) {
-                    $this->data[$key]->merge($value);
-                } else {
-                    if ($value instanceof self) {
-                        $this->data[$key] = new static($value->toArray(), $this->allowModifications);
-                    } else {
-                        $this->data[$key] = $value;
-                    }
-                }
-            } else {
-                if ($value instanceof self) {
-                    $this->data[$key] = new static($value->toArray(), $this->allowModifications);
-                } else {
-                    $this->data[$key] = $value;
-                }
+            if (! array_key_exists($key, $this->data)) {
+                $this->data[$key] = $value instanceof self
+                    ? new static($value->toArray(), $this->allowModifications)
+                    : $value;
+                continue;
             }
+
+            if (is_int($key)) {
+                $this->data[] = $value;
+                continue;
+            }
+
+            if ($value instanceof self && $this->data[$key] instanceof self) {
+                $this->data[$key]->merge($value);
+                continue;
+            }
+
+            $this->data[$key] = $value instanceof self
+                ? new static($value->toArray(), $this->allowModifications)
+                : $value;
         }
 
         return $this;
+    }
+
+    /**
+     * next(): defined by Iterator interface.
+     *
+     * @see    Iterator::next()
+     *
+     * @return void
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function next()
+    {
+        if ($this->skipNextIteration) {
+            $this->skipNextIteration = false;
+            return;
+        }
+
+        next($this->data);
+    }
+
+    /**
+     * offsetExists(): defined by ArrayAccess interface.
+     *
+     * @see    ArrayAccess::offsetExists()
+     *
+     * @param  mixed $offset
+     * @return bool
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function offsetExists($offset)
+    {
+        return $this->__isset($offset);
+    }
+
+    /**
+     * offsetGet(): defined by ArrayAccess interface.
+     *
+     * @see    ArrayAccess::offsetGet()
+     *
+     * @param  mixed $offset
+     * @return mixed
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function offsetGet($offset)
+    {
+        return $this->__get($offset);
+    }
+
+    /**
+     * offsetSet(): defined by ArrayAccess interface.
+     *
+     * @see    ArrayAccess::offsetSet()
+     *
+     * @param  mixed $offset
+     * @param  mixed $value
+     * @return void
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function offsetSet($offset, $value)
+    {
+        $this->__set($offset, $value);
+    }
+
+    /**
+     * offsetUnset(): defined by ArrayAccess interface.
+     *
+     * @see    ArrayAccess::offsetUnset()
+     *
+     * @param  mixed $offset
+     * @return void
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function offsetUnset($offset)
+    {
+        $this->__unset($offset);
+    }
+
+    /**
+     * rewind(): defined by Iterator interface.
+     *
+     * @see    Iterator::rewind()
+     *
+     * @return void
+     */
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function rewind()
+    {
+        $this->skipNextIteration = false;
+        reset($this->data);
     }
 
     /**
@@ -388,19 +286,131 @@ class Config implements Countable, Iterator, ArrayAccess
 
         /** @var Config $value */
         foreach ($this->data as $value) {
-            if ($value instanceof self) {
-                $value->setReadOnly();
+            if (! $value instanceof self) {
+                continue;
             }
+
+            $value->setReadOnly();
         }
     }
 
     /**
-     * Returns whether this Config object is read only or not.
+     * Return an associative array of the stored data.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        $array = [];
+        $data  = $this->data;
+
+        /** @var self $value */
+        foreach ($data as $key => $value) {
+            $array[$key] = $value instanceof self ? $value->toArray() : $value;
+        }
+
+        return $array;
+    }
+
+    /**
+     * valid(): defined by Iterator interface.
+     *
+     * @see    Iterator::valid()
      *
      * @return bool
      */
-    public function isReadOnly()
+    #[Override]
+    #[ReturnTypeWillChange]
+    public function valid()
     {
-        return ! $this->allowModifications;
+        return $this->key() !== null;
+    }
+
+    /**
+     * Deep clone of this instance to ensure that nested Webware\ConfigManagers are also
+     * cloned.
+     *
+     * @return void
+     */
+    public function __clone()
+    {
+        $array = [];
+
+        foreach ($this->data as $key => $value) {
+            $array[$key] = $value instanceof self ? clone $value : $value;
+        }
+
+        $this->data = $array;
+    }
+
+    /**
+     * Magic function so that $obj->value will work.
+     *
+     * @param  string $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        return $this->get($name);
+    }
+
+    /**
+     * isset() overloading
+     *
+     * @param  string $name
+     * @return bool
+     */
+    public function __isset($name)
+    {
+        return array_key_exists($name, $this->data);
+    }
+
+    /**
+     * Set a value in the config.
+     *
+     * Only allow setting of a property if $allowModifications  was set to true
+     * on construction. Otherwise, throw an exception.
+     *
+     * @param  string $name
+     * @param  mixed  $value
+     * @return void
+     * @throws Exception\RuntimeException
+     */
+    public function __set($name, $value)
+    {
+        if (! $this->allowModifications) {
+            throw new Exception\RuntimeException('Config is read only');
+        }
+
+        if (is_array($value)) {
+            $value = new static($value, true);
+        }
+
+        if (null === $name) {
+            $this->data[] = $value;
+
+            return;
+        }
+
+        $this->data[$name] = $value;
+    }
+
+    /**
+     * unset() overloading
+     *
+     * @param  string $name
+     * @return void
+     * @throws Exception\InvalidArgumentException
+     */
+    public function __unset($name)
+    {
+        if (! $this->allowModifications) {
+            throw new Exception\InvalidArgumentException('Config is read only');
+        }
+
+        if (array_key_exists($name, $this->data)) {
+            unset($this->data[$name]);
+            $this->skipNextIteration = true;
+        }
     }
 }

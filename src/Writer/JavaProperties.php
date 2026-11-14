@@ -1,8 +1,11 @@
 <?php
 
-namespace Laminas\Config\Writer;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Writer;
+
+use Override;
+use Webware\ConfigManager\Exception;
 
 use function gettype;
 use function is_object;
@@ -31,7 +34,7 @@ class JavaProperties extends AbstractWriter
         if (! is_string($delimiter) || '' === $delimiter) {
             throw new Exception\InvalidArgumentException(sprintf(
                 'Invalid delimiter of type "%s"; must be a non-empty string',
-                is_object($delimiter) ? $delimiter::class : gettype($delimiter)
+                is_object($delimiter) ? $delimiter::class : gettype($delimiter),
             ));
         }
 
@@ -44,6 +47,7 @@ class JavaProperties extends AbstractWriter
      * @return string
      * @throws Exception\UnprocessableConfigException For non-scalar values in the $config array.
      */
+    #[Override]
     public function processConfig(array $config)
     {
         $string = '';
@@ -54,17 +58,17 @@ class JavaProperties extends AbstractWriter
                     '%s configuration writer can only process scalar values; received "%s" for key "%s"',
                     self::class,
                     is_object($value) ? $value::class : gettype($value),
-                    $key
+                    $key,
                 ));
             }
 
-            $value = $value ?? '';
+            $value ??= '';
 
             $string .= sprintf(
                 "%s%s%s\n",
                 $key,
                 $this->delimiter,
-                $value
+                $value,
             );
         }
 

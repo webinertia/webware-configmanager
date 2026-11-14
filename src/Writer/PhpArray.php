@@ -1,8 +1,11 @@
 <?php
 
-namespace Laminas\Config\Writer;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Writer;
+
+use Override;
+use Webware\ConfigManager\Exception;
 
 use function addslashes;
 use function class_exists;
@@ -41,10 +44,19 @@ class PhpArray extends AbstractWriter
     protected $useClassNameScalars = false;
 
     /**
+     * @return boolean
+     */
+    public function getUseClassNameScalars()
+    {
+        return $this->useClassNameScalars;
+    }
+
+    /**
      * processConfig(): defined by AbstractWriter.
      *
      * @return string
      */
+    #[Override]
     public function processConfig(array $config)
     {
         $arraySyntax = [
@@ -52,9 +64,10 @@ class PhpArray extends AbstractWriter
             'close' => $this->useBracketArraySyntax ? ']' : ')',
         ];
 
-        return "<?php\n"
-        . "return " . $arraySyntax['open'] . "\n" . $this->processIndented($config, $arraySyntax)
-        . $arraySyntax['close'] . ";\n";
+        return "<?php\nreturn {$arraySyntax['open']}\n{$this->processIndented(
+            $config,
+            $arraySyntax,
+        )}{$arraySyntax['close']};\n";
     }
 
     /**
@@ -82,14 +95,6 @@ class PhpArray extends AbstractWriter
     }
 
     /**
-     * @return boolean
-     */
-    public function getUseClassNameScalars()
-    {
-        return $this->useClassNameScalars;
-    }
-
-    /**
      * toFile(): defined by Writer interface.
      *
      * @see    WriterInterface::toFile()
@@ -101,9 +106,10 @@ class PhpArray extends AbstractWriter
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
      */
+    #[Override]
     public function toFile($filename, $config, $exclusiveLock = true)
     {
-        if (empty($filename)) {
+        if ('' === $filename) {
             throw new Exception\InvalidArgumentException('No file name specified');
         }
 
@@ -113,29 +119,73 @@ class PhpArray extends AbstractWriter
         }
 
         set_error_handler(
-            function ($error, $message = '') use ($filename) {
+            static function ($error, $message = '') use ($filename) {
                 throw new Exception\RuntimeException(
                     sprintf('Error writing to "%s": %s', $filename, $message),
-                    $error
+                    $error,
                 );
             },
-            E_WARNING
+            E_WARNING,
         );
 
         try {
             // for Windows, paths are escaped.
-            $dirname = str_replace('\\', '\\\\', dirname($filename));
+            $dirname = str_replace(
+                search : '\\',
+                replace: '\\\\',
+                subject: dirname($filename),
+            );
 
             $string = $this->toString($config);
-            $string = str_replace("'" . $dirname, "__DIR__ . '", $string);
+            $string = str_replace(
+                search : "'{$dirname}",
+                replace: "__DIR__ . '",
+                subject: $string,
+            );
 
             file_put_contents($filename, $string, $flags);
-        } catch (\Exception $e) {
+        } finally {
             restore_error_handler();
-            throw $e;
+        }
+    }
+
+    /**
+     * Check whether a string represents a resolvable FQCN
+     *
+     * @param string $string
+     * @return bool
+     */
+    protected function checkStringIsFqn($string)
+    {
+        if (! preg_match('/^(?:\x5c[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)+$/', $string)) {
+            return false;
         }
 
-        restore_error_handler();
+        return class_exists($string) || interface_exists($string) || trait_exists($string);
+    }
+
+    /**
+     * Attempts to convert a FQN string to class name scalar.
+     * Returns false if string is not a valid FQN or can not be resolved to an existing name.
+     *
+     * @param string $string
+     * @return bool|string
+     */
+    protected function fqnStringToClassNameScalar($string)
+    {
+        if (strlen($string) < 1) {
+            return false;
+        }
+
+        if ('\\' !== $string[0]) {
+            $string = "\\{$string}";
+        }
+
+        if ($this->checkStringIsFqn($string)) {
+            return "{$string}::class";
+        }
+
+        return false;
     }
 
     /**
@@ -146,50 +196,53 @@ class PhpArray extends AbstractWriter
      */
     protected function processIndented(array $config, array $arraySyntax, &$indentLevel = 1)
     {
-        $arrayString = "";
+        $arrayString = '';
 
         foreach ($config as $key => $value) {
             $arrayString .= str_repeat(self::INDENT_STRING, $indentLevel);
             $arrayString .= (is_int($key) ? $key : $this->processStringKey($key)) . ' => ';
 
             if (is_array($value)) {
-                if ($value === []) {
-                    $arrayString .= $arraySyntax['open'] . $arraySyntax['close'] . ",\n";
-                } else {
-                    $indentLevel++;
-                    $arrayString .= $arraySyntax['open'] . "\n"
-                        . $this->processIndented($value, $arraySyntax, $indentLevel)
-                        . str_repeat(self::INDENT_STRING, --$indentLevel) . $arraySyntax['close'] . ",\n";
+                if ([] === $value) {
+                    $arrayString .= "{$arraySyntax['open']}{$arraySyntax['close']},\n";
+                    continue;
                 }
-            } elseif (is_object($value)) {
-                $arrayString .= var_export($value, true) . ",\n";
-            } elseif (is_string($value)) {
-                $arrayString .= $this->processStringValue($value) . ",\n";
-            } elseif (is_bool($value)) {
-                $arrayString .= ($value ? 'true' : 'false') . ",\n";
-            } elseif ($value === null) {
-                $arrayString .= "null,\n";
-            } else {
-                $arrayString .= $value . ",\n";
+
+                $indentLevel++;
+                $arrayString .=
+                    $arraySyntax['open']
+                    . "\n"
+                    . $this->processIndented($value, $arraySyntax, $indentLevel)
+                    . str_repeat(self::INDENT_STRING, --$indentLevel)
+                    . $arraySyntax['close']
+                    . ",\n";
+                continue;
             }
+
+            if (is_object($value)) {
+                $arrayString .= var_export($value, return: true) . ",\n";
+                continue;
+            }
+
+            if (is_string($value)) {
+                $arrayString .= "{$this->processStringValue($value)},\n";
+                continue;
+            }
+
+            if (is_bool($value)) {
+                $arrayString .= ($value ? 'true' : 'false') . ",\n";
+                continue;
+            }
+
+            if (null === $value) {
+                $arrayString .= "null,\n";
+                continue;
+            }
+
+            $arrayString .= "{$value},\n";
         }
 
         return $arrayString;
-    }
-
-    /**
-     * Process a string configuration value
-     *
-     * @param string $value
-     * @return string
-     */
-    protected function processStringValue($value)
-    {
-        if ($this->useClassNameScalars && false !== ($fqnValue = $this->fqnStringToClassNameScalar($value))) {
-            return $fqnValue;
-        }
-
-        return var_export($value, true);
     }
 
     /**
@@ -208,41 +261,17 @@ class PhpArray extends AbstractWriter
     }
 
     /**
-     * Attempts to convert a FQN string to class name scalar.
-     * Returns false if string is not a valid FQN or can not be resolved to an existing name.
+     * Process a string configuration value
      *
-     * @param string $string
-     * @return bool|string
+     * @param string $value
+     * @return string
      */
-    protected function fqnStringToClassNameScalar($string)
+    protected function processStringValue($value)
     {
-        if (strlen($string) < 1) {
-            return false;
+        if ($this->useClassNameScalars && false !== ($fqnValue = $this->fqnStringToClassNameScalar($value))) {
+            return $fqnValue;
         }
 
-        if ($string[0] !== '\\') {
-            $string = '\\' . $string;
-        }
-
-        if ($this->checkStringIsFqn($string)) {
-            return $string . '::class';
-        }
-
-        return false;
-    }
-
-    /**
-     * Check whether a string represents a resolvable FQCN
-     *
-     * @param string $string
-     * @return bool
-     */
-    protected function checkStringIsFqn($string)
-    {
-        if (! preg_match('/^(?:\x5c[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)+$/', $string)) {
-            return false;
-        }
-
-        return class_exists($string) || interface_exists($string) || trait_exists($string);
+        return var_export($value, return: true);
     }
 }

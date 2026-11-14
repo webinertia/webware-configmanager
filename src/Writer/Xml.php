@@ -1,8 +1,11 @@
 <?php
 
-namespace Laminas\Config\Writer;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Writer;
+
+use Override;
+use Webware\ConfigManager\Exception;
 use XMLWriter;
 
 use function is_array;
@@ -16,22 +19,27 @@ class Xml extends AbstractWriter
      *
      * @return string
      */
+    #[Override]
     public function processConfig(array $config)
     {
         $writer = new XMLWriter();
         $writer->openMemory();
         $writer->setIndent(true);
-        $writer->setIndentString(str_repeat(' ', 4));
+        $writer->setIndentString(str_repeat(
+            string: ' ',
+            times : 4,
+        ));
 
         $writer->startDocument('1.0', 'UTF-8');
-        $writer->startElement('laminas-config');
+        $writer->startElement('webware-configmanager');
 
         foreach ($config as $sectionName => $data) {
             if (! is_array($data)) {
                 $writer->writeElement($sectionName, (string) $data);
-            } else {
-                $this->addBranch($sectionName, $data, $writer);
+                continue;
             }
+
+            $this->addBranch($sectionName, $data, $writer);
         }
 
         $writer->endElement();
@@ -52,33 +60,39 @@ class Xml extends AbstractWriter
         $branchType = null;
 
         foreach ($config as $key => $value) {
-            if ($branchType === null) {
-                if (is_numeric($key)) {
-                    $branchType = 'numeric';
-                } else {
-                    $writer->startElement($branchName);
-                    $branchType = 'string';
-                }
-            } elseif ($branchType !== (is_numeric($key) ? 'numeric' : 'string')) {
+            $keyType = is_numeric($key) ? 'numeric' : 'string';
+
+            if (null !== $branchType && $branchType !== $keyType) {
                 throw new Exception\RuntimeException('Mixing of string and numeric keys is not allowed');
             }
 
-            if ($branchType === 'numeric') {
-                if (is_array($value)) {
-                    $this->addBranch($branchName, $value, $writer);
-                } else {
-                    $writer->writeElement($branchName, (string) $value);
-                }
-            } else {
-                if (is_array($value)) {
-                    $this->addBranch($key, $value, $writer);
-                } else {
-                    $writer->writeElement($key, (string) $value);
+            if (null === $branchType) {
+                $branchType = $keyType;
+
+                if ('string' === $keyType) {
+                    $writer->startElement($branchName);
                 }
             }
+
+            if ('numeric' === $branchType) {
+                if (is_array($value)) {
+                    $this->addBranch($branchName, $value, $writer);
+                    continue;
+                }
+
+                $writer->writeElement($branchName, (string) $value);
+                continue;
+            }
+
+            if (is_array($value)) {
+                $this->addBranch($key, $value, $writer);
+                continue;
+            }
+
+            $writer->writeElement($key, (string) $value);
         }
 
-        if ($branchType === 'string') {
+        if ('string' === $branchType) {
             $writer->endElement();
         }
     }

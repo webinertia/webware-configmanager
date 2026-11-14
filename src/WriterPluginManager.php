@@ -1,11 +1,14 @@
 <?php
 
-namespace Laminas\Config;
+declare(strict_types=1);
 
-use interop\container\containerinterface;
+namespace Webware\ConfigManager;
+
 use Laminas\ServiceManager\AbstractPluginManager;
 use Laminas\ServiceManager\Exception\InvalidServiceException;
 use Laminas\ServiceManager\Factory\InvokableFactory;
+use Override;
+use Psr\Container\ContainerInterface;
 use Zend\Config\Writer\Ini;
 use Zend\Config\Writer\JavaProperties;
 use Zend\Config\Writer\Json;
@@ -77,6 +80,12 @@ class WriterPluginManager extends AbstractPluginManager
         'laminasconfigwriterxml'            => InvokableFactory::class,
     ];
 
+    public function __construct(ContainerInterface $container, array $config = [])
+    {
+        $config = array_merge_recursive(['aliases' => $this->aliases], $config);
+        parent::__construct($container, $config);
+    }
+
     /**
      * Validate the plugin is of the expected type (v3).
      *
@@ -85,6 +94,7 @@ class WriterPluginManager extends AbstractPluginManager
      * @param mixed $instance
      * @throws InvalidServiceException
      */
+    #[Override]
     public function validate($instance)
     {
         if (! $instance instanceof $this->instanceOf) {
@@ -92,7 +102,7 @@ class WriterPluginManager extends AbstractPluginManager
                 '%s can only create instances of %s; %s is invalid',
                 static::class,
                 $this->instanceOf,
-                is_object($instance) ? $instance::class : gettype($instance)
+                is_object($instance) ? $instance::class : gettype($instance),
             ));
         }
     }
@@ -112,11 +122,5 @@ class WriterPluginManager extends AbstractPluginManager
         } catch (InvalidServiceException $e) {
             throw new Exception\InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
         }
-    }
-
-    public function __construct(containerinterface $container, array $config = [])
-    {
-        $config = array_merge_recursive(['aliases' => $this->aliases], $config);
-        parent::__construct($container, $config);
     }
 }

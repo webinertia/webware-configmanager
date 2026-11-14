@@ -1,10 +1,13 @@
 <?php
 
-namespace Laminas\Config\Writer;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Writer;
+
 use Laminas\Stdlib\ArrayUtils;
+use Override;
 use Traversable;
+use Webware\ConfigManager\Exception;
 
 use function file_put_contents;
 use function is_array;
@@ -29,9 +32,10 @@ abstract class AbstractWriter implements WriterInterface
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
      */
+    #[Override]
     public function toFile($filename, $config, $exclusiveLock = true)
     {
-        if (empty($filename)) {
+        if ('' === $filename) {
             throw new Exception\InvalidArgumentException('No file name specified');
         }
 
@@ -41,23 +45,20 @@ abstract class AbstractWriter implements WriterInterface
         }
 
         set_error_handler(
-            function ($error, $message = '') use ($filename) {
+            static function ($error, $message = '') use ($filename) {
                 throw new Exception\RuntimeException(
                     sprintf('Error writing to "%s": %s', $filename, $message),
-                    $error
+                    $error,
                 );
             },
-            E_WARNING
+            E_WARNING,
         );
 
         try {
             file_put_contents($filename, $this->toString($config), $flags);
-        } catch (\Exception $e) {
+        } finally {
             restore_error_handler();
-            throw $e;
         }
-
-        restore_error_handler();
     }
 
     /**
@@ -69,11 +70,14 @@ abstract class AbstractWriter implements WriterInterface
      * @return string
      * @throws Exception\InvalidArgumentException
      */
+    #[Override]
     public function toString($config)
     {
         if ($config instanceof Traversable) {
             $config = ArrayUtils::iteratorToArray($config);
-        } elseif (! is_array($config)) {
+        }
+
+        if (! is_array($config)) {
             throw new Exception\InvalidArgumentException(__METHOD__ . ' expects an array or Traversable config');
         }
 
