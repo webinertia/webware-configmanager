@@ -1,29 +1,63 @@
-# laminas-config
+# webware/webware-configmanager
 
-> [!CAUTION]
-> This package is **abandoned** and will receive no further development.
->
-> See the Technical Steering Committee [meeting minutes](https://github.com/laminas/technical-steering-committee/blob/main/meetings/minutes/2024-11-04-TSC-Minutes.md#archive--abandon-various-legacy-libraries).
+[![PHP Version](https://img.shields.io/packagist/php-v/webware/webware-configmanager)](https://packagist.org/packages/webware/webware-configmanager)
+[![Latest Version](https://img.shields.io/packagist/v/webware/webware-configmanager)](https://packagist.org/packages/webware/webware-configmanager)
+[![License](https://img.shields.io/github/license/webinertia/webware-configmanager)](LICENSE)
+[![Required CI](https://github.com/webinertia/webware-configmanager/actions/workflows/required/webinertia/.github/.github/workflows/org-required-ci.yml/badge.svg)](https://github.com/webinertia/webware-configmanager/actions/workflows/required/webinertia/.github/.github/workflows/org-required-ci.yml)
+[![codecov](https://codecov.io/gh/webinertia/webware-configmanager/graph/badge.svg)](https://codecov.io/gh/webinertia/webware-configmanager)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fwebinertia%2Fwebware-configmanager%2F1.0.x)](https://dashboard.stryker-mutator.io/reports/github.com/webinertia/webware-configmanager/1.0.x)
 
-> ## 🇷🇺 Русским гражданам
->
-> Мы, участники Laminas, родились и живем в разных странах. У многих из нас есть друзья, родственники и коллеги как в России, так и в Украине. Некоторые из нас родились в России. Некоторые из нас живут в России. У некоторых бабушки и дедушки сражались с фашистами во Второй мировой войне. Здесь никто не поддерживает фашизм.
->
-> У одного из нас есть украинская родственница, которая спаслась из дома вместе с сыном. Поезд задержался из-за бомбежки на дороге впереди. У нас есть друзья, которые прячутся в бомбоубежищах. Мы с тревогой ждем весточки от них после воздушных налетов, которые беспорядочно наносят удары и попадают по больницам, школам, детским садам и домам. Мы не берем это из каких-либо СМИ. Мы наблюдаем это напрямую.
->
-> Вы доверяете нам достаточно, чтоб использовать наши программы, и мы просим вас довериться нам вновь. Мы нуждаемся в помощи. Выходите и протестуйте против этой бесполезной войны. Остановите кровопролитие. Скажите "Нет войне!"
->
-> ## 🇺🇸 To Citizens of Russia
->
-> We at Laminas come from all over the world. Many of us have friends, family and colleagues in both Russia and Ukraine. Some of us were born in Russia. Some of us currently live in Russia. Some have grandparents who fought Nazis in World War II. Nobody here supports fascism.
->
-> One team member has a Ukrainian relative who fled her home with her son. The train was delayed due to bombing on the road ahead. We have friends who are hiding in bomb shelters. We anxiously follow up on them after the air raids, which indiscriminately fire at hospitals, schools, kindergartens and houses. We're not taking this from any media. These are our actual experiences.
->
-> You trust us enough to use our software. We ask that you trust us to say the truth on this. We need your help. Go out and protest this unnecessary war. Stop the bloodshed. Say "stop the war!"
+Nested object property based access to configuration data, with pluggable readers, writers and processors.
 
-laminas-config is designed to simplify access to configuration data within
-applications. It provides a nested object property-based user interface for
-accessing this configuration data within application code. The configuration
-data may come from a variety of media supporting hierarchical data storage.
+## Installation
 
-- Documentation is at https://docs.laminas.dev/laminas-config/
+```bash
+composer require webware/webware-configmanager
+```
+
+## Documentation
+
+- [Introduction](docs/v1/intro.md)
+- [Theory of Operation](docs/v1/theory.md)
+- [Readers](docs/v1/reader.md)
+- [Writers](docs/v1/writer.md)
+- [Processors](docs/v1/processor.md)
+- [The Factory](docs/v1/factory.md)
+
+## Usage
+
+```php
+use Webware\ConfigManager\Config;
+use Webware\ConfigManager\Factory;
+
+$config = new Config([
+    'db' => [
+        'host' => '127.0.0.1',
+        'name' => 'webware',
+    ],
+]);
+
+echo $config->db->host; // 127.0.0.1
+```
+
+`Factory` reads and writes `.ini`, `.json`, `.xml`, `.yaml`/`.yml`, `.properties` and `.php` files, and
+merges several files into one configuration:
+
+```php
+$config = Factory::fromFiles(['config/autoload/global.php', 'config/autoload/local.php'], true);
+```
+
+Readers and writers are resolved through `ReaderPluginManager` and `WriterPluginManager` when
+`laminas/laminas-servicemanager` is installed, and through the standalone plugin managers otherwise.
+
+## Relation to laminas-config-aggregator
+
+This package is a fork of `laminas/laminas-config`, which the Laminas TSC has archived. It supplies
+the nested configuration object and the file readers/writers; it does not aggregate providers. Use it
+alongside `laminas/laminas-config-aggregator`, which collects `ConfigProvider` output into the `config`
+service this package reads.
+
+## Origin
+
+Forked from `laminas/laminas-config` 3.12.x, which remains BSD-3-Clause licensed. See [LICENSE.md](LICENSE.md)
+and [COPYRIGHT.md](COPYRIGHT.md).

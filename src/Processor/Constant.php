@@ -1,6 +1,10 @@
 <?php
 
-namespace Laminas\Config\Processor;
+declare(strict_types=1);
+
+namespace Webware\ConfigManager\Processor;
+
+use Override;
 
 use function class_exists;
 use function constant;
@@ -8,7 +12,7 @@ use function defined;
 use function get_defined_constants;
 use function is_string;
 use function preg_match;
-use function strpos;
+use function str_contains;
 use function substr;
 
 class Constant extends Token implements ProcessorInterface
@@ -33,15 +37,26 @@ class Constant extends Token implements ProcessorInterface
      */
     public function __construct($userOnly = true, $prefix = '', $suffix = '', $enableKeyProcessing = false)
     {
-        $this->setUserOnly((bool) $userOnly);
-        $this->setPrefix((string) $prefix);
-        $this->setSuffix((string) $suffix);
+        $this->setUserOnly($userOnly);
+        $this->setPrefix($prefix);
+        $this->setSuffix($suffix);
 
-        if (true === $enableKeyProcessing) {
+        if ($enableKeyProcessing) {
             $this->enableKeyProcessing();
         }
 
         $this->loadConstants();
+    }
+
+    /**
+     * Get current token registry.
+     *
+     * @return array
+     */
+    #[Override]
+    public function getTokens()
+    {
+        return $this->tokens;
     }
 
     /**
@@ -53,18 +68,6 @@ class Constant extends Token implements ProcessorInterface
     }
 
     /**
-     * Should we use only user-defined constants?
-     *
-     * @param  bool $userOnly
-     * @return self
-     */
-    public function setUserOnly($userOnly)
-    {
-        $this->userOnly = (bool) $userOnly;
-        return $this;
-    }
-
-    /**
      * Load all currently defined constants into parser.
      *
      * @return void
@@ -73,21 +76,23 @@ class Constant extends Token implements ProcessorInterface
     {
         if ($this->userOnly) {
             $constants = get_defined_constants(true);
-            $constants = $constants['user'] ?? [];
-            $this->setTokens($constants);
-        } else {
-            $this->setTokens(get_defined_constants());
+            $this->setTokens($constants['user'] ?? []);
+            return;
         }
+
+        $this->setTokens(get_defined_constants());
     }
 
     /**
-     * Get current token registry.
+     * Should we use only user-defined constants?
      *
-     * @return array
+     * @param  bool $userOnly
+     * @return self
      */
-    public function getTokens()
+    public function setUserOnly($userOnly)
     {
-        return $this->tokens;
+        $this->userOnly = $userOnly;
+        return $this;
     }
 
     /**
@@ -99,13 +104,14 @@ class Constant extends Token implements ProcessorInterface
      * @param mixed $value
      * @return mixed
      */
+    #[Override]
     protected function doProcess($value, array $replacements)
     {
         if (! is_string($value)) {
             return parent::doProcess($value, $replacements);
         }
 
-        if (false === strpos($value, '::')) {
+        if (! str_contains($value, '::')) {
             return parent::doProcess($value, $replacements);
         }
 
@@ -119,7 +125,11 @@ class Constant extends Token implements ProcessorInterface
             return parent::doProcess($value, $replacements);
         }
 
-        $class = substr($value, 0, -7);
+        $class = substr(
+            string: $value,
+            offset: 0,
+            length: -7,
+        );
         if (class_exists($class)) {
             return $class;
         }

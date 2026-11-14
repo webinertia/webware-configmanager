@@ -1,13 +1,17 @@
 <?php
 
-namespace Laminas\Config;
+declare(strict_types=1);
 
-use Interop\Container\Containerinterface;
+namespace Webware\ConfigManager;
+
 use InvalidArgumentException;
 use Laminas\ServiceManager\AbstractFactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
+use Psr\Container\ContainerInterface;
 use Traversable;
 
+use function array_key_exists;
 use function array_unshift;
 use function is_array;
 use function is_string;
@@ -27,78 +31,6 @@ class AbstractConfigFactory implements AbstractFactoryInterface
 
     /** @var string[] */
     protected $patterns;
-
-    /**
-     * Determine if we can create a service with name (SM v2)
-     *
-     * @param string $name
-     * @param string $requestedName
-     * @return bool
-     */
-    public function canCreateServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
-    {
-        return $this->canCreate($serviceLocator, $requestedName);
-    }
-
-    /**
-     * Determine if we can create a service (SM v3)
-     *
-     * @param string $requestedName
-     * @return bool
-     */
-    public function canCreate(Containerinterface $container, $requestedName)
-    {
-        if (isset($this->configs[$requestedName])) {
-            return true;
-        }
-
-        if (! $container->has('config')) {
-            return false;
-        }
-
-        $key = $this->match($requestedName);
-        if (null === $key) {
-            return false;
-        }
-
-        $config = $container->get('config');
-        return isset($config[$key]);
-    }
-
-    /**
-     * Create service with name (SM v2)
-     *
-     * @param string $name
-     * @param string $requestedName
-     * @return string|mixed|array
-     */
-    public function createServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
-    {
-        return $this($serviceLocator, $requestedName);
-    }
-
-    /**
-     * Create service with name (SM v3)
-     *
-     * @param string $requestedName
-     * @return string|mixed|array
-     */
-    public function __invoke(Containerinterface $container, $requestedName, ?array $options = null)
-    {
-        if (isset($this->configs[$requestedName])) {
-            return $this->configs[$requestedName];
-        }
-
-        $key = $this->match($requestedName);
-        if (isset($this->configs[$key])) {
-            $this->configs[$requestedName] = $this->configs[$key];
-            return $this->configs[$key];
-        }
-
-        $config                        = $container->get('config');
-        $this->configs[$requestedName] = $this->configs[$key] = $config[$key];
-        return $config[$key];
-    }
 
     /**
      * @param string $pattern
@@ -129,7 +61,7 @@ class AbstractConfigFactory implements AbstractFactoryInterface
         }
 
         if (! is_array($patterns)) {
-            throw new Exception\InvalidArgumentException("patterns must be array or Traversable");
+            throw new Exception\InvalidArgumentException('patterns must be array or Traversable');
         }
 
         foreach ($patterns as $pattern) {
@@ -140,22 +72,55 @@ class AbstractConfigFactory implements AbstractFactoryInterface
     }
 
     /**
-     * @param array|Traversable $patterns
-     * @return self
-     * @throws InvalidArgumentException
+     * Determine if we can create a service (SM v3)
+     *
+     * @param string $requestedName
+     * @return bool
      */
-    public function setPatterns($patterns)
+    #[Override]
+    public function canCreate(ContainerInterface $container, $requestedName)
     {
-        if ($patterns instanceof Traversable) {
-            $patterns = iterator_to_array($patterns);
+        if (array_key_exists($requestedName, $this->configs)) {
+            return true;
         }
 
-        if (! is_array($patterns)) {
-            throw new InvalidArgumentException("patterns must be array or Traversable");
+        if (! $container->has('config')) {
+            return false;
         }
 
-        $this->patterns = $patterns;
-        return $this;
+        $key = $this->match($requestedName);
+        if (null === $key) {
+            return false;
+        }
+
+        $config = $container->get('config');
+        return array_key_exists($key, $config);
+    }
+
+    /**
+     * Determine if we can create a service with name (SM v2)
+     *
+     * @param string $name
+     * @param string $requestedName
+     * @return bool
+     */
+    #[Override]
+    public function canCreateServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
+    {
+        return $this->canCreate($serviceLocator, $requestedName);
+    }
+
+    /**
+     * Create service with name (SM v2)
+     *
+     * @param string $name
+     * @param string $requestedName
+     * @return string|mixed|array
+     */
+    #[Override]
+    public function createServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
+    {
+        return $this($serviceLocator, $requestedName);
     }
 
     /**
@@ -170,6 +135,25 @@ class AbstractConfigFactory implements AbstractFactoryInterface
     }
 
     /**
+     * @param array|Traversable $patterns
+     * @return self
+     * @throws InvalidArgumentException
+     */
+    public function setPatterns($patterns)
+    {
+        if ($patterns instanceof Traversable) {
+            $patterns = iterator_to_array($patterns);
+        }
+
+        if (! is_array($patterns)) {
+            throw new InvalidArgumentException('patterns must be array or Traversable');
+        }
+
+        $this->patterns = $patterns;
+        return $this;
+    }
+
+    /**
      * @param string $requestedName
      * @return null|string
      */
@@ -181,5 +165,32 @@ class AbstractConfigFactory implements AbstractFactoryInterface
             }
         }
         return null;
+    }
+
+    /**
+     * Create service with name (SM v3)
+     *
+     * @param string $requestedName
+     * @return string|mixed|array
+     */
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    {
+        if (array_key_exists($requestedName, $this->configs)) {
+            return $this->configs[$requestedName];
+        }
+
+        $key = $this->match($requestedName);
+        if (array_key_exists($key, $this->configs)) {
+            $this->configs[$requestedName] = $this->configs[$key];
+            return $this->configs[$key];
+        }
+
+        $config = $container->get('config');
+
+        $this->configs[$requestedName] = $config[$key];
+        $this->configs[$key]           = $config[$key];
+
+        return $config[$key];
     }
 }

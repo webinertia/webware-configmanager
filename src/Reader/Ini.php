@@ -1,9 +1,13 @@
 <?php
 
-namespace Laminas\Config\Reader;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Reader;
 
+use Override;
+use Webware\ConfigManager\Exception;
+
+use function array_key_exists;
 use function array_merge_recursive;
 use function array_replace_recursive;
 use function array_shift;
@@ -12,12 +16,13 @@ use function explode;
 use function is_array;
 use function is_file;
 use function is_readable;
+use function is_string;
 use function parse_ini_file;
 use function parse_ini_string;
 use function restore_error_handler;
 use function set_error_handler;
 use function sprintf;
-use function strpos;
+use function str_contains;
 
 use const E_WARNING;
 use const INI_SCANNER_NORMAL;
@@ -62,15 +67,77 @@ class Ini implements ReaderInterface
     protected $typedMode = false;
 
     /**
-     * Set nest separator.
+     * fromFile(): defined by Reader interface.
      *
-     * @param  string $separator
-     * @return self
+     * @see    ReaderInterface::fromFile()
+     *
+     * @param  string $filename
+     * @return array
+     * @throws Exception\RuntimeException
      */
-    public function setNestSeparator($separator)
+    #[Override]
+    public function fromFile($filename)
     {
-        $this->nestSeparator = $separator;
-        return $this;
+        if (! is_file($filename) || ! is_readable($filename)) {
+            throw new Exception\RuntimeException(sprintf(
+                "File '%s' doesn't exist or not readable",
+                $filename,
+            ));
+        }
+
+        $this->directory = dirname($filename);
+
+        set_error_handler(
+            static function ($error, $message = '') use ($filename) {
+                throw new Exception\RuntimeException(
+                    sprintf('Error reading INI file "%s": %s', $filename, $message),
+                    $error,
+                );
+            },
+            E_WARNING,
+        );
+
+        try {
+            $ini = parse_ini_file($filename, $this->getProcessSections(), $this->getScannerMode());
+        } finally {
+            restore_error_handler();
+        }
+
+        return $this->process($ini);
+    }
+
+    /**
+     * fromString(): defined by Reader interface.
+     *
+     * @param  string $string
+     * @return array|bool
+     * @throws Exception\RuntimeException
+     */
+    #[Override]
+    public function fromString($string)
+    {
+        if ('' === $string) {
+            return [];
+        }
+        $this->directory = null;
+
+        set_error_handler(
+            static function ($error, $message = '') {
+                throw new Exception\RuntimeException(
+                    sprintf('Error reading INI string: %s', $message),
+                    $error,
+                );
+            },
+            E_WARNING,
+        );
+
+        try {
+            $ini = parse_ini_string($string, $this->getProcessSections(), $this->getScannerMode());
+        } finally {
+            restore_error_handler();
+        }
+
+        return $this->process($ini);
     }
 
     /**
@@ -81,22 +148,6 @@ class Ini implements ReaderInterface
     public function getNestSeparator()
     {
         return $this->nestSeparator;
-    }
-
-    /**
-     * Marks whether sections should be processed.
-     * When sections are not processed,section names are stripped and section
-     * values are merged
-     *
-     * @see https://www.php.net/parse_ini_file
-     *
-     * @param bool $processSections
-     * @return $this
-     */
-    public function setProcessSections($processSections)
-    {
-        $this->processSections = (bool) $processSections;
-        return $this;
     }
 
     /**
@@ -114,15 +165,14 @@ class Ini implements ReaderInterface
     }
 
     /**
-     * Set whether boolean, null, and integer values should be returned as their proper types.
-     * When set to false, all values will be returned as strings.
+     * Get the scanner-mode constant value to be used with the built-in parse_ini_file function.
+     * Either INI_SCANNER_NORMAL or INI_SCANNER_TYPED depending on $typedMode.
      *
      * @see https://www.php.net/parse_ini_file
      */
-    public function setTypedMode(bool $typedMode): self
+    public function getScannerMode(): int
     {
-        $this->typedMode = $typedMode;
-        return $this;
+        return $this->getTypedMode() ? INI_SCANNER_TYPED : INI_SCANNER_NORMAL;
     }
 
     /**
@@ -137,78 +187,43 @@ class Ini implements ReaderInterface
     }
 
     /**
-     * Get the scanner-mode constant value to be used with the built-in parse_ini_file function.
-     * Either INI_SCANNER_NORMAL or INI_SCANNER_TYPED depending on $typedMode.
+     * Set nest separator.
+     *
+     * @param  string $separator
+     * @return self
+     */
+    public function setNestSeparator($separator)
+    {
+        $this->nestSeparator = $separator;
+        return $this;
+    }
+
+    /**
+     * Marks whether sections should be processed.
+     * When sections are not processed,section names are stripped and section
+     * values are merged
+     *
+     * @see https://www.php.net/parse_ini_file
+     *
+     * @param bool $processSections
+     * @return $this
+     */
+    public function setProcessSections($processSections)
+    {
+        $this->processSections = $processSections;
+        return $this;
+    }
+
+    /**
+     * Set whether boolean, null, and integer values should be returned as their proper types.
+     * When set to false, all values will be returned as strings.
      *
      * @see https://www.php.net/parse_ini_file
      */
-    public function getScannerMode(): int
+    public function setTypedMode(bool $typedMode): self
     {
-        return $this->getTypedMode() ? INI_SCANNER_TYPED : INI_SCANNER_NORMAL;
-    }
-
-    /**
-     * fromFile(): defined by Reader interface.
-     *
-     * @see    ReaderInterface::fromFile()
-     *
-     * @param  string $filename
-     * @return array
-     * @throws Exception\RuntimeException
-     */
-    public function fromFile($filename)
-    {
-        if (! is_file($filename) || ! is_readable($filename)) {
-            throw new Exception\RuntimeException(sprintf(
-                "File '%s' doesn't exist or not readable",
-                $filename
-            ));
-        }
-
-        $this->directory = dirname($filename);
-
-        set_error_handler(
-            function ($error, $message = '') use ($filename) {
-                throw new Exception\RuntimeException(
-                    sprintf('Error reading INI file "%s": %s', $filename, $message),
-                    $error
-                );
-            },
-            E_WARNING
-        );
-        $ini = parse_ini_file($filename, $this->getProcessSections(), $this->getScannerMode());
-        restore_error_handler();
-
-        return $this->process($ini);
-    }
-
-    /**
-     * fromString(): defined by Reader interface.
-     *
-     * @param  string $string
-     * @return array|bool
-     * @throws Exception\RuntimeException
-     */
-    public function fromString($string)
-    {
-        if (empty($string)) {
-            return [];
-        }
-        $this->directory = null;
-
-        set_error_handler(
-            function ($error, $message = '') {
-                throw new Exception\RuntimeException(
-                    sprintf('Error reading INI string: %s', $message),
-                    $error
-                );
-            },
-            E_WARNING
-        );
-        $ini = parse_ini_string($string, $this->getProcessSections(), $this->getScannerMode());
-        restore_error_handler();
-
-        return $this->process($ini);
+        $this->typedMode = $typedMode;
+        return $this;
     }
 
     /**
@@ -221,16 +236,90 @@ class Ini implements ReaderInterface
         $config = [];
 
         foreach ($data as $section => $value) {
-            if (is_array($value)) {
-                if (strpos($section, $this->nestSeparator) !== false) {
-                    $sections = explode($this->nestSeparator, $section);
-                    $config   = array_merge_recursive($config, $this->buildNestedSection($sections, $value));
-                } else {
-                    $config[$section] = $this->processSection($value);
-                }
-            } else {
+            if (! is_array($value)) {
                 $this->processKey($section, $value, $config);
+                continue;
             }
+
+            if (is_string($section) && str_contains($section, $this->nestSeparator)) {
+                $sections = explode($this->nestSeparator, $section);
+                $config   = array_merge_recursive($config, $this->buildNestedSection($sections, $value));
+                continue;
+            }
+
+            $config[$section] = $this->processSection($value);
+        }
+
+        return $config;
+    }
+
+    /**
+     * Process a key.
+     *
+     * @param  string $key
+     * @param  string $value
+     * @throws Exception\RuntimeException
+     */
+    protected function processKey($key, $value, array &$config)
+    {
+        if (! is_string($key) || ! str_contains($key, $this->nestSeparator)) {
+            if ('@include' !== $key) {
+                $config[$key] = $value;
+
+                return;
+            }
+
+            if (null === $this->directory) {
+                throw new Exception\RuntimeException('Cannot process @include statement for a string config');
+            }
+
+            $reader  = clone $this;
+            $include = $reader->fromFile("{$this->directory}/{$value}");
+            $config  = array_replace_recursive($config, $include);
+
+            return;
+        }
+
+        $pieces = explode(
+            separator: $this->nestSeparator,
+            string   : $key,
+            limit    : 2,
+        );
+
+        if ('' === $pieces[0] || '' === $pieces[1]) {
+            throw new Exception\RuntimeException(sprintf('Invalid key "%s"', $key));
+        }
+
+        $existing = $config[$pieces[0]] ?? null;
+
+        if (array_key_exists($pieces[0], $config) && ! is_array($existing)) {
+            throw new Exception\RuntimeException(
+                sprintf('Cannot create sub-key for "%s", as key already exists', $pieces[0]),
+            );
+        }
+
+        if (! array_key_exists($pieces[0], $config)) {
+            if ('0' === $pieces[0] && [] !== $config) {
+                $config = [$pieces[0] => $config];
+            }
+
+            $config[$pieces[0]] ??= [];
+        }
+
+        $this->processKey($pieces[1], $value, $config[$pieces[0]]);
+    }
+
+    /**
+     * Process a section.
+     *
+     * @return array
+     */
+    protected function processSection(array $section)
+    {
+        $config = [];
+
+        foreach ($section as $key => $value) {
+            $this->processKey($key, $value, $config);
         }
 
         return $config;
@@ -255,65 +344,5 @@ class Ini implements ReaderInterface
         $nestedSection[$first] = $this->buildNestedSection($sections, $value);
 
         return $nestedSection;
-    }
-
-    /**
-     * Process a section.
-     *
-     * @return array
-     */
-    protected function processSection(array $section)
-    {
-        $config = [];
-
-        foreach ($section as $key => $value) {
-            $this->processKey($key, $value, $config);
-        }
-
-        return $config;
-    }
-
-    /**
-     * Process a key.
-     *
-     * @param  string $key
-     * @param  string $value
-     * @throws Exception\RuntimeException
-     */
-    protected function processKey($key, $value, array &$config)
-    {
-        if (strpos($key, $this->nestSeparator) !== false) {
-            $pieces = explode($this->nestSeparator, $key, 2);
-
-            if ($pieces[0] === '' || $pieces[1] === '') {
-                throw new Exception\RuntimeException(sprintf('Invalid key "%s"', $key));
-            }
-
-            if (! isset($config[$pieces[0]])) {
-                if ($pieces[0] === '0' && ! empty($config)) {
-                    $config = [$pieces[0] => $config];
-                } else {
-                    $config[$pieces[0]] = [];
-                }
-            } elseif (! is_array($config[$pieces[0]])) {
-                throw new Exception\RuntimeException(
-                    sprintf('Cannot create sub-key for "%s", as key already exists', $pieces[0])
-                );
-            }
-
-            $this->processKey($pieces[1], $value, $config[$pieces[0]]);
-        } else {
-            if ($key === '@include') {
-                if ($this->directory === null) {
-                    throw new Exception\RuntimeException('Cannot process @include statement for a string config');
-                }
-
-                $reader  = clone $this;
-                $include = $reader->fromFile($this->directory . '/' . $value);
-                $config  = array_replace_recursive($config, $include);
-            } else {
-                $config[$key] = $value;
-            }
-        }
     }
 }

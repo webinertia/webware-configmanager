@@ -1,10 +1,13 @@
 <?php
 
-namespace Laminas\Config\Processor;
+declare(strict_types=1);
 
-use Laminas\Config\Config;
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Processor;
+
 use Laminas\Filter\FilterInterface as LaminasFilter;
+use Override;
+use Webware\ConfigManager\Config;
+use Webware\ConfigManager\Exception;
 
 class Filter implements ProcessorInterface
 {
@@ -17,15 +20,6 @@ class Filter implements ProcessorInterface
     public function __construct(LaminasFilter $filter)
     {
         $this->setFilter($filter);
-    }
-
-    /**
-     * @return self
-     */
-    public function setFilter(LaminasFilter $filter)
-    {
-        $this->filter = $filter;
-        return $this;
     }
 
     /**
@@ -42,6 +36,7 @@ class Filter implements ProcessorInterface
      * @return Config
      * @throws Exception\InvalidArgumentException
      */
+    #[Override]
     public function process(Config $config)
     {
         if ($config->isReadOnly()) {
@@ -54,9 +49,10 @@ class Filter implements ProcessorInterface
         foreach ($config as $key => $val) {
             if ($val instanceof Config) {
                 $this->process($val);
-            } else {
-                $config->$key = $this->filter->filter($val);
+                continue;
             }
+
+            $config->$key = $this->filter->filter($val);
         }
 
         return $config;
@@ -68,8 +64,18 @@ class Filter implements ProcessorInterface
      * @param  mixed $value
      * @return mixed
      */
+    #[Override]
     public function processValue($value)
     {
         return $this->filter->filter($value);
+    }
+
+    /**
+     * @return self
+     */
+    public function setFilter(LaminasFilter $filter)
+    {
+        $this->filter = $filter;
+        return $this;
     }
 }

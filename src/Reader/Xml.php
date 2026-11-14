@@ -1,12 +1,15 @@
 <?php
 
-namespace Laminas\Config\Reader;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Reader;
+
+use Override;
+use Webware\ConfigManager\Exception;
 use XMLReader;
 
 use function array_key_exists;
-use function array_merge;
+use function array_replace;
 use function dirname;
 use function in_array;
 use function is_array;
@@ -60,12 +63,13 @@ class Xml implements ReaderInterface
      * @return array
      * @throws Exception\RuntimeException
      */
+    #[Override]
     public function fromFile($filename)
     {
         if (! is_file($filename) || ! is_readable($filename)) {
             throw new Exception\RuntimeException(sprintf(
                 "File '%s' doesn't exist or not readable",
-                $filename
+                $filename,
             ));
         }
         $this->reader = new XMLReader();
@@ -74,17 +78,21 @@ class Xml implements ReaderInterface
         $this->directory = dirname($filename);
 
         set_error_handler(
-            function ($error, $message = '') use ($filename) {
+            static function ($error, $message = '') use ($filename) {
                 throw new Exception\RuntimeException(
                     sprintf('Error reading XML file "%s": %s', $filename, $message),
-                    $error
+                    $error,
                 );
             },
-            E_WARNING
+            E_WARNING,
         );
-        $return = $this->process();
-        restore_error_handler();
-        $this->reader->close();
+
+        try {
+            $return = $this->process();
+        } finally {
+            restore_error_handler();
+            $this->reader->close();
+        }
 
         return $return;
     }
@@ -98,9 +106,10 @@ class Xml implements ReaderInterface
      * @return array|bool
      * @throws Exception\RuntimeException
      */
+    #[Override]
     public function fromString($string)
     {
-        if (empty($string)) {
+        if ('' === $string) {
             return [];
         }
         $this->reader = new XMLReader();
@@ -110,19 +119,43 @@ class Xml implements ReaderInterface
         $this->directory = null;
 
         set_error_handler(
-            function ($error, $message = '') {
+            static function ($error, $message = '') {
                 throw new Exception\RuntimeException(
                     sprintf('Error reading XML string: %s', $message),
-                    $error
+                    $error,
                 );
             },
-            E_WARNING
+            E_WARNING,
         );
-        $return = $this->process();
-        restore_error_handler();
-        $this->reader->close();
+
+        try {
+            $return = $this->process();
+        } finally {
+            restore_error_handler();
+            $this->reader->close();
+        }
 
         return $return;
+    }
+
+    /**
+     * Get all attributes on the current node.
+     *
+     * @return array
+     */
+    protected function getAttributes()
+    {
+        $attributes = [];
+
+        if ($this->reader->hasAttributes) {
+            while ($this->reader->moveToNextAttribute()) {
+                $attributes[$this->reader->localName] = $this->reader->value;
+            }
+
+            $this->reader->moveToElement();
+        }
+
+        return $attributes;
     }
 
     /**
@@ -146,19 +179,15 @@ class Xml implements ReaderInterface
         $text     = '';
 
         while ($this->reader->read()) {
-            if ($this->reader->nodeType === XMLReader::ELEMENT) {
-                if ($this->reader->depth === 0) {
+            if (XMLReader::ELEMENT === $this->reader->nodeType) {
+                if (0 === $this->reader->depth) {
                     return $this->processNextElement();
                 }
 
                 $attributes = $this->getAttributes();
                 $name       = $this->reader->name;
 
-                if ($this->reader->isEmptyElement) {
-                    $child = [];
-                } else {
-                    $child = $this->processNextElement();
-                }
+                $child = $this->reader->isEmptyElement ? [] : $this->processNextElement();
 
                 if ($attributes) {
                     if (is_string($child)) {
@@ -169,45 +198,31 @@ class Xml implements ReaderInterface
                         $child = [];
                     }
 
-                    $child = array_merge($child, $attributes);
+                    $child = array_replace($child, $attributes);
                 }
 
-                if (isset($children[$name])) {
-                    if (! is_array($children[$name]) || ! array_key_exists(0, $children[$name])) {
-                        $children[$name] = [$children[$name]];
-                    }
-
-                    $children[$name][] = $child;
-                } else {
+                if (! array_key_exists($name, $children)) {
                     $children[$name] = $child;
+                    continue;
                 }
-            } elseif ($this->reader->nodeType === XMLReader::END_ELEMENT) {
+
+                if (! is_array($children[$name]) || ! array_key_exists(0, $children[$name])) {
+                    $children[$name] = [$children[$name]];
+                }
+
+                $children[$name][] = $child;
+                continue;
+            }
+
+            if (XMLReader::END_ELEMENT === $this->reader->nodeType) {
                 break;
-            } elseif (in_array($this->reader->nodeType, $this->textNodes)) {
+            }
+
+            if (in_array($this->reader->nodeType, $this->textNodes, strict: true)) {
                 $text .= $this->reader->value;
             }
         }
 
-        return $children ?: $text;
-    }
-
-    /**
-     * Get all attributes on the current node.
-     *
-     * @return array
-     */
-    protected function getAttributes()
-    {
-        $attributes = [];
-
-        if ($this->reader->hasAttributes) {
-            while ($this->reader->moveToNextAttribute()) {
-                $attributes[$this->reader->localName] = $this->reader->value;
-            }
-
-            $this->reader->moveToElement();
-        }
-
-        return $attributes;
+        return [] === $children ? $text : $children;
     }
 }

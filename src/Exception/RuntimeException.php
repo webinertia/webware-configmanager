@@ -1,7 +1,9 @@
 <?php
 
-namespace Laminas\Config\Exception;
+declare(strict_types=1);
 
-class RuntimeException extends \RuntimeException implements ExceptionInterface
-{
-}
+namespace Webware\ConfigManager\Exception;
+
+use RuntimeException as BaseRuntimeException;
+
+class RuntimeException extends BaseRuntimeException implements ExceptionInterface {}

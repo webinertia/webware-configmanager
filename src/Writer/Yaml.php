@@ -1,8 +1,11 @@
 <?php
 
-namespace Laminas\Config\Writer;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Writer;
+
+use Override;
+use Webware\ConfigManager\Exception;
 
 use function call_user_func;
 use function function_exists;
@@ -24,12 +27,13 @@ class Yaml extends AbstractWriter
      */
     public function __construct($yamlEncoder = null)
     {
-        if ($yamlEncoder !== null) {
+        if (null !== $yamlEncoder) {
             $this->setYamlEncoder($yamlEncoder);
-        } else {
-            if (function_exists('yaml_emit')) {
-                $this->setYamlEncoder('yaml_emit');
-            }
+            return;
+        }
+
+        if (function_exists('yaml_emit')) {
+            $this->setYamlEncoder('yaml_emit');
         }
     }
 
@@ -41,6 +45,27 @@ class Yaml extends AbstractWriter
     public function getYamlEncoder()
     {
         return $this->yamlEncoder;
+    }
+
+    /**
+     * processConfig(): defined by AbstractWriter.
+     *
+     * @return string
+     * @throws Exception\RuntimeException
+     */
+    #[Override]
+    public function processConfig(array $config)
+    {
+        if (null === $this->getYamlEncoder()) {
+            throw new Exception\RuntimeException("You didn't specify a Yaml callback encoder");
+        }
+
+        $config = call_user_func($this->getYamlEncoder(), $config);
+        if (null === $config) {
+            throw new Exception\RuntimeException('Error generating YAML data');
+        }
+
+        return $config;
     }
 
     /**
@@ -57,25 +82,5 @@ class Yaml extends AbstractWriter
         }
         $this->yamlEncoder = $yamlEncoder;
         return $this;
-    }
-
-    /**
-     * processConfig(): defined by AbstractWriter.
-     *
-     * @return string
-     * @throws Exception\RuntimeException
-     */
-    public function processConfig(array $config)
-    {
-        if (null === $this->getYamlEncoder()) {
-            throw new Exception\RuntimeException("You didn't specify a Yaml callback encoder");
-        }
-
-        $config = call_user_func($this->getYamlEncoder(), $config);
-        if (null === $config) {
-            throw new Exception\RuntimeException("Error generating YAML data");
-        }
-
-        return $config;
     }
 }

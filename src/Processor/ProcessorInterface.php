@@ -1,8 +1,10 @@
 <?php
 
-namespace Laminas\Config\Processor;
+declare(strict_types=1);
 
-use Laminas\Config\Config;
+namespace Webware\ConfigManager\Processor;
+
+use Webware\ConfigManager\Config;
 
 interface ProcessorInterface
 {

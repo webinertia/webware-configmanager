@@ -1,7 +1,7 @@
 <?php
 
-namespace Laminas\Config\Exception;
+declare(strict_types=1);
 
-interface ExceptionInterface
-{
-}
+namespace Webware\ConfigManager\Exception;
+
+interface ExceptionInterface {}

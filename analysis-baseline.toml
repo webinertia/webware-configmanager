@@ -1,0 +1,2881 @@
+variant = "loose"
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\AbstractConfigFactory` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 4
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "incompatible-return-type"
+message = 'Return type `array<array-key, mixed>|mixed|string` of `Webware\ConfigManager\AbstractConfigFactory::__invoke()` is incompatible with parent return type `object` of `Laminas\ServiceManager\Factory\FactoryInterface::__invoke()`'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-parameter-type"
+message = "Parameter `$pattern` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-parameter-type"
+message = "Parameter `$patterns` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-parameter-type"
+message = "Parameter `$requestedName` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-property-type"
+message = "Property `$configs` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-property-type"
+message = "Property `$defaultPatterns` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-property-type"
+message = "Property `$patterns` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-return-type"
+message = "Function `addPattern` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-return-type"
+message = "Function `addPatterns` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-return-type"
+message = "Function `getPatterns` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-return-type"
+message = "Function `match` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "missing-return-type"
+message = "Function `setPatterns` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\AbstractConfigFactory::addPattern`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `preg_match`: expected `string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `array_key_exists`: expected `array<array-key, mixed>`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "mixed-array-access"
+message = "Unsafe array access on type `mixed`."
+count = 3
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 4
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "mixed-property-type-coercion"
+message = "A value with a less specific type `array<array-key, mixed>` is being assigned to property `$patterns` (array<array-key, string>)."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "mixed-return-statement"
+message = 'Could not infer a precise return type for function `Webware\ConfigManager\AbstractConfigFactory::__invoke`. Saw type `mixed`.'
+count = 3
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "possibly-null-argument"
+message = "Argument #1 of function `array_key_exists` is possibly `null`, but parameter type `bool|float|int|string` does not accept it."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "possibly-null-array-index"
+message = "Possibly using `null` as an array index to access element."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "possibly-null-array-index"
+message = "Possibly using `null` as an array index to access elementof variable $config."
+count = 3
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "possibly-undefined-int-array-index"
+message = "Possibly undefined array key `int(1)` accessed on `array<array-key, string>`."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "possibly-undefined-variable"
+message = "Variable `$matches` might not have been defined on all execution paths leading to this point."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$pattern` is already `string`."
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$patterns` is already `array<array-key, mixed>`."
+count = 2
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `InvalidArgumentException` in `Webware\ConfigManager\AbstractConfigFactory::addPattern`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `InvalidArgumentException` in `Webware\ConfigManager\AbstractConfigFactory::getPatterns`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotCreatedException` in `Webware\ConfigManager\AbstractConfigFactory::createServiceWithName`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\ServiceManager\Exception\ServiceNotFoundException` in `Webware\ConfigManager\AbstractConfigFactory::createServiceWithName`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `Webware\ConfigManager\AbstractConfigFactory::canCreate`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `Webware\ConfigManager\AbstractConfigFactory::createServiceWithName`.'
+count = 1
+
+[[issues]]
+file = "src/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `Webware\ConfigManager\AbstractConfigFactory::canCreate`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Config` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 2
+
+[[issues]]
+file = "src/Config.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$array` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "invalid-property-assignment-value"
+message = 'Invalid type for property `$data`: expected `array<array-key, mixed>`, but got `non-empty-array<array-key|bool|float, mixed>|non-empty-list<Webware\ConfigManager\Config|Webware\ConfigManager\Config&static>`.'
+count = 3
+
+[[issues]]
+file = "src/Config.php"
+code = "mismatched-array-index"
+message = "Invalid array key type: `bool|float|string` is not a valid key for this array."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-parameter-type"
+message = "Parameter `$allowModifications` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-parameter-type"
+message = "Parameter `$default` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-parameter-type"
+message = "Parameter `$name` is missing a type hint."
+count = 5
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-parameter-type"
+message = "Parameter `$value` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-property-type"
+message = "Property `$allowModifications` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-property-type"
+message = "Property `$data` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-property-type"
+message = "Property `$skipNextIteration` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `__clone` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `__get` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `__isset` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `__set` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `__unset` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `get` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `isReadOnly` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `merge` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `setReadOnly` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-return-type"
+message = "Function `toArray` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-template-parameter"
+message = "Too few template arguments for `ArrayAccess`: expected at least 2, but found 0."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "missing-template-parameter"
+message = "Too few template arguments for `Iterator`: expected at least 2, but found 0."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Config::__get`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Config::__isset`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Config::__set`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Config::__unset`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `array_key_exists`: expected `bool|float|int|string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "mixed-array-index"
+message = 'Invalid index type `mixed` used in array assignment on `array<array-key|bool|float, mixed>|non-empty-list<Webware\ConfigManager\Config|Webware\ConfigManager\Config&static>`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 3
+
+[[issues]]
+file = "src/Config.php"
+code = "possibly-invalid-argument"
+message = 'Possible argument type mismatch for argument #2 of `array_key_exists`: expected `array<array-key, mixed>`, but possibly received `array<array-key|bool|float, mixed>|non-empty-list<Webware\ConfigManager\Config|Webware\ConfigManager\Config&static>`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "redundant-condition"
+message = "Redundant ternary operator: condition is always truthy."
+count = 3
+
+[[issues]]
+file = "src/Config.php"
+code = "redundant-logical-operation"
+message = "Redundant `&&` operation: left operand is always truthy and right operand is evaluated."
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\InvalidArgumentException` in `Webware\ConfigManager\Config::offsetUnset`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Config::offsetSet`.'
+count = 1
+
+[[issues]]
+file = "src/Config.php"
+code = "unsafe-instantiation"
+message = 'Unsafe `new static()`: constructor of `Webware\ConfigManager\Config` is not final and its signature might change in child classes, potentially leading to runtime errors.'
+count = 4
+
+[[issues]]
+file = "src/Exception/ExceptionInterface.php"
+code = "missing-api-or-internal"
+message = 'Interface `Webware\ConfigManager\Exception\ExceptionInterface` is missing an `@api` or `@internal` annotation.'
+count = 1
+
+[[issues]]
+file = "src/Exception/InvalidArgumentException.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Exception\InvalidArgumentException` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Exception/PluginNotFoundException.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Exception\PluginNotFoundException` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Exception/UnprocessableConfigException.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Exception\UnprocessableConfigException` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Factory` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 3
+
+[[issues]]
+file = "src/Factory.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$files` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "invalid-class-string-expression"
+message = "Expression of type `never` cannot be used as a class name."
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-parameter-type"
+message = "Parameter `$config` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-parameter-type"
+message = "Parameter `$extension` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-parameter-type"
+message = "Parameter `$filename` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-parameter-type"
+message = "Parameter `$reader` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-parameter-type"
+message = "Parameter `$returnConfigObject` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-parameter-type"
+message = "Parameter `$useIncludePath` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-parameter-type"
+message = "Parameter `$writer` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-property-type"
+message = "Property `$extensions` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-property-type"
+message = "Property `$readers` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-property-type"
+message = "Property `$writerExtensions` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-property-type"
+message = "Property `$writers` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `fromFile` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `fromFiles` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `getReaderPluginManager` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `getWriterPluginManager` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `registerReader` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `registerWriter` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `setReaderPluginManager` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `setWriterPluginManager` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "missing-return-type"
+message = "Function `toFile` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Psr\Container\ContainerInterface::get`: expected `string`, but found `mixed`.'
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Config::__construct`: expected `array<array-key, mixed>`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Factory::fromFile`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 7
+
+[[issues]]
+file = "src/Factory.php"
+code = "mixed-method-access"
+message = "Attempting to call method `processConfig()` on a non-object type (`mixed`)."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "mixed-return-statement"
+message = 'Could not infer a precise return type for function `Webware\ConfigManager\Factory::fromFile`. Saw type `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "no-value"
+message = "Argument #1 passed to function `gettype` has type `never`, meaning it cannot produce a value."
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "no-value"
+message = "Argument #1 passed to function `is_object` has type `never`, meaning it cannot produce a value."
+count = 2
+
+[[issues]]
+file = "src/Factory.php"
+code = "possibly-false-argument"
+message = "Argument #1 of function `substr` is possibly `false`, but parameter type `string` does not accept it."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "possibly-invalid-argument"
+message = 'Possible argument type mismatch for argument #2 of `Laminas\Stdlib\ArrayUtils::merge`: expected `array<array-key, mixed>`, but possibly received `Webware\ConfigManager\Config|array<array-key, mixed>`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "redundant-logical-operation"
+message = "Redundant `&&` operation: left operand is evaluated and right operand is always falsy."
+count = 4
+
+[[issues]]
+file = "src/Factory.php"
+code = "redundant-logical-operation"
+message = "Redundant `||` operation: left operand is always falsy and right operand is always falsy."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$config` is already `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$reader` is already `never`."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$writer` is already `never`."
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `Webware\ConfigManager\Factory::fromFile`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\ContainerExceptionInterface` in `Webware\ConfigManager\Factory::toFile`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `Webware\ConfigManager\Factory::fromFile`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Psr\Container\NotFoundExceptionInterface` in `Webware\ConfigManager\Factory::toFile`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\InvalidArgumentException` in `Webware\ConfigManager\Factory::fromFiles`.'
+count = 1
+
+[[issues]]
+file = "src/Factory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Factory::fromFiles`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Processor\Constant` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$replacements` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-parameter-type"
+message = "Parameter `$enableKeyProcessing` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-parameter-type"
+message = "Parameter `$prefix` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-parameter-type"
+message = "Parameter `$suffix` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-parameter-type"
+message = "Parameter `$userOnly` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-property-type"
+message = "Property `$userOnly` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-return-type"
+message = "Function `getUserOnly` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-return-type"
+message = "Function `loadConstants` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "missing-return-type"
+message = "Function `setUserOnly` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Processor\Token::setTokens`: expected `Traversable<mixed, mixed>|Webware\ConfigManager\Config|array<array-key, mixed>`, but found `nonnull`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Error` in `Webware\ConfigManager\Processor\Constant::doProcess`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Constant.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\InvalidArgumentException` in `Webware\ConfigManager\Processor\Constant::loadConstants`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Processor\Filter` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\Processor\Filter::process()` is named `$config` but parent `Webware\ConfigManager\Processor\ProcessorInterface::process()` names it `$value`'
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "invalid-member-selector"
+message = "Invalid type `mixed` used as a member selector; a string is expected."
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "missing-property-type"
+message = "Property `$filter` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "missing-return-type"
+message = "Function `getFilter` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "missing-return-type"
+message = "Function `setFilter` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 2
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\Filter\Exception\RuntimeException` in `Webware\ConfigManager\Processor\Filter::processValue`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Filter.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\Filter\Exception\RuntimeException` in `Webware\ConfigManager\Processor\Filter::process`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/ProcessorInterface.php"
+code = "missing-api-or-internal"
+message = 'Interface `Webware\ConfigManager\Processor\ProcessorInterface` is missing an `@api` or `@internal` annotation.'
+count = 1
+
+[[issues]]
+file = "src/Processor/ProcessorInterface.php"
+code = "missing-parameter-type"
+message = "Parameter `$value` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/ProcessorInterface.php"
+code = "missing-return-type"
+message = "Function `processValue` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/ProcessorInterface.php"
+code = "missing-return-type"
+message = "Function `process` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Queue.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Processor\Queue` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Queue.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\Processor\Queue::process()` is named `$config` but parent `Webware\ConfigManager\Processor\ProcessorInterface::process()` names it `$value`'
+count = 1
+
+[[issues]]
+file = "src/Processor/Queue.php"
+code = "missing-template-parameter"
+message = 'Too few template arguments for `Laminas\Stdlib\PriorityQueue`: expected at least 2, but found 0.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Queue.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 3
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$replacements` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\Processor\Constant::process()` is named `$config` but parent `Webware\ConfigManager\Processor\ProcessorInterface::process()` names it `$value`'
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\Processor\Token::process()` is named `$config` but parent `Webware\ConfigManager\Processor\ProcessorInterface::process()` names it `$value`'
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "invalid-member-selector"
+message = "Invalid type `mixed` used as a member selector; a string is expected."
+count = 2
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "invalid-property-assignment-value"
+message = "Invalid type for property `$map`: expected `array<array-key, mixed>`, but got `null`."
+count = 4
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "less-specific-argument"
+message = "Argument type mismatch for argument #2 of `strtr`: expected `array<string, string>|string`, but provided type `array<array-key, mixed>` is less specific."
+count = 2
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "match-arm-always-true"
+message = "This match arm is always true, making subsequent arms unreachable."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-parameter-type"
+message = "Parameter `$enableKeyProcessing` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-parameter-type"
+message = "Parameter `$prefix` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-parameter-type"
+message = "Parameter `$suffix` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-parameter-type"
+message = "Parameter `$token` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-parameter-type"
+message = "Parameter `$tokens` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-parameter-type"
+message = "Parameter `$value` is missing a type hint."
+count = 3
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-property-type"
+message = "Property `$map` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-property-type"
+message = "Property `$prefix` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-property-type"
+message = "Property `$processKeys` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-property-type"
+message = "Property `$suffix` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-property-type"
+message = "Property `$tokens` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `addToken` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `buildMap` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `doProcess` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `enableKeyProcessing` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `getPrefix` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `getSuffix` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `getTokens` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `setPrefix` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `setSuffix` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `setToken` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "missing-return-type"
+message = "Function `setTokens` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 6
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "mixed-return-statement"
+message = 'Could not infer a precise return type for function `Webware\ConfigManager\Processor\Token::process`. Saw type `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "no-value"
+message = "Argument #1 passed to function `gettype` has type `never`, meaning it cannot produce a value."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "redundant-comparison"
+message = "Redundant `!==` comparison: left-hand side is always not identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "redundant-condition"
+message = "This condition (type `true`) will always evaluate to true."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$token` is already `string`."
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\InvalidArgumentException` in `Webware\ConfigManager\Processor\Token::__construct`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\InvalidArgumentException` in `Webware\ConfigManager\Processor\Token::processValue`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\InvalidArgumentException` in `Webware\ConfigManager\Processor\Token::setToken`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "unreachable-match-default-arm"
+message = "This default arm is unreachable."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Processor\Translator` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\Processor\Translator::process()` is named `$config` but parent `Webware\ConfigManager\Processor\ProcessorInterface::process()` names it `$value`'
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "incompatible-parameter-type"
+message = 'Parameter `$value` of `Webware\ConfigManager\Processor\Translator::processvalue()` expects type `string` but parent `Webware\ConfigManager\Processor\ProcessorInterface::processvalue()` expects type `mixed`'
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "invalid-member-selector"
+message = "Invalid type `mixed` used as a member selector; a string is expected."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-parameter-type"
+message = "Parameter `$locale` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-parameter-type"
+message = "Parameter `$textDomain` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-property-type"
+message = "Property `$locale` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-property-type"
+message = "Property `$textDomain` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-property-type"
+message = "Property `$translator` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-return-type"
+message = "Function `getLocale` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-return-type"
+message = "Function `getTextDomain` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-return-type"
+message = "Function `getTranslator` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-return-type"
+message = "Function `setLocale` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-return-type"
+message = "Function `setTextDomain` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "missing-return-type"
+message = "Function `setTranslator` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Laminas\I18n\Translator\Translator::translate`: expected `string`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Translator.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 2
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Reader\Ini` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$data` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$section` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "invalid-property-assignment-value"
+message = "Invalid type for property `$directory`: expected `string`, but got `null`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "less-specific-argument"
+message = 'Argument type mismatch for argument #1 of `Webware\ConfigManager\Reader\Ini::processKey`: expected `string`, but provided type `array-key` is less specific.'
+count = 2
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$key` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$processSections` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$sections` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$separator` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$value` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-property-type"
+message = "Property `$directory` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-property-type"
+message = "Property `$nestSeparator` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-property-type"
+message = "Property `$processSections` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-property-type"
+message = "Property `$typedMode` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `buildNestedSection` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `getNestSeparator` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `getProcessSections` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `processKey` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `processSection` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `process` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `setNestSeparator` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "missing-return-type"
+message = "Function `setProcessSections` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Reader\Ini::processSection`: expected `array<array-key, mixed>`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `Exception::__construct`: expected `int`, but found `mixed`."
+count = 2
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #2 of `Webware\ConfigManager\Reader\Ini::processKey`: expected `string`, but found `mixed`.'
+count = 2
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #3 of `Webware\ConfigManager\Reader\Ini::processKey`: expected `array<array-key, mixed>`, but found `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-array-index"
+message = "Invalid index type `mixed` used in array assignment on `array{}`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 4
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "possibly-false-argument"
+message = 'Argument #1 of method `Webware\ConfigManager\Reader\Ini::process` is possibly `false`, but parameter type `array<array-key, mixed>` does not accept it.'
+count = 2
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "possibly-undefined-string-array-index"
+message = "Possibly undefined array key `non-empty-string` accessed on `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "possibly-undefined-string-array-index"
+message = "Possibly undefined array key `non-empty-string` accessed on `array{0: mixed}`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "redundant-logical-operation"
+message = "Redundant `||` operation: left operand is always false and right operand is evaluated."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$key` is already `string`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Reader\Ini::processSection`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Reader\Ini::process`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Reader/Ini.php:125:13}`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Ini.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Reader/Ini.php:91:13}`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Reader\JavaProperties` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "impossible-condition"
+message = "Redundant ternary operator: condition is always falsy."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "impossible-type-comparison"
+message = "Impossible type assertion: `$delimiter` of type `string('')` can never be `object`."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$data` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "invalid-class-string-expression"
+message = "Expression of type `never` cannot be used as a class name."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "invalid-property-assignment-value"
+message = "Invalid type for property `$directory`: expected `string`, but got `null`."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "less-specific-argument"
+message = "Argument type mismatch for argument #1 of `trim`: expected `string`, but provided type `array-key` is less specific."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-constant-type"
+message = "Class constant `DELIMITER_DEFAULT` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-constant-type"
+message = "Class constant `WHITESPACE_KEEP` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-constant-type"
+message = "Class constant `WHITESPACE_TRIM` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-parameter-type"
+message = "Parameter `$delimiter` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-parameter-type"
+message = "Parameter `$string` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-parameter-type"
+message = "Parameter `$trimWhitespace` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-property-type"
+message = "Property `$delimiter` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-property-type"
+message = "Property `$directory` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-property-type"
+message = "Property `$trimWhitespace` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-return-type"
+message = "Function `parse` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "missing-return-type"
+message = "Function `process` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "possibly-false-argument"
+message = 'Argument #1 of method `Webware\ConfigManager\Reader\JavaProperties::parse` is possibly `false`, but parameter type `string` does not accept it.'
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "possibly-false-argument"
+message = "Argument #3 of function `substr` is possibly `false`, but parameter type `int|null` does not accept it."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "possibly-false-operand"
+message = "Left operand in arithmetic operation might be `false` (type `false|non-negative-int`)."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "possibly-undefined-variable"
+message = "Variable `$value` might not have been defined on all execution paths leading to this point."
+count = 6
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "redundant-logical-operation"
+message = "Redundant `||` operation: left operand is always false and right operand is evaluated."
+count = 1
+
+[[issues]]
+file = "src/Reader/JavaProperties.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$delimiter` is already `string`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Reader\Json` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$data` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "invalid-property-assignment-value"
+message = "Invalid type for property `$directory`: expected `string`, but got `null`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "invalid-return-statement"
+message = 'Invalid return type for function `Webware\ConfigManager\Reader\Json::decode`: expected `array<array-key, mixed>`, but found `null`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "missing-parameter-type"
+message = "Parameter `$data` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "missing-property-type"
+message = "Property `$directory` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "missing-return-type"
+message = "Function `decode` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "missing-return-type"
+message = "Function `process` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 2
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "possibly-false-argument"
+message = 'Argument #1 of method `Webware\ConfigManager\Reader\Json::decode` is possibly `false`, but parameter type `string` does not accept it.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Json.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "src/Reader/ReaderInterface.php"
+code = "missing-api-or-internal"
+message = 'Interface `Webware\ConfigManager\Reader\ReaderInterface` is missing an `@api` or `@internal` annotation.'
+count = 1
+
+[[issues]]
+file = "src/Reader/ReaderInterface.php"
+code = "missing-parameter-type"
+message = "Parameter `$filename` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/ReaderInterface.php"
+code = "missing-parameter-type"
+message = "Parameter `$string` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/ReaderInterface.php"
+code = "missing-return-type"
+message = "Function `fromFile` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/ReaderInterface.php"
+code = "missing-return-type"
+message = "Function `fromString` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Reader\Xml` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "invalid-property-assignment-value"
+message = "Invalid type for property `$directory`: expected `string`, but got `null`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "missing-property-type"
+message = "Property `$directory` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "missing-property-type"
+message = "Property `$reader` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "missing-property-type"
+message = "Property `$textNodes` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "missing-return-type"
+message = "Function `getAttributes` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "missing-return-type"
+message = "Function `processNextElement` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "missing-return-type"
+message = "Function `process` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `Exception::__construct`: expected `int`, but found `mixed`."
+count = 2
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "mixed-return-statement"
+message = 'Could not infer a precise return type for function `Webware\ConfigManager\Reader\Xml::process`. Saw type `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Reader/Xml.php:122:13}`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Xml.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Reader/Xml.php:81:13}`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Reader\Yaml` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 3
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$data` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "invalid-property-assignment-value"
+message = "Invalid type for property `$directory`: expected `string`, but got `null`."
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "missing-parameter-type"
+message = "Parameter `$yamlDecoder` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "missing-property-type"
+message = "Property `$directory` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "missing-property-type"
+message = "Property `$yamlDecoder` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "missing-return-type"
+message = "Function `getYamlDecoder` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "missing-return-type"
+message = "Function `process` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "missing-return-type"
+message = "Function `setYamlDecoder` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "mixed-argument"
+message = 'Invalid argument type for argument #1 of `Webware\ConfigManager\Reader\Yaml::process`: expected `array<array-key, mixed>`, but found `nonnull`.'
+count = 2
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 3
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 3
+
+[[issues]]
+file = "src/Reader/Yaml.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Reader\Yaml::__construct`.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\ReaderPluginManager` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "incompatible-property-type"
+message = 'Property `Webware\ConfigManager\ReaderPluginManager::$factories` has an incompatible type declaration from docblock.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "incompatible-property-type"
+message = 'Property `Webware\ConfigManager\ReaderPluginManager::$instanceOf` has an incompatible type declaration from docblock.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "less-specific-nested-argument-type"
+message = '''Argument type mismatch for argument #2 of `Laminas\ServiceManager\AbstractPluginManager::__construct`: expected `array{'abstract_factories'?: array<array-key, Laminas\ServiceManager\Factory\AbstractFactoryInterface|class-string<Laminas\ServiceManager\Factory\AbstractFactoryInterface>>, 'aliases'?: array<string, string>, 'delegators'?: array<string, array<array-key, (callable(Psr\Container\ContainerInterface, string, (callable(): object), array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\DelegatorFactoryInterface|class-string<Laminas\ServiceManager\Factory\DelegatorFactoryInterface>>>, 'factories'?: array<string, (callable(Psr\Container\ContainerInterface, null|string, array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\FactoryInterface|class-string<Laminas\ServiceManager\Factory\FactoryInterface>>, 'initializers'?: array<array-key, (callable(Psr\Container\ContainerInterface, object): void)|Laminas\ServiceManager\Initializer\InitializerInterface|class-string<Laminas\ServiceManager\Initializer\InitializerInterface>>, 'invokables'?: array<string, string>, 'lazy_services'?: array{'class_map'?: array<string, class-string>, 'proxies_namespace'?: non-empty-string, 'proxies_target_dir'?: non-empty-string, 'write_proxy_files'?: bool}, 'services'?: array<string, array<array-key, mixed>|object>, 'shared'?: array<string, bool>, 'shared_by_default'?: bool, ...}`, but provided type `array<array-key, mixed>` is less specific.'''
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "missing-parameter-type"
+message = "Parameter `$instance` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "missing-return-type"
+message = "Function `validatePlugin` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "missing-template-parameter"
+message = 'Too few template arguments for `Laminas\ServiceManager\AbstractPluginManager`: expected at least 1, but found 0.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Reader\Ini` not found.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Reader\JavaProperties` not found.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Reader\Json` not found.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Reader\Xml` not found.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Reader\Yaml` not found.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Ini` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\JavaProperties` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Json` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Xml` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Reader\Yaml` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/ReaderPluginManager.php"
+code = "possibly-invalid-argument"
+message = "Possible argument type mismatch for argument #2 of `Exception::__construct`: expected `int`, but possibly received `int|string`."
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\StandaloneReaderPluginManager` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\StandaloneReaderPluginManager::get()` is named `$plugin` but parent `Psr\Container\ContainerInterface::get()` names it `$id`'
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\StandaloneReaderPluginManager::has()` is named `$plugin` but parent `Psr\Container\ContainerInterface::has()` names it `$id`'
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "less-specific-return-statement"
+message = 'Returned type `object` is less specific than the declared return type `Webware\ConfigManager\Reader\ReaderInterface` for function `Webware\ConfigManager\StandaloneReaderPluginManager::get`.'
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "missing-property-type"
+message = "Property `$knownPlugins` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "possibly-null-property-access"
+message = "Attempting static access on a possibly `null` value."
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "possibly-undefined-string-array-index"
+message = "Possibly undefined array key `lowercase-non-empty-string|string('')` accessed on `array<string, class-string>`."
+count = 1
+
+[[issues]]
+file = "src/StandaloneReaderPluginManager.php"
+code = "unknown-class-instantiation"
+message = "Cannot determine the concrete class for instantiation."
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\StandaloneWriterPluginManager` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\StandaloneWriterPluginManager::get()` is named `$plugin` but parent `Psr\Container\ContainerInterface::get()` names it `$id`'
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "incompatible-parameter-name"
+message = 'Parameter #1 of `Webware\ConfigManager\StandaloneWriterPluginManager::has()` is named `$plugin` but parent `Psr\Container\ContainerInterface::has()` names it `$id`'
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "less-specific-return-statement"
+message = 'Returned type `object` is less specific than the declared return type `Webware\ConfigManager\Reader\ReaderInterface` for function `Webware\ConfigManager\StandaloneWriterPluginManager::get`.'
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "missing-property-type"
+message = "Property `$knownPlugins` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "possibly-null-property-access"
+message = "Attempting static access on a possibly `null` value."
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "possibly-undefined-string-array-index"
+message = "Possibly undefined array key `lowercase-non-empty-string|string('')` accessed on `array<string, class-string>`."
+count = 1
+
+[[issues]]
+file = "src/StandaloneWriterPluginManager.php"
+code = "unknown-class-instantiation"
+message = "Cannot determine the concrete class for instantiation."
+count = 1
+
+[[issues]]
+file = "src/Writer/AbstractWriter.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Writer/AbstractWriter.php"
+code = "missing-api-or-internal"
+message = 'Abstract class `Webware\ConfigManager\Writer\AbstractWriter` is missing an `@api` or `@internal` annotation.'
+count = 1
+
+[[issues]]
+file = "src/Writer/AbstractWriter.php"
+code = "missing-return-type"
+message = "Function `processConfig` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/AbstractWriter.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `Exception::__construct`: expected `int`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Writer/AbstractWriter.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Writer/AbstractWriter.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Laminas\Stdlib\Exception\InvalidArgumentException` in `Webware\ConfigManager\Writer\AbstractWriter::toString`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/AbstractWriter.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Writer/AbstractWriter.php:48:13}`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Writer\Ini` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 3
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "invalid-return-statement"
+message = 'Invalid return type for function `Webware\ConfigManager\Writer\Ini::prepareValue`: expected `string`, but found `float|int`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "less-specific-nested-argument-type"
+message = "Argument type mismatch for argument #2 of `implode`: expected `array<array-key, Stringable|null|scalar>|null`, but provided type `list{array-key, ...<mixed>}` is less specific."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$parents` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$separator` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$value` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-parameter-type"
+message = "Parameter `$withoutSections` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-property-type"
+message = "Property `$nestSeparator` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-property-type"
+message = "Property `$renderWithoutSections` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-return-type"
+message = "Function `addBranch` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-return-type"
+message = "Function `getNestSeparator` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-return-type"
+message = "Function `prepareValue` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-return-type"
+message = "Function `setNestSeparator` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-return-type"
+message = "Function `setRenderWithoutSectionsFlags` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-return-type"
+message = "Function `shouldRenderWithoutSections` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "missing-return-type"
+message = "Function `sortRootElements` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #1 of `str_contains`: expected `string`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 3
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Writer\Ini::addBranch`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Ini.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Writer\Ini::processConfig`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Writer\JavaProperties` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "impossible-condition"
+message = "Redundant ternary operator: condition is always falsy."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "impossible-type-comparison"
+message = "Impossible type assertion: `$delimiter` of type `string('')` can never be `object`."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "invalid-class-string-expression"
+message = "Expression of type `never` cannot be used as a class name."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "missing-constant-type"
+message = "Class constant `DELIMITER_DEFAULT` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "missing-parameter-type"
+message = "Parameter `$delimiter` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "missing-property-type"
+message = "Property `$delimiter` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "redundant-logical-operation"
+message = "Redundant `||` operation: left operand is always false and right operand is evaluated."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "redundant-null-coalesce"
+message = "Redundant null coalesce: left-hand side can never be `null` or undefined."
+count = 1
+
+[[issues]]
+file = "src/Writer/JavaProperties.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$delimiter` is already `string`."
+count = 1
+
+[[issues]]
+file = "src/Writer/Json.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Writer\Json` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Json.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Writer\PhpArray` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$arraySyntax` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 2
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "invalid-return-statement"
+message = 'Invalid return type for function `Webware\ConfigManager\Writer\PhpArray::processStringKey`: expected `string`, but found `string|true`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "invalid-return-statement"
+message = 'Invalid return type for function `Webware\ConfigManager\Writer\PhpArray::processStringValue`: expected `string`, but found `string|true`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-constant-type"
+message = "Class constant `INDENT_STRING` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-parameter-type"
+message = "Parameter `$indentLevel` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-parameter-type"
+message = "Parameter `$key` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-parameter-type"
+message = "Parameter `$string` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-parameter-type"
+message = "Parameter `$value` is missing a type hint."
+count = 3
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-property-type"
+message = "Property `$useBracketArraySyntax` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-property-type"
+message = "Property `$useClassNameScalars` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `checkStringIsFqn` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `fqnStringToClassNameScalar` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `getUseClassNameScalars` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `processIndented` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `processStringKey` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `processStringValue` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `setUseBracketArraySyntax` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "missing-return-type"
+message = "Function `setUseClassNameScalars` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #2 of `Exception::__construct`: expected `int`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "mixed-argument"
+message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "mixed-operand"
+message = "Invalid middle operand: type `mixed` cannot be reliably used in string concatenation."
+count = 2
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "possibly-invalid-argument"
+message = "Possible argument type mismatch for argument #2 of `str_repeat`: expected `non-negative-int`, but possibly received `int`."
+count = 2
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "possibly-undefined-string-array-index"
+message = "Possibly undefined array key `string('close')` accessed on `array<array-key, mixed>`."
+count = 2
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "possibly-undefined-string-array-index"
+message = "Possibly undefined array key `string('open')` accessed on `array<array-key, mixed>`."
+count = 2
+
+[[issues]]
+file = "src/Writer/PhpArray.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Writer/PhpArray.php:122:13}`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/WriterInterface.php"
+code = "missing-api-or-internal"
+message = 'Interface `Webware\ConfigManager\Writer\WriterInterface` is missing an `@api` or `@internal` annotation.'
+count = 1
+
+[[issues]]
+file = "src/Writer/WriterInterface.php"
+code = "missing-parameter-type"
+message = "Parameter `$config` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Writer/WriterInterface.php"
+code = "missing-parameter-type"
+message = "Parameter `$exclusiveLock` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/WriterInterface.php"
+code = "missing-parameter-type"
+message = "Parameter `$filename` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/WriterInterface.php"
+code = "missing-return-type"
+message = "Function `toFile` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/WriterInterface.php"
+code = "missing-return-type"
+message = "Function `toString` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Writer\Xml` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 2
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "less-specific-argument"
+message = 'Argument type mismatch for argument #1 of `Webware\ConfigManager\Writer\Xml::addBranch`: expected `string`, but provided type `array-key` is less specific.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "less-specific-argument"
+message = "Argument type mismatch for argument #1 of `XMLWriter::writeElement`: expected `string`, but provided type `array-key` is less specific."
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "missing-parameter-type"
+message = "Parameter `$branchName` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "missing-return-type"
+message = "Function `addBranch` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 2
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "possibly-invalid-argument"
+message = 'Possible argument type mismatch for argument #1 of `Webware\ConfigManager\Writer\Xml::addBranch`: expected `string`, but possibly received `int|string`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "possibly-invalid-argument"
+message = "Possible argument type mismatch for argument #1 of `XMLWriter::writeElement`: expected `string`, but possibly received `int|string`."
+count = 1
+
+[[issues]]
+file = "src/Writer/Xml.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `Webware\ConfigManager\Writer\Xml::processConfig`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\Writer\Yaml` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "impossible-condition"
+message = "This condition (type `false`) will always evaluate to false."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "less-specific-nested-argument-type"
+message = 'Argument type mismatch for argument #1 of `Webware\ConfigManager\Writer\Yaml::setYamlEncoder`: expected `(callable(...mixed): mixed)`, but provided type `(callable(...mixed): mixed)|string` is less specific.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "missing-parameter-type"
+message = "Parameter `$yamlEncoder` is missing a type hint."
+count = 2
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "missing-property-type"
+message = "Property `$yamlEncoder` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "missing-return-type"
+message = "Function `getYamlEncoder` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "missing-return-type"
+message = "Function `setYamlEncoder` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "mixed-assignment"
+message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "mixed-return-statement"
+message = 'Could not infer a precise return type for function `Webware\ConfigManager\Writer\Yaml::processConfig`. Saw type `nonnull`.'
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "redundant-comparison"
+message = "Redundant `===` comparison: left-hand side is never identical to right-hand side."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "redundant-type-comparison"
+message = "Redundant type assertion: `$yamlEncoder` is already `(callable(...mixed): mixed)`."
+count = 1
+
+[[issues]]
+file = "src/Writer/Yaml.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\InvalidArgumentException` in `Webware\ConfigManager\Writer\Yaml::__construct`.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "class-must-be-final"
+message = 'Class `Webware\ConfigManager\WriterPluginManager` should be declared `final`.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "imprecise-type"
+message = "Type `array` in parameter `$config` is imprecise, equivalent to `array<array-key, mixed>`."
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "incompatible-property-type"
+message = 'Property `Webware\ConfigManager\WriterPluginManager::$factories` has an incompatible type declaration from docblock.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "incompatible-property-type"
+message = 'Property `Webware\ConfigManager\WriterPluginManager::$instanceOf` has an incompatible type declaration from docblock.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "less-specific-nested-argument-type"
+message = '''Argument type mismatch for argument #2 of `Laminas\ServiceManager\AbstractPluginManager::__construct`: expected `array{'abstract_factories'?: array<array-key, Laminas\ServiceManager\Factory\AbstractFactoryInterface|class-string<Laminas\ServiceManager\Factory\AbstractFactoryInterface>>, 'aliases'?: array<string, string>, 'delegators'?: array<string, array<array-key, (callable(Psr\Container\ContainerInterface, string, (callable(): object), array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\DelegatorFactoryInterface|class-string<Laminas\ServiceManager\Factory\DelegatorFactoryInterface>>>, 'factories'?: array<string, (callable(Psr\Container\ContainerInterface, null|string, array<array-key, mixed>|null): object)|Laminas\ServiceManager\Factory\FactoryInterface|class-string<Laminas\ServiceManager\Factory\FactoryInterface>>, 'initializers'?: array<array-key, (callable(Psr\Container\ContainerInterface, object): void)|Laminas\ServiceManager\Initializer\InitializerInterface|class-string<Laminas\ServiceManager\Initializer\InitializerInterface>>, 'invokables'?: array<string, string>, 'lazy_services'?: array{'class_map'?: array<string, class-string>, 'proxies_namespace'?: non-empty-string, 'proxies_target_dir'?: non-empty-string, 'write_proxy_files'?: bool}, 'services'?: array<string, array<array-key, mixed>|object>, 'shared'?: array<string, bool>, 'shared_by_default'?: bool, ...}`, but provided type `array<array-key, mixed>` is less specific.'''
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "missing-parameter-type"
+message = "Parameter `$instance` is missing a type hint."
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "missing-return-type"
+message = "Function `validatePlugin` is missing a return type hint."
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "missing-template-parameter"
+message = 'Too few template arguments for `Laminas\ServiceManager\AbstractPluginManager`: expected at least 1, but found 0.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Writer\Ini` not found.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Writer\JavaProperties` not found.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Writer\Json` not found.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Writer\PhpArray` not found.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Writer\Xml` not found.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-class-like"
+message = 'Class, interface, enum, or trait `Zend\Config\Writer\Yaml` not found.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Ini` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\JavaProperties` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Json` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\PhpArray` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Xml` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "non-existent-use-import"
+message = 'Imported class, interface, trait, or enum `Zend\Config\Writer\Yaml` does not exist.'
+count = 1
+
+[[issues]]
+file = "src/WriterPluginManager.php"
+code = "possibly-invalid-argument"
+message = "Possible argument type mismatch for argument #2 of `Exception::__construct`: expected `int`, but possibly received `int|string`."
+count = 1

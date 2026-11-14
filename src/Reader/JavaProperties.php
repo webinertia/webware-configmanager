@@ -1,8 +1,11 @@
 <?php
 
-namespace Laminas\Config\Reader;
+declare(strict_types=1);
 
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Reader;
+
+use Override;
+use Webware\ConfigManager\Exception;
 
 use function array_replace_recursive;
 use function dirname;
@@ -14,6 +17,7 @@ use function is_object;
 use function is_readable;
 use function is_string;
 use function sprintf;
+use function str_starts_with;
 use function stripslashes;
 use function strlen;
 use function strpos;
@@ -62,12 +66,12 @@ class JavaProperties implements ReaderInterface
         if (! is_string($delimiter) || '' === $delimiter) {
             throw new Exception\InvalidArgumentException(sprintf(
                 'Invalid delimiter of type "%s"; must be a non-empty string',
-                is_object($delimiter) ? $delimiter::class : gettype($delimiter)
+                is_object($delimiter) ? $delimiter::class : gettype($delimiter),
             ));
         }
 
         $this->delimiter      = $delimiter;
-        $this->trimWhitespace = (bool) $trimWhitespace;
+        $this->trimWhitespace = $trimWhitespace;
     }
 
     /**
@@ -79,12 +83,13 @@ class JavaProperties implements ReaderInterface
      * @return array
      * @throws Exception\RuntimeException If the file cannot be read.
      */
+    #[Override]
     public function fromFile($filename)
     {
         if (! is_file($filename) || ! is_readable($filename)) {
             throw new Exception\RuntimeException(sprintf(
                 "File '%s' doesn't exist or not readable",
-                $filename
+                $filename,
             ));
         }
 
@@ -104,9 +109,10 @@ class JavaProperties implements ReaderInterface
      * @return array
      * @throws Exception\RuntimeException If an @include key is found.
      */
+    #[Override]
     public function fromString($string)
     {
-        if (empty($string)) {
+        if ('' === $string) {
             return [];
         }
 
@@ -115,27 +121,6 @@ class JavaProperties implements ReaderInterface
         $config = $this->parse($string);
 
         return $this->process($config);
-    }
-
-    /**
-     * Process the array for @include
-     *
-     * @return array
-     * @throws Exception\RuntimeException If an @include key is found.
-     */
-    protected function process(array $data)
-    {
-        foreach ($data as $key => $value) {
-            if (trim($key) === '@include') {
-                if ($this->directory === null) {
-                    throw new Exception\RuntimeException('Cannot process @include statement for a string');
-                }
-                $reader = clone $this;
-                unset($data[$key]);
-                $data = array_replace_recursive($data, $reader->fromFile($this->directory . '/' . $value));
-            }
-        }
-        return $data;
     }
 
     /**
@@ -157,29 +142,49 @@ class JavaProperties implements ReaderInterface
         foreach ($lines as $i => $line) {
             // Ignore empty lines and commented lines
             if (
-                empty($line)
-                || (! $isWaitingOtherLine && strpos($line, "#") === 0)
-                || (! $isWaitingOtherLine && strpos($line, "!") === 0)
+                '' === $line
+                || (
+                    ! $isWaitingOtherLine
+                    && str_starts_with($line, '#')
+                )
+                || (
+                    ! $isWaitingOtherLine
+                    && str_starts_with($line, '!')
+                )
             ) {
                 continue;
             }
 
             // Add a new key-value pair or append value to a previous pair
             if (! $isWaitingOtherLine) {
-                $key   = substr($line, 0, strpos($line, $delimiter));
+                $key = substr(
+                    string: $line,
+                    offset: 0,
+                    length: strpos($line, $delimiter),
+                );
                 $value = substr($line, strpos($line, $delimiter) + $delimLength, strlen($line));
-            } else {
+            }
+
+            if ($isWaitingOtherLine) {
                 $value .= $line;
             }
 
             // Check if ends with single '\' (indicating another line is expected)
-            if (strrpos($value, "\\") === strlen($value) - strlen("\\")) {
-                $value              = substr($value, 0, -1);
-                $isWaitingOtherLine = true;
-            } else {
-                $isWaitingOtherLine = false;
-            }
+            $isWaitingOtherLine = false;
 
+            if (
+                strrpos(
+                    haystack: $value,
+                    needle  : "\\",
+                ) === (strlen($value) - strlen("\\"))
+            ) {
+                $value = substr(
+                    string: $value,
+                    offset: 0,
+                    length: -1,
+                );
+                $isWaitingOtherLine = true;
+            }
             $key   = $this->trimWhitespace ? trim($key) : $key;
             $value = $this->trimWhitespace && ! $isWaitingOtherLine
                 ? trim($value)
@@ -190,5 +195,28 @@ class JavaProperties implements ReaderInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Process the array for @include
+     *
+     * @return array
+     * @throws Exception\RuntimeException If an @include key is found.
+     */
+    protected function process(array $data)
+    {
+        foreach ($data as $key => $value) {
+            if (trim($key) !== '@include') {
+                continue;
+            }
+
+            if (null === $this->directory) {
+                throw new Exception\RuntimeException('Cannot process @include statement for a string');
+            }
+            $reader = clone $this;
+            unset($data[$key]);
+            $data = array_replace_recursive($data, $reader->fromFile("{$this->directory}/{$value}"));
+        }
+        return $data;
     }
 }

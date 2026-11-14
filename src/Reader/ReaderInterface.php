@@ -1,6 +1,8 @@
 <?php
 
-namespace Laminas\Config\Reader;
+declare(strict_types=1);
+
+namespace Webware\ConfigManager\Reader;
 
 interface ReaderInterface
 {

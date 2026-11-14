@@ -1,7 +1,9 @@
 <?php
 
-namespace Laminas\Config\Exception;
+declare(strict_types=1);
 
-class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface
-{
-}
+namespace Webware\ConfigManager\Exception;
+
+use InvalidArgumentException as BaseInvalidArgumentException;
+
+class InvalidArgumentException extends BaseInvalidArgumentException implements ExceptionInterface {}

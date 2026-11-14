@@ -1,72 +1,75 @@
 {
-    "name": "laminas/laminas-config",
-    "description": "provides a nested object property based user interface for accessing this configuration data within application code",
+    "name": "webware/webware-configmanager",
+    "description": "Nested object property based access to configuration data, with pluggable readers, writers and processors.",
     "license": "BSD-3-Clause",
     "keywords": [
-        "laminas",
-        "config"
+        "webware",
+        "config",
+        "configuration"
     ],
-    "homepage": "https://laminas.dev",
+    "homepage": "https://github.com/orgs/webinertia/discussions",
     "support": {
-        "docs": "https://docs.laminas.dev/laminas-config/",
-        "issues": "https://github.com/laminas/laminas-config/issues",
-        "source": "https://github.com/laminas/laminas-config",
-        "rss": "https://github.com/laminas/laminas-config/releases.atom",
-        "chat": "https://laminas.dev/chat",
-        "forum": "https://discourse.laminas.dev"
+        "issues": "https://github.com/webinertia/webware-configmanager/issues",
+        "chat": "https://discord.gg/9TxQ74EPsG"
     },
-    "abandoned": true,
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        },
-        "platform": {
-            "php": "8.1.99"
+    "authors": [
+        {
+            "name": "Joey Smith",
+            "email": "jsmith@webinertia.net",
+            "role": "Developer"
         }
-    },
+    ],
     "require": {
-        "php": "^8.1.0",
+        "php": "~8.4.1 || ~8.5.0",
         "ext-json": "*",
-        "laminas/laminas-stdlib": "^3.6",
-        "psr/container": "^1.0"
+        "laminas/laminas-stdlib": "^3.20",
+        "psr/container": "^1.0 || ^2.0"
     },
     "require-dev": {
-        "laminas/laminas-coding-standard": "^3.0.1",
-        "laminas/laminas-filter": "^2.39.0",
-        "laminas/laminas-i18n": "^2.29.0",
-        "laminas/laminas-servicemanager": "^3.23.0",
-        "phpunit/phpunit": "^10.5.38"
-    },
-    "conflict": {
-        "container-interop/container-interop": "<1.2.0",
-        "zendframework/zend-config": "*"
+        "infection/infection": "^0.35.0",
+        "laminas/laminas-filter": "^2.41",
+        "laminas/laminas-i18n": "^2.30",
+        "laminas/laminas-servicemanager": "^3.23",
+        "phpbench/phpbench": "^1.7",
+        "phpunit/phpunit": "^13.3.0",
+        "roave/backward-compatibility-check": "^8.21.0",
+        "roave/security-advisories": "dev-master",
+        "symfony/yaml": "^7.4 || ^8.0",
+        "webware/webware-tools": "^1.0.0-rc.14"
     },
     "suggest": {
-        "laminas/laminas-filter": "^2.7.2; install if you want to use the Filter processor",
-        "laminas/laminas-i18n": "^2.7.4; install if you want to use the Translator processor",
-        "laminas/laminas-servicemanager": "^2.7.8 || ^3.3; if you need an extensible plugin manager for use with the Config Factory"
+        "laminas/laminas-filter": "Install to use the Filter processor",
+        "laminas/laminas-i18n": "Install to use the Translator processor",
+        "laminas/laminas-servicemanager": "Install if you need an extensible plugin manager for use with the Config Factory"
     },
     "autoload": {
         "psr-4": {
-            "Laminas\\Config\\": "src/"
+            "Webware\\ConfigManager\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "LaminasTest\\Config\\": "test/"
+            "WebwareTest\\ConfigManager\\": "test/unit/",
+            "WebwareTestIntegration\\ConfigManager\\": "test/integration/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.4.99"
+        },
+        "allow-plugins": {
+            "infection/extension-installer": true,
+            "laminas/laminas-component-installer": true
         }
     },
     "scripts": {
-        "check": [
-            "@license-check",
-            "@cs-check",
-            "@test"
-        ],
-        "cs-check": "phpcs",
-        "cs-fix": "phpcbf",
-        "test": "phpunit --colors=always",
-        "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
-        "license-check": "docheader check src/"
+        "test": "phpunit --no-coverage --colors=always --testsuite \"unit test\"",
+        "test-coverage": "phpunit --colors=always --coverage-clover clover.xml --coverage-html coverage/html --coverage-text",
+        "test-integration": "phpunit --no-coverage --colors=always --testsuite \"integration test\"",
+        "mutation-test": "infection",
+        "test-all": "@test && @test-integration && @mutation-test"
     }
 }

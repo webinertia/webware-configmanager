@@ -1,10 +1,13 @@
 <?php
 
-namespace Laminas\Config\Processor;
+declare(strict_types=1);
 
-use Laminas\Config\Config;
-use Laminas\Config\Exception;
+namespace Webware\ConfigManager\Processor;
+
 use Laminas\Stdlib\PriorityQueue;
+use Override;
+use Webware\ConfigManager\Config;
+use Webware\ConfigManager\Exception;
 
 class Queue extends PriorityQueue implements ProcessorInterface
 {
@@ -14,6 +17,7 @@ class Queue extends PriorityQueue implements ProcessorInterface
      * @return Config
      * @throws Exception\InvalidArgumentException
      */
+    #[Override]
     public function process(Config $config)
     {
         if ($config->isReadOnly()) {
@@ -34,6 +38,7 @@ class Queue extends PriorityQueue implements ProcessorInterface
      * @param  mixed $value
      * @return mixed
      */
+    #[Override]
     public function processValue($value)
     {
         foreach ($this as $parser) {
