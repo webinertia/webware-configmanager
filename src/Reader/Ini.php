@@ -30,53 +30,47 @@ use const INI_SCANNER_TYPED;
 
 /**
  * INI config reader.
+ * @api
  */
-class Ini implements ReaderInterface
+final class Ini implements ReaderInterface
 {
     /**
      * Separator for nesting levels of configuration data identifiers.
-     *
-     * @var string
      */
-    protected $nestSeparator = '.';
+    public private(set) string $nestSeparator = '.';
 
     /**
      * Directory of the file to process.
      *
      * @var string
      */
-    protected $directory;
+    private ?string $directory = null;
 
     /**
      * Flag which determines whether sections are processed or not.
      *
      * @see https://www.php.net/parse_ini_file
-     *
-     * @var bool
      */
-    protected $processSections = true;
+    public private(set) bool $processSections = true;
 
     /**
      * Flag which determines whether boolean, null, and integer values should be
      * returned as their proper types.
      *
      * @see https://www.php.net/parse_ini_file
-     *
-     * @var bool
      */
-    protected $typedMode = false;
+    public private(set) bool $typedMode = false;
 
     /**
      * fromFile(): defined by Reader interface.
      *
      * @see    ReaderInterface::fromFile()
      *
-     * @param  string $filename
-     * @return array
      * @throws Exception\RuntimeException
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromFile($filename)
+    public function fromFile(string $filename): array
     {
         if (! is_file($filename) || ! is_readable($filename)) {
             throw new Exception\RuntimeException(sprintf(
@@ -88,6 +82,9 @@ class Ini implements ReaderInterface
         $this->directory = dirname($filename);
 
         set_error_handler(
+            /**
+             * @throws Exception\RuntimeException If the file cannot be parsed.
+             */
             static function ($error, $message = '') use ($filename) {
                 throw new Exception\RuntimeException(
                     sprintf('Error reading INI file "%s": %s', $filename, $message),
@@ -98,7 +95,7 @@ class Ini implements ReaderInterface
         );
 
         try {
-            $ini = parse_ini_file($filename, $this->getProcessSections(), $this->getScannerMode());
+            $ini = parse_ini_file($filename, $this->processSections, $this->getScannerMode());
         } finally {
             restore_error_handler();
         }
@@ -109,12 +106,11 @@ class Ini implements ReaderInterface
     /**
      * fromString(): defined by Reader interface.
      *
-     * @param  string $string
-     * @return array|bool
      * @throws Exception\RuntimeException
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromString($string)
+    public function fromString(string $string): array
     {
         if ('' === $string) {
             return [];
@@ -122,6 +118,9 @@ class Ini implements ReaderInterface
         $this->directory = null;
 
         set_error_handler(
+            /**
+             * @throws Exception\RuntimeException If the string cannot be parsed.
+             */
             static function ($error, $message = '') {
                 throw new Exception\RuntimeException(
                     sprintf('Error reading INI string: %s', $message),
@@ -132,36 +131,12 @@ class Ini implements ReaderInterface
         );
 
         try {
-            $ini = parse_ini_string($string, $this->getProcessSections(), $this->getScannerMode());
+            $ini = parse_ini_string($string, $this->processSections, $this->getScannerMode());
         } finally {
             restore_error_handler();
         }
 
         return $this->process($ini);
-    }
-
-    /**
-     * Get nest separator.
-     *
-     * @return string
-     */
-    public function getNestSeparator()
-    {
-        return $this->nestSeparator;
-    }
-
-    /**
-     * Get if sections should be processed
-     * When sections are not processed,section names are stripped and section
-     * values are merged
-     *
-     * @see https://www.php.net/parse_ini_file
-     *
-     * @return bool
-     */
-    public function getProcessSections()
-    {
-        return $this->processSections;
     }
 
     /**
@@ -172,29 +147,17 @@ class Ini implements ReaderInterface
      */
     public function getScannerMode(): int
     {
-        return $this->getTypedMode() ? INI_SCANNER_TYPED : INI_SCANNER_NORMAL;
-    }
-
-    /**
-     * Get whether boolean, null, and integer values should be returned as their proper types.
-     * When set to false, all values will be returned as strings.
-     *
-     * @see https://www.php.net/parse_ini_file
-     */
-    public function getTypedMode(): bool
-    {
-        return $this->typedMode;
+        return $this->typedMode ? INI_SCANNER_TYPED : INI_SCANNER_NORMAL;
     }
 
     /**
      * Set nest separator.
      *
-     * @param  string $separator
-     * @return self
      */
-    public function setNestSeparator($separator)
+    public function setNestSeparator(string $separator): self
     {
         $this->nestSeparator = $separator;
+
         return $this;
     }
 
@@ -205,12 +168,12 @@ class Ini implements ReaderInterface
      *
      * @see https://www.php.net/parse_ini_file
      *
-     * @param bool $processSections
      * @return $this
      */
-    public function setProcessSections($processSections)
+    public function setProcessSections(bool $processSections): self
     {
         $this->processSections = $processSections;
+
         return $this;
     }
 
@@ -223,15 +186,37 @@ class Ini implements ReaderInterface
     public function setTypedMode(bool $typedMode): self
     {
         $this->typedMode = $typedMode;
+
         return $this;
+    }
+
+    /**
+     * Process a nested section
+     *
+     * @return array<array-key, mixed>
+     * @param array<array-key, mixed> $sections
+     */
+    private function buildNestedSection(array $sections, mixed $value): array
+    {
+        if (! $sections) {
+            return $this->processSection($value);
+        }
+
+        $nestedSection = [];
+
+        $first                 = array_shift($sections);
+        $nestedSection[$first] = $this->buildNestedSection($sections, $value);
+
+        return $nestedSection;
     }
 
     /**
      * Process data from the parsed ini file.
      *
-     * @return array
+     * @return array<array-key, mixed>
+     * @param array<array-key, mixed> $data
      */
-    protected function process(array $data)
+    private function process(array $data): array
     {
         $config = [];
 
@@ -256,11 +241,10 @@ class Ini implements ReaderInterface
     /**
      * Process a key.
      *
-     * @param  string $key
-     * @param  string $value
      * @throws Exception\RuntimeException
+     * @param array<array-key, mixed> $config
      */
-    protected function processKey($key, $value, array &$config)
+    private function processKey(string|int $key, mixed $value, array &$config): void
     {
         if (! is_string($key) || ! str_contains($key, $this->nestSeparator)) {
             if ('@include' !== $key) {
@@ -312,9 +296,10 @@ class Ini implements ReaderInterface
     /**
      * Process a section.
      *
-     * @return array
+     * @return array<array-key, mixed>
+     * @param array<array-key, mixed> $section
      */
-    protected function processSection(array $section)
+    private function processSection(array $section): array
     {
         $config = [];
 
@@ -323,26 +308,5 @@ class Ini implements ReaderInterface
         }
 
         return $config;
-    }
-
-    /**
-     * Process a nested section
-     *
-     * @param array $sections
-     * @param mixed $value
-     * @return array
-     */
-    private function buildNestedSection($sections, $value)
-    {
-        if (! $sections) {
-            return $this->processSection($value);
-        }
-
-        $nestedSection = [];
-
-        $first                 = array_shift($sections);
-        $nestedSection[$first] = $this->buildNestedSection($sections, $value);
-
-        return $nestedSection;
     }
 }

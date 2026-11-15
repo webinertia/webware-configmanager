@@ -27,42 +27,40 @@ use function trim;
 
 /**
  * Java-style properties config reader.
+ * @api
  */
-class JavaProperties implements ReaderInterface
+final class JavaProperties implements ReaderInterface
 {
-    public const DELIMITER_DEFAULT = ':';
-    public const WHITESPACE_TRIM   = true;
-    public const WHITESPACE_KEEP   = false;
+    public const string DELIMITER_DEFAULT = ':';
 
     /**
      * Directory of the Java-style properties file
      *
      * @var string
      */
-    protected $directory;
+    private ?string $directory = null;
 
     /**
      * Delimiter for key/value pairs.
      *
      * @var string
      */
-    private $delimiter;
+    private string $delimiter;
 
     /**
      * Whether or not to trim whitespace from discovered keys and values.
-     *
-     * @var bool
      */
-    private $trimWhitespace;
+    private Whitespace $whitespace;
 
     /**
-     * @param string $delimiter Delimiter to use for key/value pairs; defaults
+     * @param mixed $delimiter Delimiter to use for key/value pairs; defaults
      *     to self::DELIMITER_DEFAULT (':')
-     * @param bool $trimWhitespace
      * @throws Exception\InvalidArgumentException For invalid $delimiter values.
      */
-    public function __construct($delimiter = self::DELIMITER_DEFAULT, $trimWhitespace = self::WHITESPACE_KEEP)
-    {
+    public function __construct(
+        mixed $delimiter = self::DELIMITER_DEFAULT,
+        Whitespace $whitespace = Whitespace::Keep,
+    ) {
         if (! is_string($delimiter) || '' === $delimiter) {
             throw new Exception\InvalidArgumentException(sprintf(
                 'Invalid delimiter of type "%s"; must be a non-empty string',
@@ -70,8 +68,8 @@ class JavaProperties implements ReaderInterface
             ));
         }
 
-        $this->delimiter      = $delimiter;
-        $this->trimWhitespace = $trimWhitespace;
+        $this->delimiter  = $delimiter;
+        $this->whitespace = $whitespace;
     }
 
     /**
@@ -79,12 +77,11 @@ class JavaProperties implements ReaderInterface
      *
      * @see    ReaderInterface::fromFile()
      *
-     * @param  string $filename
-     * @return array
      * @throws Exception\RuntimeException If the file cannot be read.
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromFile($filename)
+    public function fromFile(string $filename): array
     {
         if (! is_file($filename) || ! is_readable($filename)) {
             throw new Exception\RuntimeException(sprintf(
@@ -105,12 +102,11 @@ class JavaProperties implements ReaderInterface
      *
      * @see    ReaderInterface::fromString()
      *
-     * @param  string $string
-     * @return array
      * @throws Exception\RuntimeException If an @include key is found.
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromString($string)
+    public function fromString(string $string): array
     {
         if ('' === $string) {
             return [];
@@ -128,16 +124,16 @@ class JavaProperties implements ReaderInterface
      *
      * @todo Support use of the equals sign "key=value" as key-value delimiter
      * @todo Ignore whitespace that precedes text past the first line of multiline values
-     * @param  string $string
-     * @return array
+     * @return array<array-key, mixed>
      */
-    protected function parse($string)
+    private function parse(string $string): array
     {
         $delimiter          = $this->delimiter;
         $delimLength        = strlen($delimiter);
         $result             = [];
         $lines              = explode("\n", $string);
         $key                = '';
+        $value              = '';
         $isWaitingOtherLine = false;
         foreach ($lines as $i => $line) {
             // Ignore empty lines and commented lines
@@ -185,8 +181,8 @@ class JavaProperties implements ReaderInterface
                 );
                 $isWaitingOtherLine = true;
             }
-            $key   = $this->trimWhitespace ? trim($key) : $key;
-            $value = $this->trimWhitespace && ! $isWaitingOtherLine
+            $key   = Whitespace::Trim === $this->whitespace ? trim($key) : $key;
+            $value = Whitespace::Trim === $this->whitespace && ! $isWaitingOtherLine
                 ? trim($value)
                 : $value;
 
@@ -200,10 +196,11 @@ class JavaProperties implements ReaderInterface
     /**
      * Process the array for @include
      *
-     * @return array
      * @throws Exception\RuntimeException If an @include key is found.
+     * @return array<array-key, mixed>
+     * @param array<array-key, mixed> $data
      */
-    protected function process(array $data)
+    private function process(array $data): array
     {
         foreach ($data as $key => $value) {
             if (trim($key) !== '@include') {

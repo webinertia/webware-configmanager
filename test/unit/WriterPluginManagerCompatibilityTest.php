@@ -39,7 +39,7 @@ final class WriterPluginManagerCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function testInstanceOfMatchesTheAbstractWriter(): void
+    public function instanceOfMatchesTheAbstractWriter(): void
     {
         $instanceOf = new ReflectionProperty(WriterPluginManager::class, 'instanceOf');
 
@@ -47,7 +47,7 @@ final class WriterPluginManagerCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function testLoadingInvalidElementRaisesException(): void
+    public function loadingInvalidElementRaisesException(): void
     {
         $manager = self::manager();
         $manager->setInvokableClass('invalid', stdClass::class);
@@ -57,7 +57,7 @@ final class WriterPluginManagerCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function testRegisteringInvalidElementRaisesException(): void
+    public function registeringInvalidElementRaisesException(): void
     {
         $this->expectException(InvalidServiceException::class);
 
@@ -69,7 +69,7 @@ final class WriterPluginManagerCompatibilityTest extends TestCase
      */
     #[DataProvider('knownWriterProvider')]
     #[Test]
-    public function testResolvesKnownWriterByClassName(string $name): void
+    public function resolvesKnownWriterByClassName(string $name): void
     {
         $manager = self::manager();
 

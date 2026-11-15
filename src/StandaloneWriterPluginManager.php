@@ -15,8 +15,9 @@ use function sprintf;
  *
  * Implements PSR-11 2.x, so identifiers are typed strings. Writers are
  * identified by their fully qualified class name; no aliases are registered.
+ * @internal
  */
-class StandaloneWriterPluginManager implements ContainerInterface
+final class StandaloneWriterPluginManager implements ContainerInterface
 {
     /** @var list<class-string<Writer\AbstractWriter>> */
     private const array PLUGINS = [
@@ -36,13 +37,13 @@ class StandaloneWriterPluginManager implements ContainerInterface
     public function get(string $id): Writer\AbstractWriter
     {
         return match ($id) {
-            Writer\Ini::class => new Writer\Ini(),
+            Writer\Ini::class            => new Writer\Ini(),
             Writer\JavaProperties::class => new Writer\JavaProperties(),
-            Writer\Json::class => new Writer\Json(),
-            Writer\PhpArray::class => new Writer\PhpArray(),
-            Writer\Xml::class => new Writer\Xml(),
-            Writer\Yaml::class => new Writer\Yaml(),
-            default => throw new Exception\PluginNotFoundException(sprintf(
+            Writer\Json::class           => new Writer\Json(),
+            Writer\PhpArray::class       => new Writer\PhpArray(),
+            Writer\Xml::class            => new Writer\Xml(),
+            Writer\Yaml::class           => new Writer\Yaml(),
+            default                      => throw new Exception\PluginNotFoundException(sprintf(
                 'Config writer plugin by name %s not found',
                 $id,
             )),

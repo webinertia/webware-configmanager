@@ -13,42 +13,66 @@ use Webware\ConfigManager\Reader\Json;
 final class JsonTest extends AbstractReaderTestCase
 {
     #[Test]
-    public function testFromString()
+    public function aNullJsonDocumentIsRejectedRatherThanReturningNull()
+    {
+        // "null" is valid JSON, so json_last_error() reports no error, but the result
+        // is not an array. It has to be rejected here instead of escaping as a
+        // TypeError from decode()'s return statement.
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Invalid JSON configuration; did not return an array or object');
+
+        $this->reader->fromString('null');
+    }
+
+    #[Test]
+    public function fromString()
     {
         $json = '{ "test" : "foo", "bar" : [ "baz", "foo" ] }';
 
         $arrayJson = $this->reader->fromString($json);
 
-        static::assertSame($arrayJson['test'], 'foo');
-        static::assertSame($arrayJson['bar'][0], 'baz');
-        static::assertSame($arrayJson['bar'][1], 'foo');
+        static::assertSame(
+            expected: $arrayJson['test'],
+            actual  : 'foo',
+        );
+        static::assertSame(
+            expected: $arrayJson['bar'][0],
+            actual  : 'baz',
+        );
+        static::assertSame(
+            expected: $arrayJson['bar'][1],
+            actual  : 'foo',
+        );
     }
 
     #[Test]
-    public function testIncludeAsElement()
+    public function includeAsElement()
     {
         $arrayJson = $this->reader->fromFile($this->getTestAssetPath('include-base_nested'));
-        static::assertSame($arrayJson['bar']['foo'], 'foo');
+        static::assertSame(
+            expected: $arrayJson['bar']['foo'],
+            actual  : 'foo',
+        );
     }
 
     #[Test]
-    public function testIncludeStatementInStringIsRejected()
+    public function includeStatementInStringIsRejected()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Cannot process @include statement for a JSON string');
+        $this->expectExceptionMessageIs('Cannot process @include statement for a JSON string');
 
         $this->reader->fromString('{ "@include": "other.json" }');
     }
 
     #[Test]
-    public function testInvalidJsonFile()
+    public function invalidJsonFile()
     {
         $this->expectException(Exception\RuntimeException::class);
         $this->reader->fromFile($this->getTestAssetPath('invalid'));
     }
 
     #[Test]
-    public function testInvalidString()
+    public function invalidString()
     {
         $json = '{"foo":"bar"';
 
@@ -57,10 +81,10 @@ final class JsonTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testJsonThatIsNotAnArrayIsRejected()
+    public function jsonThatIsNotAnArrayIsRejected()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Invalid JSON configuration; did not return an array or object');
+        $this->expectExceptionMessageIs('Invalid JSON configuration; did not return an array or object');
 
         $this->reader->fromString('"a string"');
     }

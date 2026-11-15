@@ -40,40 +40,39 @@ final class FactoryTest extends TestCase
     /** @var false|string */
     protected $originalIncludePath;
 
-    public function resetPluginManagers()
-    {
-        $reflectionClass = new ReflectionClass(Factory::class);
-        $reflectionClass->setStaticPropertyValue('writers', null);
-        $reflectionClass->setStaticPropertyValue('readers', null);
-    }
-
     #[Test]
-    public function testDefaultReaderPluginManagerIsStandaloneVariant()
+    public function defaultReaderPluginManagerIsStandaloneVariant()
     {
         $readers = Factory::getReaderPluginManager();
         static::assertInstanceOf(StandaloneReaderPluginManager::class, $readers);
     }
 
     #[Test]
-    public function testDefaultWriterPluginManagerIsStandaloneVariant()
+    public function defaultWriterPluginManagerIsStandaloneVariant()
     {
         $writers = Factory::getWriterPluginManager();
         static::assertInstanceOf(StandaloneWriterPluginManager::class, $writers);
     }
 
     #[Test]
-    public function testFactoryCanRegisterCustomReaderInstance()
+    public function factoryCanRegisterCustomReaderInstance()
     {
         Factory::registerReader('dum', new Reader\TestAssets\DummyReader());
 
-        $configObject = Factory::fromFile(__DIR__ . '/TestAssets/dummy.dum', true);
+        $configObject = Factory::fromFile(
+            filename          : __DIR__ . '/TestAssets/dummy.dum',
+            returnConfigObject: true,
+        );
         static::assertInstanceOf(Config::class, $configObject);
 
-        static::assertSame($configObject['one'], 1);
+        static::assertSame(
+            expected: $configObject['one'],
+            actual  : 1,
+        );
     }
 
     #[Test]
-    public function testFactoryCanRegisterCustomReaderPlugin()
+    public function factoryCanRegisterCustomReaderPlugin()
     {
         $services      = $this->createStub(ContainerInterface::class);
         $pluginManager = new ReaderPluginManager($services, [
@@ -84,14 +83,20 @@ final class FactoryTest extends TestCase
         Factory::setReaderPluginManager($pluginManager);
         Factory::registerReader('dum', Reader\TestAssets\DummyReader::class);
 
-        $configObject = Factory::fromFile(__DIR__ . '/TestAssets/dummy.dum', true);
+        $configObject = Factory::fromFile(
+            filename          : __DIR__ . '/TestAssets/dummy.dum',
+            returnConfigObject: true,
+        );
         static::assertInstanceOf(Config::class, $configObject);
 
-        static::assertSame($configObject['one'], 1);
+        static::assertSame(
+            expected: $configObject['one'],
+            actual  : 1,
+        );
     }
 
     #[Test]
-    public function testFactoryCanRegisterCustomWriterInstance()
+    public function factoryCanRegisterCustomWriterInstance()
     {
         Factory::registerWriter('dum', new Writer\TestAssets\DummyWriter());
 
@@ -103,7 +108,7 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFactoryCanRegisterCustomWriterPlugin()
+    public function factoryCanRegisterCustomWriterPlugin()
     {
         $services      = $this->createStub(ContainerInterface::class);
         $pluginManager = new WriterPluginManager($services, [
@@ -121,21 +126,43 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFactoryRegisterInvalidReader()
+    public function factoryFromFileRejectsAReaderPluginThatIsNotAReaderInterface()
+    {
+        // The extension is registered with a valid reader class, but the container
+        // that resolves it hands back something that does not implement the reader
+        // contract, so the resolved plugin is rejected instead of being used.
+        $file     = $this->getTestAssetFileName('dum');
+        $services = $this->createStub(ContainerInterface::class);
+        $services->method('get')->willReturn(new stdClass());
+        Factory::setReaderPluginManager($services);
+        Factory::registerReader('dum', Reader\TestAssets\DummyReader::class);
+        file_put_contents(
+            filename: $file,
+            data    : '',
+        );
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains("Reader plugin for extension '.dum' is not an instance of");
+
+        Factory::fromFile($file);
+    }
+
+    #[Test]
+    public function factoryRegisterInvalidReader()
     {
         $this->expectException(InvalidArgumentException::class);
         Factory::registerReader('dum', new Writer\TestAssets\DummyWriter());
     }
 
     #[Test]
-    public function testFactoryRegisterInvalidWriter()
+    public function factoryRegisterInvalidWriter()
     {
         $this->expectException(InvalidArgumentException::class);
         Factory::registerWriter('dum', new Reader\TestAssets\DummyReader());
     }
 
     #[Test]
-    public function testFactoryRegisterReaderRejectsAClassThatDoesNotImplementTheInterface()
+    public function factoryRegisterReaderRejectsAClassThatDoesNotImplementTheInterface()
     {
         $this->expectException(InvalidArgumentException::class);
 
@@ -143,16 +170,19 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFactoryRegisterReaderRejectsAPluginName()
+    public function factoryRegisterReaderRejectsAPluginName()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Reader should be a class-string of');
+        $this->expectExceptionMessageIsOrContains('Reader should be a class-string of');
 
-        Factory::registerReader('dum', 'ini');
+        Factory::registerReader(
+            extension: 'dum',
+            reader   : 'ini',
+        );
     }
 
     #[Test]
-    public function testFactoryRegisterWriterRejectsAClassThatIsNotAWriter()
+    public function factoryRegisterWriterRejectsAClassThatIsNotAWriter()
     {
         $this->expectException(InvalidArgumentException::class);
 
@@ -160,30 +190,33 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFactoryRegisterWriterRejectsAPluginName()
+    public function factoryRegisterWriterRejectsAPluginName()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Writer should be a class-string of');
+        $this->expectExceptionMessageIsOrContains('Writer should be a class-string of');
 
-        Factory::registerWriter('dum', 'php');
+        Factory::registerWriter(
+            extension: 'dum',
+            writer   : 'php',
+        );
     }
 
     #[Test]
-    public function testFactoryToFileInvalidFileExtension()
+    public function factoryToFileInvalidFileExtension()
     {
         $this->expectException(RuntimeException::class);
         Factory::toFile(__DIR__ . '/TestAssets/bad.ext', []);
     }
 
     #[Test]
-    public function testFactoryToFileNoDirInHere()
+    public function factoryToFileNoDirInHere()
     {
         $this->expectException(RuntimeException::class);
         Factory::toFile(__DIR__ . '/TestAssets/NoDirInHere/nonExisiting/dummy.php', []);
     }
 
     #[Test]
-    public function testFactoryToFileRejectsAWriterPluginThatIsNotAnAbstractWriter()
+    public function factoryToFileRejectsAWriterPluginThatIsNotAnAbstractWriter()
     {
         // The extension is registered with a valid writer class, but the container
         // that resolves it hands back a writer that does not extend AbstractWriter,
@@ -194,27 +227,30 @@ final class FactoryTest extends TestCase
         Factory::registerWriter('plain', Writer\TestAssets\DummyWriter::class);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('is not an instance of');
+        $this->expectExceptionMessageIsOrContains('is not an instance of');
 
         Factory::toFile($this->getTestAssetFileName('plain'), ['one' => 1]);
     }
 
     #[Test]
-    public function testFactoryToFileRejectsObjectThatIsNotConfig()
+    public function factoryToFileRejectsObjectThatIsNotConfig()
     {
         $this->expectException(InvalidArgumentException::class);
         Factory::toFile('test.ini', new stdClass());
     }
 
     #[Test]
-    public function testFactoryToFileWrongConfig()
+    public function factoryToFileWrongConfig()
     {
         $this->expectException(InvalidArgumentException::class);
-        Factory::toFile('test.ini', 'Im wrong');
+        Factory::toFile(
+            filename: 'test.ini',
+            config  : 'Im wrong',
+        );
     }
 
     #[Test]
-    public function testFactoryWriteToFile()
+    public function factoryWriteToFile()
     {
         $config = ['test' => 'foo', 'bar' => [0 => 'baz', 1 => 'foo']];
 
@@ -223,29 +259,36 @@ final class FactoryTest extends TestCase
 
         // build string line by line as we are trailing-whitespace sensitive.
         $expected = "<?php\n";
-        $expected .= "return array(\n";
+        $expected .= "\n";
+        $expected .= "return [\n";
         $expected .= "    'test' => 'foo',\n";
-        $expected .= "    'bar' => array(\n";
+        $expected .= "    'bar'  => [\n";
         $expected .= "        0 => 'baz',\n";
         $expected .= "        1 => 'foo',\n";
-        $expected .= "    ),\n";
-        $expected .= ");\n";
+        $expected .= "    ],\n";
+        $expected .= "];\n";
 
         static::assertTrue($result);
         static::assertEquals($expected, file_get_contents($file));
     }
 
     #[Test]
-    public function testFromFileNotFoundInIncludePathThrows()
+    public function fromFileNotFoundInIncludePathThrows()
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('cannot be found relative to the working directory or the include_path');
+        $this->expectExceptionMessageIsOrContains(
+            'cannot be found relative to the working directory or the include_path',
+        );
 
-        Factory::fromFile('this-file-does-not-exist.php', false, true);
+        Factory::fromFile(
+            filename          : 'this-file-does-not-exist.php',
+            returnConfigObject: false,
+            useIncludePath    : true,
+        );
     }
 
     #[Test]
-    public function testFromFileWithoutExtensionThrows()
+    public function fromFileWithoutExtensionThrows()
     {
         $file = sys_get_temp_dir() . '/webware-configmanager-no-extension';
         file_put_contents(
@@ -255,7 +298,7 @@ final class FactoryTest extends TestCase
 
         try {
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage('is missing an extension');
+            $this->expectExceptionMessageIsOrContains('is missing an extension');
 
             Factory::fromFile($file);
         } finally {
@@ -264,7 +307,7 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromIni()
+    public function fromIni()
     {
         $config = Factory::fromFile(__DIR__ . '/TestAssets/Ini/include-base.ini');
 
@@ -272,7 +315,7 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromIniAndXmlAndPhpFiles()
+    public function fromIniAndXmlAndPhpFiles()
     {
         $files = [
             __DIR__ . '/TestAssets/Ini/include-base.ini',
@@ -287,14 +330,18 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromIniAndXmlAndPhpFilesFromIncludePath()
+    public function fromIniAndXmlAndPhpFilesFromIncludePath()
     {
         $files = [
             'Ini/include-base.ini',
             'Xml/include-base2.xml',
             'Php/include-base3.php',
         ];
-        $config = Factory::fromFiles($files, false, true);
+        $config = Factory::fromFiles(
+            files             : $files,
+            returnConfigObject: false,
+            useIncludePath    : true,
+        );
 
         static::assertSame('bar', $config['base']['foo']);
         static::assertSame('baz', $config['test']['bar']);
@@ -302,7 +349,7 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromIniFiles()
+    public function fromIniFiles()
     {
         $files = [
             __DIR__ . '/TestAssets/Ini/include-base.ini',
@@ -315,7 +362,7 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromPhpFiles()
+    public function fromPhpFiles()
     {
         $files = [
             __DIR__ . '/TestAssets/Php/include-base.php',
@@ -328,14 +375,32 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromPhpPathThatIsNotAFileThrows()
+    public function fromPhpFilesAppliesMergeDirectives()
+    {
+        $config = Factory::fromFiles([
+            __DIR__ . '/TestAssets/Php/directive-base.php',
+            __DIR__ . '/TestAssets/Php/directive-override.php',
+        ]);
+
+        static::assertSame(
+            [
+                'keep'    => 'kept',
+                'section' => ['replacement' => 'value'],
+                'added'   => 'new',
+            ],
+            $config,
+        );
+    }
+
+    #[Test]
+    public function fromPhpPathThatIsNotAFileThrows()
     {
         $directory = sys_get_temp_dir() . '/webware-configmanager-not-a-file.php';
         mkdir($directory);
 
         try {
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage("doesn't exist or not readable");
+            $this->expectExceptionMessageIsOrContains("doesn't exist or not readable");
 
             Factory::fromFile($directory);
         } finally {
@@ -344,7 +409,86 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromXml()
+    public function fromProvidersAcceptsInstancesAndClosures()
+    {
+        $config = Factory::fromProviders([
+            new MergeTestAssets\FirstConfigProvider(),
+            static fn(): array => ['from-closure' => true],
+        ]);
+
+        static::assertSame(
+            ['shared' => ['a' => 1, 'b' => 2], 'first' => true, 'from-closure' => true],
+            $config,
+        );
+    }
+
+    #[Test]
+    public function fromProvidersAppliesMergeDirectivesAcrossProviders()
+    {
+        $config = Factory::fromProviders([
+            MergeTestAssets\FirstConfigProvider::class,
+            MergeTestAssets\RemovingConfigProvider::class,
+        ]);
+
+        static::assertSame(['first' => true], $config);
+    }
+
+    #[Test]
+    public function fromProvidersMergesClassStringProvidersAndReturnsAnArray()
+    {
+        $config = Factory::fromProviders([
+            MergeTestAssets\FirstConfigProvider::class,
+            MergeTestAssets\SecondConfigProvider::class,
+        ]);
+
+        static::assertIsArray($config);
+        static::assertSame(
+            [
+                'shared' => ['a' => 1, 'b' => 3],
+                'first'  => true,
+                'second' => true,
+            ],
+            $config,
+        );
+    }
+
+    #[Test]
+    public function fromProvidersRejectsADuplicateProvider()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(
+            'Config provider "' . MergeTestAssets\FirstConfigProvider::class . '" was supplied more than once',
+        );
+
+        Factory::fromProviders([
+            MergeTestAssets\FirstConfigProvider::class,
+            MergeTestAssets\FirstConfigProvider::class,
+        ]);
+    }
+
+    #[Test]
+    public function fromProvidersRejectsAProviderThatDoesNotReturnAnArray()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('does not return an array');
+
+        Factory::fromProviders([MergeTestAssets\NotAnArrayConfigProvider::class]);
+    }
+
+    #[Test]
+    public function fromProvidersReturnsAConfigObjectWhenRequested()
+    {
+        $config = Factory::fromProviders(
+            providers         : [MergeTestAssets\FirstConfigProvider::class],
+            returnConfigObject: true,
+        );
+
+        static::assertInstanceOf(Config::class, $config);
+        static::assertTrue($config->first);
+    }
+
+    #[Test]
+    public function fromXml()
     {
         $config = Factory::fromFile(__DIR__ . '/TestAssets/Xml/include-base.xml');
 
@@ -352,7 +496,7 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testFromXmlFiles()
+    public function fromXmlFiles()
     {
         $files = [
             __DIR__ . '/TestAssets/Xml/include-base.xml',
@@ -365,14 +509,27 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
-    public function testNonExistentFileThrowsRuntimeException()
+    public function nonExistentFileThrowsRuntimeException()
     {
         $this->expectException(RuntimeException::class);
         Factory::fromFile('foo.bar');
     }
 
+    public function resetPluginManagers()
+    {
+        $reflectionClass = new ReflectionClass(Factory::class);
+        $reflectionClass->setStaticPropertyValue(
+            name : 'writers',
+            value: null,
+        );
+        $reflectionClass->setStaticPropertyValue(
+            name : 'readers',
+            value: null,
+        );
+    }
+
     #[Test]
-    public function testReturnsConfigObjectIfRequestedAndArrayOtherwise()
+    public function returnsConfigObjectIfRequestedAndArrayOtherwise()
     {
         $files = [
             __DIR__ . '/TestAssets/Ini/include-base.ini',
@@ -384,15 +541,21 @@ final class FactoryTest extends TestCase
         $configArray = Factory::fromFiles($files);
         static::assertIsArray($configArray);
 
-        $configObject = Factory::fromFile($files[0], true);
+        $configObject = Factory::fromFile(
+            filename          : $files[0],
+            returnConfigObject: true,
+        );
         static::assertInstanceOf(Config::class, $configObject);
 
-        $configObject = Factory::fromFiles($files, true);
+        $configObject = Factory::fromFiles(
+            files             : $files,
+            returnConfigObject: true,
+        );
         static::assertInstanceOf(Config::class, $configObject);
     }
 
     #[Test]
-    public function testUnsupportedFileExtensionThrowsRuntimeException()
+    public function unsupportedFileExtensionThrowsRuntimeException()
     {
         $this->expectException(RuntimeException::class);
         Factory::fromFile(__DIR__ . '/TestAssets/bad.ext');

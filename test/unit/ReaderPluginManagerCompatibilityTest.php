@@ -38,7 +38,7 @@ final class ReaderPluginManagerCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function testInstanceOfMatchesTheReaderInterface(): void
+    public function instanceOfMatchesTheReaderInterface(): void
     {
         $instanceOf = new ReflectionProperty(ReaderPluginManager::class, 'instanceOf');
 
@@ -46,7 +46,7 @@ final class ReaderPluginManagerCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function testLoadingInvalidElementRaisesException(): void
+    public function loadingInvalidElementRaisesException(): void
     {
         $manager = self::manager();
         $manager->setInvokableClass('invalid', stdClass::class);
@@ -56,7 +56,7 @@ final class ReaderPluginManagerCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function testRegisteringInvalidElementRaisesException(): void
+    public function registeringInvalidElementRaisesException(): void
     {
         $this->expectException(InvalidServiceException::class);
 
@@ -68,7 +68,7 @@ final class ReaderPluginManagerCompatibilityTest extends TestCase
      */
     #[DataProvider('knownReaderProvider')]
     #[Test]
-    public function testResolvesKnownReaderByClassName(string $name): void
+    public function resolvesKnownReaderByClassName(string $name): void
     {
         $manager = self::manager();
 

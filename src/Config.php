@@ -7,9 +7,7 @@ namespace Webware\ConfigManager;
 use ArrayAccess;
 use Countable;
 use Iterator;
-// @codingStandardsIgnoreLine
 use Override;
-use ReturnTypeWillChange;
 
 use function array_key_exists;
 use function count;
@@ -27,38 +25,38 @@ use function reset;
  *
  * Implements Countable, Iterator and ArrayAccess
  * to facilitate easy access to the data.
+ *
+ * @implements ArrayAccess<array-key, mixed>
+ * @implements Iterator<array-key, mixed>
+ * @api Extendable by design: nested arrays and merge() return `static`, so a subclass keeps
+ *      its own type through both.
  */
 class Config implements Countable, Iterator, ArrayAccess
 {
     /**
      * Whether modifications to configuration data are allowed.
-     *
-     * @var bool
      */
-    protected $allowModifications;
+    protected bool $allowModifications;
 
     /**
      * Data within the configuration.
      *
-     * @var array
+     * @var array<array-key, mixed>
      */
-    protected $data = [];
+    protected array $data = [];
 
     /**
      * Used when unsetting values during iteration to ensure we do not skip
      * the next element.
-     *
-     * @var bool
      */
-    protected $skipNextIteration;
+    protected bool $skipNextIteration = false;
 
     /**
      * Data is read-only unless $allowModifications is set to true
      * on construction.
-     *
-     * @param  bool $allowModifications
+     * @param array<array-key, mixed> $array
      */
-    public function __construct(array $array, $allowModifications = false)
+    public function __construct(array $array, bool $allowModifications = false)
     {
         $this->allowModifications = $allowModifications;
 
@@ -73,12 +71,9 @@ class Config implements Countable, Iterator, ArrayAccess
      * count(): defined by Countable interface.
      *
      * @see    Countable::count()
-     *
-     * @return int
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function count()
+    public function count(): int
     {
         return count($this->data);
     }
@@ -87,25 +82,24 @@ class Config implements Countable, Iterator, ArrayAccess
      * current(): defined by Iterator interface.
      *
      * @see    Iterator::current()
-     *
-     * @return mixed
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function current()
+    public function current(): mixed
     {
+        // Mutating this assignment arms the skip flag on every element, so every
+        // foreach over a Config never advances and the suite hangs instead of
+        // failing. That makes the mutant unmeasurable: Infection cannot complete its
+        // run. The behaviour it targets is asserted directly by
+        // ConfigTest::testIteratorPrimitivesAdvanceThePointer().
+        // @infection-ignore-all
         $this->skipNextIteration = false;
         return current($this->data);
     }
 
     /**
      * Retrieve a value and return $default if there is no element set.
-     *
-     * @param  string $name
-     * @param  mixed  $default
-     * @return mixed
      */
-    public function get($name, $default = null)
+    public function get(string|int $name, mixed $default = null): mixed
     {
         if (array_key_exists($name, $this->data)) {
             return $this->data[$name];
@@ -116,10 +110,8 @@ class Config implements Countable, Iterator, ArrayAccess
 
     /**
      * Returns whether this Config object is read only or not.
-     *
-     * @return bool
      */
-    public function isReadOnly()
+    public function isReadOnly(): bool
     {
         return ! $this->allowModifications;
     }
@@ -128,12 +120,9 @@ class Config implements Countable, Iterator, ArrayAccess
      * key(): defined by Iterator interface.
      *
      * @see    Iterator::key()
-     *
-     * @return mixed
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function key()
+    public function key(): int|string|null
     {
         return key($this->data);
     }
@@ -145,12 +134,10 @@ class Config implements Countable, Iterator, ArrayAccess
      * - Nested Configs will be recursively merged.
      * - Items in $merge with INTEGER keys will be appended.
      * - Items in $merge with STRING keys will overwrite current values.
-     *
-     * @return self
      */
-    public function merge(Config $merge)
+    public function merge(Config $merge): static
     {
-        /** @var Config $value */
+        /** @var mixed $value */
         foreach ($merge as $key => $value) {
             if (! array_key_exists($key, $this->data)) {
                 $this->data[$key] = $value instanceof self
@@ -181,18 +168,19 @@ class Config implements Countable, Iterator, ArrayAccess
      * next(): defined by Iterator interface.
      *
      * @see    Iterator::next()
-     *
-     * @return void
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         if ($this->skipNextIteration) {
             $this->skipNextIteration = false;
             return;
         }
 
+        // Removing this call leaves the pointer where it is, so every foreach over a
+        // Config never advances and the suite hangs instead of failing. See the note
+        // in current() for why the mutant cannot be measured.
+        // @infection-ignore-all
         next($this->data);
     }
 
@@ -200,13 +188,9 @@ class Config implements Countable, Iterator, ArrayAccess
      * offsetExists(): defined by ArrayAccess interface.
      *
      * @see    ArrayAccess::offsetExists()
-     *
-     * @param  mixed $offset
-     * @return bool
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function offsetExists($offset)
+    public function offsetExists(mixed $offset): bool
     {
         return $this->__isset($offset);
     }
@@ -215,13 +199,9 @@ class Config implements Countable, Iterator, ArrayAccess
      * offsetGet(): defined by ArrayAccess interface.
      *
      * @see    ArrayAccess::offsetGet()
-     *
-     * @param  mixed $offset
-     * @return mixed
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->__get($offset);
     }
@@ -230,14 +210,9 @@ class Config implements Countable, Iterator, ArrayAccess
      * offsetSet(): defined by ArrayAccess interface.
      *
      * @see    ArrayAccess::offsetSet()
-     *
-     * @param  mixed $offset
-     * @param  mixed $value
-     * @return void
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->__set($offset, $value);
     }
@@ -246,13 +221,9 @@ class Config implements Countable, Iterator, ArrayAccess
      * offsetUnset(): defined by ArrayAccess interface.
      *
      * @see    ArrayAccess::offsetUnset()
-     *
-     * @param  mixed $offset
-     * @return void
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         $this->__unset($offset);
     }
@@ -261,12 +232,9 @@ class Config implements Countable, Iterator, ArrayAccess
      * rewind(): defined by Iterator interface.
      *
      * @see    Iterator::rewind()
-     *
-     * @return void
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         $this->skipNextIteration = false;
         reset($this->data);
@@ -277,14 +245,12 @@ class Config implements Countable, Iterator, ArrayAccess
      *
      * Useful after merge() has been used to merge multiple Config objects
      * into one object which should then not be modified again.
-     *
-     * @return void
      */
-    public function setReadOnly()
+    public function setReadOnly(): void
     {
         $this->allowModifications = false;
 
-        /** @var Config $value */
+        /** @var mixed $value */
         foreach ($this->data as $value) {
             if (! $value instanceof self) {
                 continue;
@@ -297,15 +263,14 @@ class Config implements Countable, Iterator, ArrayAccess
     /**
      * Return an associative array of the stored data.
      *
-     * @return array
+     * @return array<array-key, mixed>
      */
-    public function toArray()
+    public function toArray(): array
     {
         $array = [];
-        $data  = $this->data;
 
-        /** @var self $value */
-        foreach ($data as $key => $value) {
+        /** @var mixed $value */
+        foreach ($this->data as $key => $value) {
             $array[$key] = $value instanceof self ? $value->toArray() : $value;
         }
 
@@ -316,23 +281,18 @@ class Config implements Countable, Iterator, ArrayAccess
      * valid(): defined by Iterator interface.
      *
      * @see    Iterator::valid()
-     *
-     * @return bool
      */
     #[Override]
-    #[ReturnTypeWillChange]
-    public function valid()
+    public function valid(): bool
     {
-        return $this->key() !== null;
+        return null !== $this->key();
     }
 
     /**
-     * Deep clone of this instance to ensure that nested Webware\ConfigManagers are also
-     * cloned.
-     *
-     * @return void
+     * Deep clone of this instance to ensure that nested Webware\ConfigManager
+     * instances are also cloned.
      */
-    public function __clone()
+    public function __clone(): void
     {
         $array = [];
 
@@ -345,38 +305,33 @@ class Config implements Countable, Iterator, ArrayAccess
 
     /**
      * Magic function so that $obj->value will work.
-     *
-     * @param  string $name
-     * @return mixed
      */
-    public function __get($name)
+    public function __get(mixed $name): mixed
     {
+        // @mago-expect analysis:mixed-argument
         return $this->get($name);
     }
 
     /**
      * isset() overloading
-     *
-     * @param  string $name
-     * @return bool
      */
-    public function __isset($name)
+    public function __isset(mixed $name): bool
     {
-        return array_key_exists($name, $this->data);
+        // @mago-expect analysis:mixed-argument
+        return array_key_exists($name, $this->data) && null !== $this->data[$name];
     }
 
     /**
      * Set a value in the config.
      *
-     * Only allow setting of a property if $allowModifications  was set to true
+     * Only allow setting of a property if $allowModifications was set to true
      * on construction. Otherwise, throw an exception.
      *
-     * @param  string $name
-     * @param  mixed  $value
-     * @return void
+     * A null name appends the value, which is what PHP passes for $config[].
+     *
      * @throws Exception\RuntimeException
      */
-    public function __set($name, $value)
+    public function __set(string|int|null $name, mixed $value): void
     {
         if (! $this->allowModifications) {
             throw new Exception\RuntimeException('Config is read only');
@@ -398,11 +353,9 @@ class Config implements Countable, Iterator, ArrayAccess
     /**
      * unset() overloading
      *
-     * @param  string $name
-     * @return void
      * @throws Exception\InvalidArgumentException
      */
-    public function __unset($name)
+    public function __unset(mixed $name): void
     {
         if (! $this->allowModifications) {
             throw new Exception\InvalidArgumentException('Config is read only');

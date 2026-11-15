@@ -48,7 +48,7 @@ final class StandaloneWriterPluginManagerTest extends TestCase
      */
     #[DataProvider('supportedConfigClassNames')]
     #[Test]
-    public function testCanRetrieveWriterByPluginClassName(string $class): void
+    public function canRetrieveWriterByPluginClassName(string $class): void
     {
         $manager = new StandaloneWriterPluginManager();
 
@@ -57,30 +57,30 @@ final class StandaloneWriterPluginManagerTest extends TestCase
     }
 
     #[Test]
-    public function testGetThrowsExceptionIfPluginNotFound(): void
+    public function getThrowsExceptionIfPluginNotFound(): void
     {
         $manager = new StandaloneWriterPluginManager();
 
         $this->expectException(Exception\PluginNotFoundException::class);
-        $this->expectExceptionMessage('Config writer plugin by name unknown not found');
+        $this->expectExceptionMessageIs('Config writer plugin by name unknown not found');
         $manager->get('unknown');
     }
 
     #[Test]
-    public function testHasReturnsFalseForClassThatIsNotAWriter(): void
+    public function hasReturnsFalseForClassThatIsNotAWriter(): void
     {
         static::assertFalse(new StandaloneWriterPluginManager()->has(stdClass::class));
     }
 
     #[Test]
-    public function testHasReturnsFalseForTheAbstractWriter(): void
+    public function hasReturnsFalseForTheAbstractWriter(): void
     {
         static::assertFalse(new StandaloneWriterPluginManager()->has(Writer\AbstractWriter::class));
     }
 
     #[DataProvider('shortNameProvider')]
     #[Test]
-    public function testShortNamesAreNotSupported(string $id): void
+    public function shortNamesAreNotSupported(string $id): void
     {
         $manager = new StandaloneWriterPluginManager();
 

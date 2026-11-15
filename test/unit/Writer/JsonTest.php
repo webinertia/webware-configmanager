@@ -15,7 +15,7 @@ use Webware\ConfigManager\Writer\Json as JsonWriter;
 final class JsonTest extends AbstractWriterTestCase
 {
     #[Test]
-    public function testNoSection()
+    public function noSection()
     {
         $config = new Config(['test' => 'foo', 'test2' => ['test3' => 'bar']]);
 
@@ -28,15 +28,15 @@ final class JsonTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testUnencodableDataRaisesException()
+    public function unencodableDataRaisesException()
     {
         $this->expectException(Exception\RuntimeException::class);
 
-        new JsonWriter()->processConfig(['key' => "\xB1\x31"]);
+        new JsonWriter()->toString(['key' => "\xB1\x31"]);
     }
 
     #[Test]
-    public function testWriteAndReadOriginalFile()
+    public function writeAndReadOriginalFile()
     {
         $config = $this->reader->fromFile(__DIR__ . '/_files/allsections.json');
 

@@ -15,7 +15,7 @@ use Webware\ConfigManager\Writer\Ini as IniWriter;
 final class IniTest extends AbstractWriterTestCase
 {
     #[Test]
-    public function testNoSection()
+    public function noSection()
     {
         $config = new Config(['test' => 'foo', 'test2' => ['test3' => 'bar']]);
 
@@ -28,22 +28,37 @@ final class IniTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testNumericAndBooleanValuesAreRenderedUnquoted()
+    public function numericAndBooleanValuesAreRenderedUnquoted()
     {
         $writer = new IniWriter();
 
-        $result = $writer->processConfig(['count' => 3, 'enabled' => true]);
+        $result = $writer->toString(['count' => 3, 'enabled' => true]);
 
         static::assertStringContainsString('count = 3', $result);
         static::assertStringContainsString('enabled = true', $result);
     }
 
     #[Test]
-    public function testProcessConfigRendersScalarAndSectionEntries()
+    public function renderWithoutSectionsFlattensNestedKeys()
+    {
+        $writer = new IniWriter();
+        $writer->setRenderWithoutSectionsFlags(true);
+        $writer->setNestSeparator('.');
+
+        static::assertTrue($writer->renderWithoutSections);
+        static::assertSame('.', $writer->nestSeparator);
+
+        $result = $writer->toString(['group' => ['key' => 'value']]);
+
+        static::assertSame("group.key = \"value\"\n", $result);
+    }
+
+    #[Test]
+    public function toStringRendersScalarAndSectionEntries()
     {
         $writer = new IniWriter();
 
-        $result = $writer->processConfig([
+        $result = $writer->toString([
             'top'     => 'scalar',
             'section' => ['key' => 'value'],
         ]);
@@ -53,31 +68,16 @@ final class IniTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testRenderWithoutSectionsFlattensNestedKeys()
-    {
-        $writer = new IniWriter();
-        $writer->setRenderWithoutSectionsFlags(true);
-        $writer->setNestSeparator('.');
-
-        static::assertTrue($writer->shouldRenderWithoutSections());
-        static::assertSame('.', $writer->getNestSeparator());
-
-        $result = $writer->processConfig(['group' => ['key' => 'value']]);
-
-        static::assertSame("group.key = \"value\"\n", $result);
-    }
-
-    #[Test]
-    public function testValueContainingDoubleQuotesIsRejected()
+    public function valueContainingDoubleQuotesIsRejected()
     {
         $this->expectException(WebwareException\RuntimeException::class);
-        $this->expectExceptionMessage('Value can not contain double quotes');
+        $this->expectExceptionMessageIs('Value can not contain double quotes');
 
-        new IniWriter()->processConfig(['key' => 'va"lue']);
+        new IniWriter()->toString(['key' => 'va"lue']);
     }
 
     #[Test]
-    public function testWriteAndReadOriginalFile()
+    public function writeAndReadOriginalFile()
     {
         $config = $this->reader->fromFile(__DIR__ . '/_files/allsections.ini');
 

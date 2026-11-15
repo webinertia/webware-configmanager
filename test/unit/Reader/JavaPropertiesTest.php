@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader\JavaProperties;
+use Webware\ConfigManager\Reader\Whitespace;
 
 #[CoversClass(JavaProperties::class)]
 final class JavaPropertiesTest extends AbstractReaderTestCase
@@ -33,29 +34,41 @@ final class JavaPropertiesTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testAllowsSpecifyingAlternateKeyValueDelimiter()
+    public function allowsSpecifyingAlternateKeyValueDelimiter()
     {
         $reader = new JavaProperties('=');
 
         $arrayJavaProperties = $reader->fromFile($this->getTestAssetPath('alternate-delimiter'));
 
         static::assertNotEmpty($arrayJavaProperties);
-        static::assertSame($arrayJavaProperties['single.line'], 'test');
-        static::assertSame($arrayJavaProperties['multiple'], 'line test');
+        static::assertSame(
+            expected: $arrayJavaProperties['single.line'],
+            actual  : 'test',
+        );
+        static::assertSame(
+            expected: $arrayJavaProperties['multiple'],
+            actual  : 'line test',
+        );
     }
 
     #[Test]
-    public function testFromFile()
+    public function fromFile()
     {
         $arrayJavaProperties = $this->reader->fromFile($this->getTestAssetPath('include-target'));
 
         static::assertNotEmpty($arrayJavaProperties);
-        static::assertSame($arrayJavaProperties['single.line'], 'test');
-        static::assertSame($arrayJavaProperties['multiple'], 'line test');
+        static::assertSame(
+            expected: $arrayJavaProperties['single.line'],
+            actual  : 'test',
+        );
+        static::assertSame(
+            expected: $arrayJavaProperties['multiple'],
+            actual  : 'line test',
+        );
     }
 
     #[Test]
-    public function testFromString()
+    public function fromString()
     {
         $javaProperties = <<<'ASSET'
             #comment
@@ -68,18 +81,30 @@ final class JavaPropertiesTest extends AbstractReaderTestCase
         $arrayJavaProperties = $this->reader->fromString($javaProperties);
 
         static::assertNotEmpty($arrayJavaProperties);
-        static::assertSame($arrayJavaProperties['single.line'], 'test');
-        static::assertSame($arrayJavaProperties['multiple'], 'line test');
+        static::assertSame(
+            expected: $arrayJavaProperties['single.line'],
+            actual  : 'test',
+        );
+        static::assertSame(
+            expected: $arrayJavaProperties['multiple'],
+            actual  : 'line test',
+        );
     }
 
     #[Test]
-    public function testIncludeAsElement()
+    public function includeAsElement()
     {
         $arrayJavaProperties = $this->reader->fromFile($this->getTestAssetPath('include-base'));
 
         static::assertNotEmpty($arrayJavaProperties);
-        static::assertSame($arrayJavaProperties['single.line'], 'test');
-        static::assertSame($arrayJavaProperties['multiple'], 'line test');
+        static::assertSame(
+            expected: $arrayJavaProperties['single.line'],
+            actual  : 'test',
+        );
+        static::assertSame(
+            expected: $arrayJavaProperties['multiple'],
+            actual  : 'line test',
+        );
     }
 
     /**
@@ -87,33 +112,39 @@ final class JavaPropertiesTest extends AbstractReaderTestCase
      */
     #[DataProvider('invalidDelimiters')]
     #[Test]
-    public function testInvalidDelimiterValuesResultInExceptions($delimiter)
+    public function invalidDelimiterValuesResultInExceptions($delimiter)
     {
         $this->expectException(Exception\InvalidArgumentException::class);
         new JavaProperties($delimiter);
     }
 
     #[Test]
-    public function testInvalidIncludeInString()
+    public function invalidIncludeInString()
     {
         $javaProperties = '@include:fail.properties';
 
         $expectedErrorMessage = 'Cannot process @include statement for a string';
 
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage($expectedErrorMessage);
+        $this->expectExceptionMessageIs($expectedErrorMessage);
         $this->reader->fromString($javaProperties);
     }
 
     #[Test]
-    public function testProvidesOptionToTrimWhitespaceFromKeysAndValues()
+    public function providesOptionToTrimWhitespaceFromKeysAndValues()
     {
-        $reader              = new JavaProperties(JavaProperties::DELIMITER_DEFAULT, JavaProperties::WHITESPACE_TRIM);
+        $reader              = new JavaProperties(JavaProperties::DELIMITER_DEFAULT, Whitespace::Trim);
         $arrayJavaProperties = $reader->fromFile($this->getTestAssetPath('key-value-whitespace'));
 
         static::assertNotEmpty($arrayJavaProperties);
-        static::assertSame($arrayJavaProperties['single.line'], 'test');
-        static::assertSame($arrayJavaProperties['multiple'], 'line test');
+        static::assertSame(
+            expected: $arrayJavaProperties['single.line'],
+            actual  : 'test',
+        );
+        static::assertSame(
+            expected: $arrayJavaProperties['multiple'],
+            actual  : 'line test',
+        );
     }
 
     /**

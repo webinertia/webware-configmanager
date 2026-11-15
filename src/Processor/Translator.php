@@ -11,50 +11,40 @@ use Webware\ConfigManager\Exception;
 
 use function is_string;
 
-class Translator implements ProcessorInterface
+/**
+ * @api
+ */
+final class Translator implements ProcessorInterface
 {
-    /** @var LaminasTranslator */
-    protected $translator;
-
-    /** @var non-empty-string|null */
-    protected ?string $locale = null;
-
-    /** @var non-empty-string */
-    protected string $textDomain = 'default';
-
     /**
-     * Translator uses the supplied Laminas\I18n\Translator\Translator to find
-     * and translate language strings in config.
+     * The read side is public, the write side is not, so state cannot be
+     * assigned behind the setters' validation.
      *
+     * @param non-empty-string $textDomain
+     * @param non-empty-string|null $locale
      * @throws Exception\InvalidArgumentException If the text domain or locale is an empty string.
      */
-    public function __construct(LaminasTranslator $translator, string $textDomain = 'default', ?string $locale = null)
-    {
-        $this->setTranslator($translator);
-        $this->setTextDomain($textDomain);
-        $this->setLocale($locale);
-    }
+    public function __construct(
+        public private(set) LaminasTranslator $translator,
+        public private(set) string $textDomain = 'default' {
+            set {
+                if ('' === $value) {
+                    throw new Exception\InvalidArgumentException('textDomain must be a non-empty string');
+                }
 
-    /**
-     * @return non-empty-string|null
-     */
-    public function getLocale(): ?string
-    {
-        return $this->locale;
-    }
+                $this->textDomain = $value;
+            }
+        },
+        public private(set) ?string $locale = null {
+            set {
+                if ('' === $value) {
+                    throw new Exception\InvalidArgumentException('locale must be a non-empty string or null');
+                }
 
-    /**
-     * @return non-empty-string
-     */
-    public function getTextDomain(): string
-    {
-        return $this->textDomain;
-    }
-
-    public function getTranslator(): LaminasTranslator
-    {
-        return $this->translator;
-    }
+                $this->locale = $value;
+            }
+        },
+    ) {}
 
     /**
      * Process
@@ -78,6 +68,7 @@ class Translator implements ProcessorInterface
                 continue;
             }
 
+            // @mago-expect analysis:string-member-selector
             $config->{$key} = $this->processValue($val);
         }
 
@@ -98,39 +89,29 @@ class Translator implements ProcessorInterface
     }
 
     /**
-     * @return self
      * @throws Exception\InvalidArgumentException If the locale is an empty string.
      */
     public function setLocale(?string $locale): self
     {
-        if ('' === $locale) {
-            throw new Exception\InvalidArgumentException('locale must be a non-empty string or null');
-        }
-
         $this->locale = $locale;
+
         return $this;
     }
 
     /**
-     * @return self
      * @throws Exception\InvalidArgumentException If the text domain is an empty string.
      */
     public function setTextDomain(string $textDomain): self
     {
-        if ('' === $textDomain) {
-            throw new Exception\InvalidArgumentException('textDomain must be a non-empty string');
-        }
-
         $this->textDomain = $textDomain;
+
         return $this;
     }
 
-    /**
-     * @return self
-     */
     public function setTranslator(LaminasTranslator $translator): self
     {
         $this->translator = $translator;
+
         return $this;
     }
 }

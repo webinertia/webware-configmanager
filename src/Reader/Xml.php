@@ -10,7 +10,6 @@ use XMLReader;
 
 use function array_key_exists;
 use function array_replace;
-use function dirname;
 use function in_array;
 use function is_array;
 use function is_file;
@@ -25,29 +24,28 @@ use const LIBXML_XINCLUDE;
 
 /**
  * XML config reader.
+ * @api
  */
-class Xml implements ReaderInterface
+final class Xml implements ReaderInterface
 {
     /**
      * XML Reader instance.
      *
      * @var XMLReader
      */
-    protected $reader;
+    private XMLReader $reader;
 
-    /**
-     * Directory of the file to process.
-     *
-     * @var string
-     */
-    protected $directory;
+    public function __construct()
+    {
+        $this->reader = new XMLReader();
+    }
 
     /**
      * Nodes to handle as plain text.
      *
      * @var array
      */
-    protected $textNodes = [
+    private array $textNodes = [
         XMLReader::TEXT,
         XMLReader::CDATA,
         XMLReader::WHITESPACE,
@@ -59,12 +57,11 @@ class Xml implements ReaderInterface
      *
      * @see    ReaderInterface::fromFile()
      *
-     * @param  string $filename
-     * @return array
      * @throws Exception\RuntimeException
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromFile($filename)
+    public function fromFile(string $filename): array
     {
         if (! is_file($filename) || ! is_readable($filename)) {
             throw new Exception\RuntimeException(sprintf(
@@ -73,11 +70,16 @@ class Xml implements ReaderInterface
             ));
         }
         $this->reader = new XMLReader();
-        $this->reader->open($filename, null, LIBXML_XINCLUDE);
-
-        $this->directory = dirname($filename);
+        $this->reader->open(
+            uri     : $filename,
+            encoding: null,
+            flags   : LIBXML_XINCLUDE,
+        );
 
         set_error_handler(
+            /**
+             * @throws Exception\RuntimeException If the document cannot be parsed.
+             */
             static function ($error, $message = '') use ($filename) {
                 throw new Exception\RuntimeException(
                     sprintf('Error reading XML file "%s": %s', $filename, $message),
@@ -94,6 +96,9 @@ class Xml implements ReaderInterface
             $this->reader->close();
         }
 
+        // A document whose root holds only text parsed to a bare string before typing;
+        // the array contract rejects it here instead.
+        // @mago-expect analysis:invalid-return-statement
         return $return;
     }
 
@@ -102,23 +107,27 @@ class Xml implements ReaderInterface
      *
      * @see    ReaderInterface::fromString()
      *
-     * @param  string $string
-     * @return array|bool
      * @throws Exception\RuntimeException
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromString($string)
+    public function fromString(string $string): array
     {
         if ('' === $string) {
             return [];
         }
         $this->reader = new XMLReader();
 
-        $this->reader->XML($string, null, LIBXML_XINCLUDE);
-
-        $this->directory = null;
+        $this->reader->XML(
+            source  : $string,
+            encoding: null,
+            flags   : LIBXML_XINCLUDE,
+        );
 
         set_error_handler(
+            /**
+             * @throws Exception\RuntimeException If the document cannot be parsed.
+             */
             static function ($error, $message = '') {
                 throw new Exception\RuntimeException(
                     sprintf('Error reading XML string: %s', $message),
@@ -135,15 +144,18 @@ class Xml implements ReaderInterface
             $this->reader->close();
         }
 
+        // A document whose root holds only text parsed to a bare string before typing;
+        // the array contract rejects it here instead.
+        // @mago-expect analysis:invalid-return-statement
         return $return;
     }
 
     /**
      * Get all attributes on the current node.
      *
-     * @return array
+     * @return array<array-key, mixed>
      */
-    protected function getAttributes()
+    private function getAttributes(): array
     {
         $attributes = [];
 
@@ -161,9 +173,9 @@ class Xml implements ReaderInterface
     /**
      * Process data from the created XMLReader.
      *
-     * @return array
+     * @return array<array-key, mixed>|string
      */
-    protected function process()
+    private function process(): array|string
     {
         return $this->processNextElement();
     }
@@ -171,9 +183,9 @@ class Xml implements ReaderInterface
     /**
      * Process the next inner element.
      *
-     * @return mixed
+     * @return array<array-key, mixed>|string
      */
-    protected function processNextElement()
+    private function processNextElement(): array|string
     {
         $children = [];
         $text     = '';
@@ -192,10 +204,6 @@ class Xml implements ReaderInterface
                 if ($attributes) {
                     if (is_string($child)) {
                         $child = ['_' => $child];
-                    }
-
-                    if (! is_array($child)) {
-                        $child = [];
                     }
 
                     $child = array_replace($child, $attributes);

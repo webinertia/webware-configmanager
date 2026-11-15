@@ -10,6 +10,7 @@ use Laminas\ServiceManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psl\Type;
 use stdClass;
 use Webware\ConfigManager\AbstractConfigFactory;
 use Webware\ConfigManager\Exception as WebwareException;
@@ -26,7 +27,7 @@ final class AbstractConfigFactoryTest extends TestCase
     protected $serviceManager;
 
     #[Test]
-    public function testAddPatternsAcceptsTraversable()
+    public function addPatternsAcceptsTraversable()
     {
         $factory = new AbstractConfigFactory();
         $factory->addPatterns(new ArrayIterator(['#^custom[\._-](.*)$#']));
@@ -35,16 +36,57 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testAddPatternsRejectsNonTraversable()
+    public function addPatternsRejectsNonTraversable()
     {
         $this->expectException(WebwareException\InvalidArgumentException::class);
-        $this->expectExceptionMessage('patterns must be array or Traversable');
+        $this->expectExceptionMessageIs('patterns must be array or Traversable');
 
         new AbstractConfigFactory()->addPatterns('not-a-pattern-list');
     }
 
     #[Test]
-    public function testCanCreateReturnsFalseWhenConfigServiceIsNotAnArray()
+    public function anEmptyPatternIsRejected(): void
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Each pattern must be a non-empty string; received "string"');
+
+        new AbstractConfigFactory()->setPatterns(['']);
+    }
+
+    #[Test]
+    public function aPatternThatIsNotANonEmptyStringIsRejected(): void
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Each pattern must be a non-empty string; received "int"');
+
+        new AbstractConfigFactory()->setPatterns(['#^a(.*)$#', 12_345]);
+    }
+
+    #[Test]
+    public function aPatternThatIsNotARegularExpressionIsRejected(): void
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Pattern "not-a-regex" is not a valid regular expression');
+
+        new AbstractConfigFactory()->addPattern('not-a-regex');
+    }
+
+    #[Test]
+    public function aPatternWithoutACapturingGroupIsTreatedAsNoMatchRatherThanWarning(): void
+    {
+        $factory = new AbstractConfigFactory();
+        $factory->setPatterns(['#^config-mymodule$#']);
+
+        // preg_match() matches here but reports no group at index 1. Treating that as a
+        // non-match keeps it from surfacing as an undefined-array-key warning.
+        static::assertFalse($factory->canCreate(
+            container    : $this->serviceManager,
+            requestedName: 'config-mymodule',
+        ));
+    }
+
+    #[Test]
+    public function canCreateReturnsFalseWhenConfigServiceIsNotAnArray()
     {
         $container = $this->nonArrayConfigContainer();
 
@@ -55,7 +97,7 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testCanCreateReturnsFalseWhenConfigurationKeyIsMissing()
+    public function canCreateReturnsFalseWhenConfigurationKeyIsMissing()
     {
         static::assertFalse(new AbstractConfigFactory()->canCreate(
             container    : $this->serviceManager,
@@ -64,15 +106,29 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testCanCreateReturnsFalseWhenContainerHasNoConfigService()
+    public function canCreateReturnsFalseWhenConfigurationValueIsNull()
     {
-        $container = new ServiceManager\ServiceManager();
-
-        static::assertFalse(new AbstractConfigFactory()->canCreate($container, 'MyModule\Config'));
+        // A null entry is an absent entry: upstream used isset(), which treats null as
+        // not set, and that keeps a null from being handed out as a resolved service.
+        static::assertFalse(new AbstractConfigFactory()->canCreate(
+            container    : $this->nullValueConfigContainer(),
+            requestedName: 'config-mymodule',
+        ));
     }
 
     #[Test]
-    public function testCanCreateReturnsFalseWhenNoPatternMatches()
+    public function canCreateReturnsFalseWhenContainerHasNoConfigService()
+    {
+        $container = new ServiceManager\ServiceManager();
+
+        static::assertFalse(new AbstractConfigFactory()->canCreate(
+            container    : $container,
+            requestedName: 'MyModule\Config',
+        ));
+    }
+
+    #[Test]
+    public function canCreateReturnsFalseWhenNoPatternMatches()
     {
         static::assertFalse(new AbstractConfigFactory()->canCreate(
             container    : $this->serviceManager,
@@ -80,24 +136,46 @@ final class AbstractConfigFactoryTest extends TestCase
         ));
     }
 
-    /**
-     * @return void
-     */
     #[Test]
-    public function testCanCreateService()
+    public function canCreateReturnsTrueForFalsyButNonNullValues()
     {
-        $factory        = new AbstractConfigFactory();
-        $serviceLocator = $this->serviceManager;
+        $factory = new AbstractConfigFactory();
 
-        static::assertFalse($factory->canCreate($serviceLocator, 'MyModule\Fail'));
-        static::assertTrue($factory->canCreate($serviceLocator, 'MyModule\Config'));
+        foreach (['empty', 'zero', 'false', 'empty-array'] as $key) {
+            static::assertTrue(
+                $factory->canCreate(
+                    container    : $this->nullValueConfigContainer(),
+                    requestedName: "config-{$key}",
+                ),
+                "{$key} should resolve: only null is treated as unset",
+            );
+        }
     }
 
     /**
      * @return void
      */
     #[Test]
-    public function testCreateService()
+    public function canCreateService()
+    {
+        $factory        = new AbstractConfigFactory();
+        $serviceLocator = $this->serviceManager;
+
+        static::assertFalse($factory->canCreate(
+            container    : $serviceLocator,
+            requestedName: 'MyModule\Fail',
+        ));
+        static::assertTrue($factory->canCreate(
+            container    : $serviceLocator,
+            requestedName: 'MyModule\Config',
+        ));
+    }
+
+    /**
+     * @return void
+     */
+    #[Test]
+    public function createService()
     {
         $serviceLocator = $this->serviceManager;
         static::assertIsArray($serviceLocator->get('MyModule\Config'));
@@ -109,7 +187,7 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testCreateServiceWithRequestedConfigKey()
+    public function createServiceWithRequestedConfigKey()
     {
         $serviceLocator = $this->serviceManager;
         static::assertSame($this->config['MyModule'], $serviceLocator->get('MyModule\Config'));
@@ -117,7 +195,7 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testInvalidPattern()
+    public function invalidPattern()
     {
         $factory = new AbstractConfigFactory();
 
@@ -126,7 +204,7 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testInvalidPatternIterator()
+    public function invalidPatternIterator()
     {
         $factory = new AbstractConfigFactory();
 
@@ -135,23 +213,32 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testInvokeReturnsCachedConfigOnSubsequentCalls()
+    public function invokeReturnsCachedConfigOnSubsequentCalls()
     {
         $factory = new AbstractConfigFactory();
-        $factory($this->serviceManager, 'MyModule\Config');
-        $result = $factory($this->serviceManager, 'MyModule\Config');
+        $factory(
+            container    : $this->serviceManager,
+            requestedName: 'MyModule\Config',
+        );
+        $result = $factory(
+            container    : $this->serviceManager,
+            requestedName: 'MyModule\Config',
+        );
 
         static::assertSame($this->config['MyModule'], $result);
-        static::assertTrue($factory->canCreate($this->serviceManager, 'MyModule\Config'));
+        static::assertTrue($factory->canCreate(
+            container    : $this->serviceManager,
+            requestedName: 'MyModule\Config',
+        ));
     }
 
     #[Test]
-    public function testInvokeThrowsWhenConfigServiceIsNotAnArray()
+    public function invokeThrowsWhenConfigServiceIsNotAnArray()
     {
         $container = $this->nonArrayConfigContainer();
 
         $this->expectException(WebwareException\InvalidArgumentException::class);
-        $this->expectExceptionMessage(
+        $this->expectExceptionMessageIs(
             'Unable to resolve a configuration value for the requested service name "config-mymodule"',
         );
 
@@ -162,10 +249,10 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testInvokeThrowsWhenConfigurationKeyIsMissing()
+    public function invokeThrowsWhenConfigurationKeyIsMissing()
     {
         $this->expectException(WebwareException\InvalidArgumentException::class);
-        $this->expectExceptionMessage(
+        $this->expectExceptionMessageIs(
             'Unable to resolve a configuration value for the requested service name "config-missing"',
         );
 
@@ -176,10 +263,24 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testInvokeThrowsWhenNoPatternMatches()
+    public function invokeThrowsWhenConfigurationValueIsNull()
     {
         $this->expectException(WebwareException\InvalidArgumentException::class);
-        $this->expectExceptionMessage(
+        $this->expectExceptionMessageIs(
+            'Unable to resolve a configuration value for the requested service name "config-mymodule"',
+        );
+
+        new AbstractConfigFactory()(
+            container    : $this->nullValueConfigContainer(),
+            requestedName: 'config-mymodule',
+        );
+    }
+
+    #[Test]
+    public function invokeThrowsWhenNoPatternMatches()
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(
             'Unable to resolve a configuration value for the requested service name "NoMatch"',
         );
 
@@ -193,7 +294,7 @@ final class AbstractConfigFactoryTest extends TestCase
      * @return void
      */
     #[Test]
-    public function testPatterns()
+    public function patterns()
     {
         $factory  = new AbstractConfigFactory();
         $defaults = $factory->getPatterns();
@@ -217,7 +318,75 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testSetPatternsAcceptsTraversable()
+    public function resolveDoesNotPoisonTheUntypedCache(): void
+    {
+        // __invoke() memoizes the raw entry. A typed resolve() must not write a shaped
+        // value back, or a later untyped call would receive the coerced form instead.
+        $factory = new AbstractConfigFactory();
+        $type    = Type\shape(['foo' => Type\vec(Type\string())]);
+
+        $factory->resolve(
+            container    : $this->serviceManager,
+            requestedName: 'config-MyModule',
+            type         : $type,
+        );
+
+        static::assertSame(
+            $this->config['MyModule'],
+            $factory(
+                container    : $this->serviceManager,
+                requestedName: 'config-MyModule',
+            ),
+        );
+    }
+
+    #[Test]
+    public function resolveRejectsAnEntryItCannotFind(): void
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(
+            'Unable to resolve a configuration value for the requested service name "NoMatch"',
+        );
+
+        new AbstractConfigFactory()->resolve(
+            container    : $this->serviceManager,
+            requestedName: 'NoMatch',
+            type         : Type\mixed(),
+        );
+    }
+
+    #[Test]
+    public function resolveRejectsAnEntryThatDoesNotMatchTheType(): void
+    {
+        $this->expectException(WebwareException\InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains('Configuration entry "MyModule" does not match the expected type');
+
+        new AbstractConfigFactory()->resolve(
+            container    : $this->serviceManager,
+            requestedName: 'config-MyModule',
+            type         : Type\shape(['foo' => Type\string()]),
+        );
+    }
+
+    #[Test]
+    public function resolveShapesTheEntryWithACallerSuppliedType(): void
+    {
+        $type = Type\shape([
+            'foo' => Type\vec(Type\string()),
+        ]);
+
+        static::assertSame(
+            ['foo' => ['bar']],
+            new AbstractConfigFactory()->resolve(
+                container    : $this->serviceManager,
+                requestedName: 'config-MyModule',
+                type         : $type,
+            ),
+        );
+    }
+
+    #[Test]
+    public function setPatternsAcceptsTraversable()
     {
         $factory = new AbstractConfigFactory();
         $factory->setPatterns(new ArrayIterator(['#^custom[\._-](.*)$#']));
@@ -226,10 +395,10 @@ final class AbstractConfigFactoryTest extends TestCase
     }
 
     #[Test]
-    public function testSetPatternsRejectsNonTraversable()
+    public function setPatternsRejectsNonTraversable()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('patterns must be array or Traversable');
+        $this->expectExceptionMessageIs('patterns must be array or Traversable');
 
         new AbstractConfigFactory()->setPatterns('not-a-pattern-list');
     }
@@ -264,6 +433,25 @@ final class AbstractConfigFactoryTest extends TestCase
         return new ServiceManager\ServiceManager([
             'services' => [
                 'config' => 'not-an-array',
+            ],
+        ]);
+    }
+
+    /**
+     * A container holding a null entry alongside values that are falsy but not null,
+     * so the tests below separate "unset" from "falsy" rather than conflating them.
+     */
+    private function nullValueConfigContainer(): ServiceManager\ServiceManager
+    {
+        return new ServiceManager\ServiceManager([
+            'services' => [
+                'config' => [
+                    'mymodule'    => null,
+                    'empty'       => '',
+                    'zero'        => 0,
+                    'false'       => false,
+                    'empty-array' => [],
+                ],
             ],
         ]);
     }

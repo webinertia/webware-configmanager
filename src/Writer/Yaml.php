@@ -11,21 +11,22 @@ use function call_user_func;
 use function function_exists;
 use function is_callable;
 
-class Yaml extends AbstractWriter
+/**
+ * @api
+ */
+final class Yaml extends AbstractWriter
 {
     /**
      * YAML encoder callback
      *
-     * @var callable
+     * @var callable|null
      */
-    protected $yamlEncoder;
+    private mixed $yamlEncoder = null;
 
     /**
      * Constructor
-     *
-     * @param callable|string|null $yamlEncoder
      */
-    public function __construct($yamlEncoder = null)
+    public function __construct(mixed $yamlEncoder = null)
     {
         if (null !== $yamlEncoder) {
             $this->setYamlEncoder($yamlEncoder);
@@ -38,49 +39,48 @@ class Yaml extends AbstractWriter
     }
 
     /**
-     * Get callback for decoding YAML
-     *
-     * @return callable
+     * Get callback for encoding YAML
      */
-    public function getYamlEncoder()
+    public function getYamlEncoder(): ?callable
     {
         return $this->yamlEncoder;
     }
 
     /**
-     * processConfig(): defined by AbstractWriter.
+     * Set callback for encoding YAML
      *
-     * @return string
-     * @throws Exception\RuntimeException
+     * @throws Exception\InvalidArgumentException If the encoder is not callable.
      */
-    #[Override]
-    public function processConfig(array $config)
+    public function setYamlEncoder(mixed $yamlEncoder): self
     {
-        if (null === $this->getYamlEncoder()) {
-            throw new Exception\RuntimeException("You didn't specify a Yaml callback encoder");
+        if (! is_callable($yamlEncoder)) {
+            throw new Exception\InvalidArgumentException(
+                'Invalid parameter to setYamlEncoder() - must be callable',
+            );
         }
 
-        $config = call_user_func($this->getYamlEncoder(), $config);
-        if (null === $config) {
-            throw new Exception\RuntimeException('Error generating YAML data');
-        }
-
-        return $config;
+        $this->yamlEncoder = $yamlEncoder;
+        return $this;
     }
 
     /**
-     * Set callback for decoding YAML
+     * processConfig(): defined by AbstractWriter.
      *
-     * @param callable $yamlEncoder the decoder to set
-     * @return self
-     * @throws Exception\InvalidArgumentException
+     * @throws Exception\RuntimeException If no encoder is configured or generation fails.
+     * @param array<array-key, mixed> $config
      */
-    public function setYamlEncoder($yamlEncoder)
+    #[Override]
+    protected function processConfig(array $config): string
     {
-        if (! is_callable($yamlEncoder)) {
-            throw new Exception\InvalidArgumentException('Invalid parameter to setYamlEncoder() - must be callable');
+        $encoder = $this->yamlEncoder ?? throw new Exception\RuntimeException(
+            "You didn't specify a Yaml callback encoder",
+        );
+
+        $encoded = call_user_func($encoder, $config);
+        if (null === $encoded) {
+            throw new Exception\RuntimeException('Error generating YAML data');
         }
-        $this->yamlEncoder = $yamlEncoder;
-        return $this;
+
+        return $encoded;
     }
 }

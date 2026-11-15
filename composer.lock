@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aabec4740de6571ee80a8ee8fb3774f5",
+    "content-hash": "db0e7b6a2c82bd1e8fedab8c0454285c",
     "packages": [
         {
             "name": "php-standard-library/async",
@@ -10209,16 +10209,16 @@
         },
         {
             "name": "webware/webware-tools",
-            "version": "1.0.0-rc.14",
+            "version": "1.0.0-rc.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webinertia/webware-tools.git",
-                "reference": "8093557960cc9d1415bc0f8a674da752907bfcb3"
+                "reference": "44c6a72a1bbb24d3a1ea840222b1262854103d00"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webinertia/webware-tools/zipball/8093557960cc9d1415bc0f8a674da752907bfcb3",
-                "reference": "8093557960cc9d1415bc0f8a674da752907bfcb3",
+                "url": "https://api.github.com/repos/webinertia/webware-tools/zipball/44c6a72a1bbb24d3a1ea840222b1262854103d00",
+                "reference": "44c6a72a1bbb24d3a1ea840222b1262854103d00",
                 "shasum": ""
             },
             "require": {
@@ -10247,10 +10247,10 @@
             ],
             "support": {
                 "issues": "https://github.com/webinertia/webware-tools/issues",
-                "source": "https://github.com/webinertia/webware-tools/tree/1.0.0-rc.14"
+                "source": "https://github.com/webinertia/webware-tools/tree/1.0.0-rc.15"
             },
-            "time": "2026-11-13T09:23:54+00:00",
-            "published-time": "2026-11-13T13:26:52+00:00"
+            "time": "2026-11-15T12:39:02+00:00",
+            "published-time": "2026-11-15T12:43:00+00:00"
         }
     ],
     "aliases": [],

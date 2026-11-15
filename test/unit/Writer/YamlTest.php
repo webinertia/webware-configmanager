@@ -21,7 +21,7 @@ use function is_array;
 final class YamlTest extends AbstractWriterTestCase
 {
     #[Test]
-    public function testConstructorUsesTheYamlExtensionWhenItIsAvailable()
+    public function constructorUsesTheYamlExtensionWhenItIsAvailable()
     {
         $writer = new YamlWriter();
 
@@ -34,20 +34,20 @@ final class YamlTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testEncoderReturningNullIsReportedAsGenerationError()
+    public function encoderReturningNullIsReportedAsGenerationError()
     {
         $writer = new YamlWriter(static function (array $config) {
             return null;
         });
 
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Error generating YAML data');
+        $this->expectExceptionMessageIs('Error generating YAML data');
 
-        $writer->processConfig(['test' => 'foo']);
+        $writer->toString(['test' => 'foo']);
     }
 
     #[Test]
-    public function testGetYamlEncoderReturnsConfiguredCallback()
+    public function getYamlEncoderReturnsConfiguredCallback()
     {
         $encoder = static fn(array $config): string => Yaml::dump($config);
 
@@ -55,7 +55,7 @@ final class YamlTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testNoSection()
+    public function noSection()
     {
         $config = new Config(['test' => 'foo', 'test2' => ['test3' => 'bar']]);
 
@@ -68,16 +68,16 @@ final class YamlTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testSetYamlEncoderRejectsNonCallable()
+    public function setYamlEncoderRejectsNonCallable()
     {
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid parameter to setYamlEncoder() - must be callable');
+        $this->expectExceptionMessageIs('Invalid parameter to setYamlEncoder() - must be callable');
 
         new YamlWriter()->setYamlEncoder('not-a-callable-function-name');
     }
 
     #[Test]
-    public function testWriteAndReadOriginalFile()
+    public function writeAndReadOriginalFile()
     {
         $config = $this->reader->fromFile(__DIR__ . '/_files/allsections.yaml');
 
@@ -89,15 +89,18 @@ final class YamlTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testWriterWithoutEncoderThrows()
+    public function writerWithoutEncoderThrows()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage("You didn't specify a Yaml callback encoder");
+        $this->expectExceptionMessageIs("You didn't specify a Yaml callback encoder");
 
         $writer = new YamlWriter();
-        new ReflectionProperty(YamlWriter::class, 'yamlEncoder')->setValue($writer, null);
+        new ReflectionProperty(YamlWriter::class, 'yamlEncoder')->setValue(
+            objectOrValue: $writer,
+            value        : null,
+        );
 
-        $writer->processConfig(['test' => 'foo']);
+        $writer->toString(['test' => 'foo']);
     }
 
     protected function setUp(): void

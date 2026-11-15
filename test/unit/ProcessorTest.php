@@ -71,23 +71,29 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testAddInvalidToken()
+    public function addInvalidToken()
     {
         $processor = new TokenProcessor();
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot use ' . gettype([]) . ' as token name.');
-        $processor->addToken([], 'bar');
+        $this->expectExceptionMessageIs('Cannot use ' . gettype([]) . ' as token name.');
+        $processor->addToken(
+            token: [],
+            value: 'bar',
+        );
     }
 
     #[Test]
-    public function testBareTokenPost()
+    public function bareTokenPost()
     {
         $config    = new Config($this->tokenBare, true);
         $processor = new TokenProcessor();
-        $processor->addToken('BARETOKEN', 'some replaced value');
+        $processor->addToken(
+            token: 'BARETOKEN',
+            value: 'some replaced value',
+        );
         $processor->process($config);
 
-        static::assertEquals(['BARETOKEN' => 'some replaced value'], $processor->getTokens());
+        static::assertEquals(['BARETOKEN' => 'some replaced value'], $processor->tokens);
         static::assertSame('some replaced value', $config->simple);
         static::assertSame('some text with some replaced value inside', $config->inside);
         static::assertSame('some replaced value', $config->nested->simple);
@@ -95,7 +101,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testFilter()
+    public function filter()
     {
         $config    = new Config($this->filter, true);
         $filter    = new StringToLower();
@@ -109,19 +115,19 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testFilterReadOnly()
+    public function filterReadOnly()
     {
         $config    = new Config($this->filter, false);
         $filter    = new StringToLower();
         $processor = new FilterProcessor($filter);
 
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot process config because it is read-only');
+        $this->expectExceptionMessageIs('Cannot process config because it is read-only');
         $processor->process($config);
     }
 
     #[Test]
-    public function testFilterValue()
+    public function filterValue()
     {
         $filter    = new StringToLower();
         $processor = new FilterProcessor($filter);
@@ -131,7 +137,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testIgnoresEmptyStringReplacement()
+    public function ignoresEmptyStringReplacement()
     {
         $config    = new Config(['foo' => 'bar'], true);
         $processor = new TokenProcessor(['' => 'invalid']);
@@ -142,7 +148,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testPHPConstants()
+    public function pHPConstants()
     {
         $config    = new Config($this->phpConstants, true);
         $processor = new ConstantProcessor(false);
@@ -155,7 +161,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testProcessorsQueue()
+    public function processorsQueue()
     {
         $processor1 = new TokenProcessor();
         $processor2 = new TokenProcessor();
@@ -170,7 +176,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testQueueFIFO()
+    public function queueFIFO()
     {
         $config         = new Config($this->filter, true);
         $lower          = new StringToLower();
@@ -191,9 +197,9 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testQueuePriorities()
+    public function queuePriorities()
     {
-        $config           = new Config($this->filter, 1);
+        $config           = new Config($this->filter, true);
         $lower            = new StringToLower();
         $upper            = new StringToUpper();
         $replace          = new PregReplace(['pattern' => '/[a-z]/']);
@@ -205,8 +211,14 @@ final class ProcessorTest extends TestCase
         /**
          * Insert lower case filter with higher priority
          */
-        $queue->insert($upperProcessor, 10);
-        $queue->insert($lowerProcessor, 1000);
+        $queue->insert(
+            data    : $upperProcessor,
+            priority: 10,
+        );
+        $queue->insert(
+            data    : $lowerProcessor,
+            priority: 1000,
+        );
 
         $config->simple = 'some MixedCase VALue';
         $queue->process($config);
@@ -215,14 +227,17 @@ final class ProcessorTest extends TestCase
         /**
          * Add even higher priority replace processor that will remove all lowercase letters
          */
-        $queue->insert($replaceProcessor, 10_000);
+        $queue->insert(
+            data    : $replaceProcessor,
+            priority: 10_000,
+        );
         $config->newValue = 'THIRD mixed CASE value';
         $queue->process($config);
         static::assertSame('THIRD  CASE ', $config->newValue);
     }
 
     #[Test]
-    public function testQueueReadOnly()
+    public function queueReadOnly()
     {
         $config         = new Config($this->filter, false);
         $lower          = new StringToLower();
@@ -235,12 +250,12 @@ final class ProcessorTest extends TestCase
         $queue->insert($lowerProcessor);
 
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot process config because it is read-only');
+        $this->expectExceptionMessageIs('Cannot process config because it is read-only');
         $queue->process($config);
     }
 
     #[Test]
-    public function testQueueSingleValue()
+    public function queueSingleValue()
     {
         $lower          = new StringToLower();
         $upper          = new StringToUpper();
@@ -259,17 +274,23 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testSingleValueToken()
+    public function singleValueToken()
     {
         $processor = new TokenProcessor();
-        $processor->addToken('BARETOKEN', 'test');
+        $processor->addToken(
+            token: 'BARETOKEN',
+            value: 'test',
+        );
         $data = 'BARETOKEN';
         $out  = $processor->processValue($data);
-        static::assertSame($out, 'test');
+        static::assertSame(
+            expected: $out,
+            actual  : 'test',
+        );
     }
 
     #[Test]
-    public function testTokenChangeParams()
+    public function tokenChangeParams()
     {
         $config    = new Config($this->tokenSurroundMixed, true);
         $processor = new TokenProcessor(['TOKEN' => 'some replaced value'], '##', '##');
@@ -297,7 +318,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTokenChangeParamsReplacesInNumerics()
+    public function tokenChangeParamsReplacesInNumerics()
     {
         $config = new Config(
             [
@@ -324,7 +345,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTokenChangeParamsRetainsType()
+    public function tokenChangeParamsRetainsType()
     {
         $config = new Config(
             [
@@ -349,7 +370,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTokenPrefix()
+    public function tokenPrefix()
     {
         $config    = new Config($this->tokenPrefix, true);
         $processor = new TokenProcessor(['TOKEN' => 'some replaced value'], '::');
@@ -362,21 +383,26 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTokenReadOnly()
+    public function tokenReadOnly()
     {
         $config    = new Config($this->tokenBare, false);
         $processor = new TokenProcessor();
-        $processor->addToken('BARETOKEN', 'some replaced value');
+        $processor->addToken(
+            // @mago-expect lint:no-literal-password
+            token: 'BARETOKEN',
+            value: 'some replaced value',
+        );
 
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot process config because it is read-only');
+        $this->expectExceptionMessageIs('Cannot process config because it is read-only');
         $processor->process($config);
     }
 
     #[Test]
-    public function testTokenSuffix()
+    public function tokenSuffix()
     {
-        $config    = new Config($this->tokenSuffix, true);
+        $config = new Config($this->tokenSuffix, true);
+        // @mago-expect lint:no-literal-password
         $processor = new TokenProcessor(['TOKEN' => 'some replaced value'], '', '::');
         $processor->process($config);
 
@@ -387,9 +413,10 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTokenSurround()
+    public function tokenSurround()
     {
-        $config    = new Config($this->tokenSurround, true);
+        $config = new Config($this->tokenSurround, true);
+        // @mago-expect lint:no-literal-password
         $processor = new TokenProcessor(['TOKEN' => 'some replaced value'], '##', '##');
         $processor->process($config);
 
@@ -400,15 +427,15 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTranslator()
+    public function translator()
     {
         $config     = new Config($this->translatorData, true);
         $translator = $this->createTranslator();
         $processor  = new TranslatorProcessor($translator);
 
-        static::assertSame($translator, $processor->getTranslator());
-        static::assertSame('default', $processor->getTextDomain());
-        static::assertNull($processor->getLocale());
+        static::assertSame($translator, $processor->translator);
+        static::assertSame('default', $processor->textDomain);
+        static::assertNull($processor->locale);
 
         $processor->process($config);
 
@@ -419,7 +446,7 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTranslatorProcessValueLeavesNonStringValuesUntouched()
+    public function translatorProcessValueLeavesNonStringValuesUntouched()
     {
         $translator = $this->createTranslator();
         $processor  = new TranslatorProcessor($translator);
@@ -430,37 +457,64 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testTranslatorReadOnly()
+    public function translatorReadOnly()
     {
         $config     = new Config($this->translatorData, false);
         $translator = $this->createTranslator();
         $processor  = new TranslatorProcessor($translator);
 
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot process config because it is read-only');
+        $this->expectExceptionMessageIs('Cannot process config because it is read-only');
         $processor->process($config);
     }
 
     #[Test]
-    public function testTranslatorRejectsEmptyLocale()
+    public function translatorRejectsEmptyLocale()
     {
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('locale must be a non-empty string or null');
+        $this->expectExceptionMessageIs('locale must be a non-empty string or null');
 
         new TranslatorProcessor($this->createTranslator())->setLocale('');
     }
 
     #[Test]
-    public function testTranslatorRejectsEmptyTextDomain()
+    public function translatorRejectsEmptyTextDomain()
     {
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('textDomain must be a non-empty string');
+        $this->expectExceptionMessageIs('textDomain must be a non-empty string');
 
         new TranslatorProcessor($this->createTranslator())->setTextDomain('');
     }
 
     #[Test]
-    public function testTranslatorSingleValue()
+    public function translatorSettersAcceptNullLocaleAndUseItOnTranslation(): void
+    {
+        $processor = new TranslatorProcessor($this->createTranslator());
+
+        static::assertSame($processor, $processor->setLocale(null));
+        static::assertNull($processor->locale);
+    }
+
+    #[Test]
+    public function translatorSettersAssignAndReturnTheProcessorForChaining()
+    {
+        $processor   = new TranslatorProcessor($this->createTranslator());
+        $replacement = $this->createTranslator();
+
+        // The fluent form is the documented usage, so each setter must return the
+        // same instance and the assignment must be observable through the reader.
+        static::assertSame($processor, $processor->setLocale('de_DE'));
+        static::assertSame('de_DE', $processor->locale);
+
+        static::assertSame($processor, $processor->setTextDomain('animals'));
+        static::assertSame('animals', $processor->textDomain);
+
+        static::assertSame($processor, $processor->setTranslator($replacement));
+        static::assertSame($replacement, $processor->translator);
+    }
+
+    #[Test]
+    public function translatorSingleValue()
     {
         $translator = $this->createTranslator();
         $processor  = new TranslatorProcessor($translator);
@@ -469,13 +523,13 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testUserConstants()
+    public function userConstants()
     {
         $config    = new Config($this->userConstants, true);
         $processor = new ConstantProcessor(false);
         $processor->process($config);
 
-        $tokens = $processor->getTokens();
+        $tokens = $processor->tokens;
         static::assertIsArray($tokens);
         static::assertArrayHasKey('SOME_USERLAND_CONSTANT', $tokens);
         static::assertFalse($processor->getUserOnly());
@@ -487,13 +541,13 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
-    public function testUserOnlyConstants()
+    public function userOnlyConstants()
     {
         $config    = new Config($this->userConstants, true);
         $processor = new ConstantProcessor();
         $processor->process($config);
 
-        $tokens = $processor->getTokens();
+        $tokens = $processor->tokens;
 
         static::assertIsArray($tokens);
         static::assertArrayHasKey('SOME_USERLAND_CONSTANT', $tokens);

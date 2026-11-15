@@ -36,12 +36,18 @@
         "roave/backward-compatibility-check": "^8.21.0",
         "roave/security-advisories": "dev-master",
         "symfony/yaml": "^7.4 || ^8.0",
-        "webware/webware-tools": "^1.0.0-rc.14"
+        "webware/webware-tools": "1.0.0-rc.15"
     },
     "suggest": {
         "laminas/laminas-filter": "Install to use the Filter processor",
         "laminas/laminas-i18n": "Install to use the Translator processor",
         "laminas/laminas-servicemanager": "Install if you need an extensible plugin manager for use with the Config Factory"
+    },
+    "extra": {
+        "laminas": {
+            "component": "Webware\\ConfigManager",
+            "config-provider": "Webware\\ConfigManager\\ConfigProvider"
+        }
     },
     "autoload": {
         "psr-4": {

@@ -21,8 +21,9 @@ use function array_replace_recursive;
  *
  * @extends AbstractSingleInstancePluginManager<Writer\AbstractWriter>
  * @import-type ServiceManagerConfiguration from ServiceManager
+ * @api
  */
-class WriterPluginManager extends AbstractSingleInstancePluginManager
+final class WriterPluginManager extends AbstractSingleInstancePluginManager
 {
     /** @var class-string<Writer\AbstractWriter> */
     protected string $instanceOf = Writer\AbstractWriter::class;
@@ -37,6 +38,9 @@ class WriterPluginManager extends AbstractSingleInstancePluginManager
         Writer\Yaml::class           => InvokableFactory::class,
     ];
 
+    /**
+     * @param array<array-key, mixed> $config
+     */
     public function __construct(ContainerInterface $creationContext, array $config = [])
     {
         /** @var ServiceManagerConfiguration $merged */

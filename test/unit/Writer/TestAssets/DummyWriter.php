@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager\Writer\TestAssets;
 
+use Override;
 use Webware\ConfigManager\Writer\AbstractWriter;
 
 use function serialize;
 
 class DummyWriter extends AbstractWriter
 {
-    /**
-     * @return string
-     */
-    public function processConfig(array $config)
+    #[Override]
+    protected function processConfig(array $config): string
     {
         return serialize($config);
     }

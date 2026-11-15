@@ -15,201 +15,71 @@ use function is_bool;
 use function is_int;
 use function is_object;
 use function is_string;
+use function max;
 use function preg_match;
+use function str_pad;
 use function str_repeat;
 use function str_replace;
 use function strlen;
 use function trait_exists;
 use function var_export;
 
-class PhpArray extends AbstractWriter
+use const STR_PAD_RIGHT;
+
+/**
+ * @api
+ */
+final class PhpArray extends AbstractWriter
 {
-    /**
-     * @var string
-     */
-    public const INDENT_STRING = '    ';
-
-    /** @var bool */
-    protected $useBracketArraySyntax = false;
-
-    /** @var bool */
-    protected $useClassNameScalars = false;
+    public const string INDENT_STRING = '    ';
 
     /**
-     * @return boolean
+     * Readable outside the class, writable only through the setters.
      */
-    public function getUseClassNameScalars()
+    public private(set) bool $useBracketArraySyntax = true;
+
+    public private(set) bool $useClassNameScalars = true;
+
+    /**
+     * Sets whether or not to use the PHP 5.4+ "[]" array syntax.
+     */
+    public function setUseBracketArraySyntax(bool $value): self
     {
-        return $this->useClassNameScalars;
+        $this->useBracketArraySyntax = $value;
+
+        return $this;
+    }
+
+    /**
+     * Sets whether or not to render resolvable FQN strings as scalars, using the
+     * PHP 5.5+ class keyword.
+     */
+    public function setUseClassNameScalars(bool $value): self
+    {
+        $this->useClassNameScalars = $value;
+
+        return $this;
     }
 
     /**
      * processConfig(): defined by AbstractWriter.
      *
-     * @return string
+     * @param array<array-key, mixed> $config
      */
     #[Override]
-    public function processConfig(array $config)
+    protected function processConfig(array $config): string
     {
         $arraySyntax = [
             'open'  => $this->useBracketArraySyntax ? '[' : 'array(',
             'close' => $this->useBracketArraySyntax ? ']' : ')',
         ];
 
-        return "<?php\nreturn {$arraySyntax['open']}\n{$this->processIndented(
+        // A blank line after the opening tag is what the formatter produces, so the
+        // generated file is already formatted when it is written.
+        return "<?php\n\nreturn {$arraySyntax['open']}\n{$this->processIndented(
             $config,
             $arraySyntax,
         )}{$arraySyntax['close']};\n";
-    }
-
-    /**
-     * Sets whether or not to use the PHP 5.4+ "[]" array syntax.
-     *
-     * @param  bool $value
-     * @return self
-     */
-    public function setUseBracketArraySyntax($value)
-    {
-        $this->useBracketArraySyntax = $value;
-        return $this;
-    }
-
-    /**
-     * Sets whether or not to render resolvable FQN strings as scalars, using PHP 5.5+ class-keyword
-     *
-     * @param boolean $value
-     * @return self
-     */
-    public function setUseClassNameScalars($value)
-    {
-        $this->useClassNameScalars = $value;
-        return $this;
-    }
-
-    /**
-     * Check whether a string represents a resolvable FQCN
-     *
-     * @param string $string
-     * @return bool
-     */
-    protected function checkStringIsFqn($string)
-    {
-        if (! preg_match('/^(?:\x5c[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)+$/', $string)) {
-            return false;
-        }
-
-        return class_exists($string) || interface_exists($string) || trait_exists($string);
-    }
-
-    /**
-     * Attempts to convert a FQN string to class name scalar.
-     * Returns false if string is not a valid FQN or can not be resolved to an existing name.
-     *
-     * @param string $string
-     * @return bool|string
-     */
-    protected function fqnStringToClassNameScalar($string)
-    {
-        if (strlen($string) < 1) {
-            return false;
-        }
-
-        if ('\\' !== $string[0]) {
-            $string = "\\{$string}";
-        }
-
-        if ($this->checkStringIsFqn($string)) {
-            return "{$string}::class";
-        }
-
-        return false;
-    }
-
-    /**
-     * Recursively processes a PHP config array structure into a readable format.
-     *
-     * @param  int   $indentLevel
-     * @return string
-     */
-    protected function processIndented(array $config, array $arraySyntax, &$indentLevel = 1)
-    {
-        $arrayString = '';
-
-        foreach ($config as $key => $value) {
-            $arrayString .= str_repeat(self::INDENT_STRING, $indentLevel);
-            $arrayString .= (is_int($key) ? $key : $this->processStringKey($key)) . ' => ';
-
-            if (is_array($value)) {
-                if ([] === $value) {
-                    $arrayString .= "{$arraySyntax['open']}{$arraySyntax['close']},\n";
-                    continue;
-                }
-
-                $indentLevel++;
-                $arrayString .=
-                    $arraySyntax['open']
-                    . "\n"
-                    . $this->processIndented($value, $arraySyntax, $indentLevel)
-                    . str_repeat(self::INDENT_STRING, --$indentLevel)
-                    . $arraySyntax['close']
-                    . ",\n";
-                continue;
-            }
-
-            if (is_object($value)) {
-                $arrayString .= var_export($value, return: true) . ",\n";
-                continue;
-            }
-
-            if (is_string($value)) {
-                $arrayString .= "{$this->processStringValue($value)},\n";
-                continue;
-            }
-
-            if (is_bool($value)) {
-                $arrayString .= ($value ? 'true' : 'false') . ",\n";
-                continue;
-            }
-
-            if (null === $value) {
-                $arrayString .= "null,\n";
-                continue;
-            }
-
-            $arrayString .= "{$value},\n";
-        }
-
-        return $arrayString;
-    }
-
-    /**
-     * Process a string configuration key
-     *
-     * @param string $key
-     * @return string
-     */
-    protected function processStringKey($key)
-    {
-        if ($this->useClassNameScalars && false !== ($fqnKey = $this->fqnStringToClassNameScalar($key))) {
-            return $fqnKey;
-        }
-
-        return "'" . addslashes($key) . "'";
-    }
-
-    /**
-     * Process a string configuration value
-     *
-     * @param string $value
-     * @return string
-     */
-    protected function processStringValue($value)
-    {
-        if ($this->useClassNameScalars && false !== ($fqnValue = $this->fqnStringToClassNameScalar($value))) {
-            return $fqnValue;
-        }
-
-        return var_export($value, return: true);
     }
 
     /**
@@ -236,5 +106,139 @@ class PhpArray extends AbstractWriter
             replace: "__DIR__ . '",
             subject: $content,
         );
+    }
+
+    /**
+     * Check whether a string represents a resolvable FQCN
+     */
+    private function checkStringIsFqn(string $string): bool
+    {
+        if (! preg_match('/^(?:\x5c[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)+$/', $string)) {
+            return false;
+        }
+
+        return class_exists($string) || interface_exists($string) || trait_exists($string);
+    }
+
+    /**
+     * Attempts to convert a FQN string to class name scalar.
+     * Returns false if string is not a valid FQN or can not be resolved to an existing name.
+     */
+    private function fqnStringToClassNameScalar(string $string): string|false
+    {
+        if (strlen($string) < 1) {
+            return false;
+        }
+
+        if ('\\' !== $string[0]) {
+            $string = "\\{$string}";
+        }
+
+        if ($this->checkStringIsFqn($string)) {
+            return "{$string}::class";
+        }
+
+        return false;
+    }
+
+    /**
+     * Recursively processes a PHP config array structure into a readable format.
+     *
+     * Keys are padded to the widest key in the same array so the assignment
+     * operators line up, which is what the project coding standard requires.
+     *
+     * @param array<array-key, mixed> $config
+     * @param array{open: string, close: string} $arraySyntax
+     */
+    private function processIndented(array $config, array $arraySyntax, int $indentLevel = 1): string
+    {
+        /** @var list<array{key: string, value: mixed}> $entries */
+        $entries  = [];
+        $keyWidth = 0;
+
+        foreach ($config as $key => $value) {
+            $renderedKey = is_int($key) ? (string) $key : $this->processStringKey($key);
+            $keyWidth    = max($keyWidth, strlen($renderedKey));
+            $entries[]   = ['key' => $renderedKey, 'value' => $value];
+        }
+
+        $indent = str_repeat(self::INDENT_STRING, $indentLevel);
+        $block  = '';
+
+        foreach ($entries as $entry) {
+            $block .=
+                $indent
+                . str_pad($entry['key'], $keyWidth, pad_type: STR_PAD_RIGHT)
+                . ' => '
+                . $this->renderValue($entry['value'], $arraySyntax, $indentLevel)
+                . ",\n";
+        }
+
+        return $block;
+    }
+
+    /**
+     * Process a string configuration key
+     */
+    private function processStringKey(string $key): string
+    {
+        if ($this->useClassNameScalars && false !== ($fqnKey = $this->fqnStringToClassNameScalar($key))) {
+            return $fqnKey;
+        }
+
+        return "'" . addslashes($key) . "'";
+    }
+
+    /**
+     * Process a string configuration value
+     */
+    private function processStringValue(string $value): string
+    {
+        if ($this->useClassNameScalars && false !== ($fqnValue = $this->fqnStringToClassNameScalar($value))) {
+            return $fqnValue;
+        }
+
+        return var_export($value, return: true);
+    }
+
+    /**
+     * Render a single value, recursing into arrays.
+     *
+     * @param array{open: string, close: string} $arraySyntax
+     */
+    private function renderValue(mixed $value, array $arraySyntax, int $indentLevel): string
+    {
+        if (is_array($value)) {
+            if ([] === $value) {
+                return "{$arraySyntax['open']}{$arraySyntax['close']}";
+            }
+
+            return (
+                $arraySyntax['open']
+                    . "\n"
+                    . $this->processIndented($value, $arraySyntax, $indentLevel + 1)
+                    . str_repeat(self::INDENT_STRING, $indentLevel)
+                    . $arraySyntax['close']
+            );
+        }
+
+        if (is_object($value)) {
+            return var_export($value, return: true);
+        }
+
+        if (is_string($value)) {
+            return $this->processStringValue($value);
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if (null === $value) {
+            return 'null';
+        }
+
+        // Anything left over was interpolated by the original implementation.
+        return "{$value}";
     }
 }

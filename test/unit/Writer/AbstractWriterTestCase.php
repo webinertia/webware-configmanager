@@ -59,22 +59,25 @@ abstract class AbstractWriterTestCase extends TestCase
     }
 
     #[Test]
-    public function testFileNotValid()
+    public function fileNotValid()
     {
         $this->expectException(WriterRuntimeException::class);
         $this->writer->toFile('.', new Config([]));
     }
 
     #[Test]
-    public function testNoFilenameSet()
+    public function noFilenameSet()
     {
         $this->expectException(WriterInvalidArgumentException::class);
-        $this->expectExceptionMessage('No file name specified');
-        $this->writer->toFile('', '');
+        $this->expectExceptionMessageIs('No file name specified');
+        $this->writer->toFile(
+            filename: '',
+            config  : '',
+        );
     }
 
     #[Test]
-    public function testReadOnlyDestination()
+    public function readOnlyDestination()
     {
         if (self::isPrivileged()) {
             static::markTestSkipped(
@@ -106,7 +109,7 @@ abstract class AbstractWriterTestCase extends TestCase
     }
 
     #[Test]
-    public function testToStringAcceptsATraversableConfig()
+    public function toStringAcceptsATraversableConfig()
     {
         $content = $this->writer->toString(new ArrayIterator(['test' => 'foo']));
 
@@ -114,16 +117,16 @@ abstract class AbstractWriterTestCase extends TestCase
     }
 
     #[Test]
-    public function testToStringRejectsAConfigThatIsNeitherArrayNorTraversable()
+    public function toStringRejectsAConfigThatIsNeitherArrayNorTraversable()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('expects an array or Traversable config');
+        $this->expectExceptionMessageIsOrContains('expects an array or Traversable config');
 
         $this->writer->toString('not a configuration');
     }
 
     #[Test]
-    public function testToStringTrustsAnAggregateThatProvidesItsOwnArrayForm()
+    public function toStringTrustsAnAggregateThatProvidesItsOwnArrayForm()
     {
         // The aggregate iterates a key the writer must not contain, so the rendered
         // output proves toArray() was used rather than iteration.
@@ -134,7 +137,7 @@ abstract class AbstractWriterTestCase extends TestCase
     }
 
     #[Test]
-    public function testWriteAndRead()
+    public function writeAndRead()
     {
         $config = new Config(['default' => ['test' => 'foo']]);
 

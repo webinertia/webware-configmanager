@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace Webware\ConfigManager\Reader;
 
+/**
+ * @api
+ */
 interface ReaderInterface
 {
     /**
      * Read from a file and create an array
      *
-     * @param  string $filename
-     * @return array
+     * @return array<array-key, mixed>
      */
-    public function fromFile($filename);
+    public function fromFile(string $filename): array;
 
     /**
      * Read from a string and create an array
      *
-     * @param  string $string
-     * @return array|bool
+     * @return array<array-key, mixed>
      */
-    public function fromString($string);
+    public function fromString(string $string): array;
 }

@@ -15,14 +15,17 @@ use function preg_match;
 use function str_contains;
 use function substr;
 
-class Constant extends Token implements ProcessorInterface
+/**
+ * @api
+ */
+final class Constant extends Token implements ProcessorInterface
 {
     /**
      * Replace only user-defined tokens
      *
      * @var bool
      */
-    protected $userOnly = true;
+    private bool $userOnly = true;
 
     /**
      * Constant Processor walks through a Config structure and replaces all
@@ -35,8 +38,12 @@ class Constant extends Token implements ProcessorInterface
      * @param bool $enableKeyProcessing Whether or not to enable processing of
      *     constant values in configuration keys; defaults to false.
      */
-    public function __construct($userOnly = true, $prefix = '', $suffix = '', $enableKeyProcessing = false)
-    {
+    public function __construct(
+        bool $userOnly = true,
+        string $prefix = '',
+        string $suffix = '',
+        bool $enableKeyProcessing = false,
+    ) {
         $this->setUserOnly($userOnly);
         $this->setPrefix($prefix);
         $this->setSuffix($suffix);
@@ -48,21 +55,7 @@ class Constant extends Token implements ProcessorInterface
         $this->loadConstants();
     }
 
-    /**
-     * Get current token registry.
-     *
-     * @return array
-     */
-    #[Override]
-    public function getTokens()
-    {
-        return $this->tokens;
-    }
-
-    /**
-     * @return bool
-     */
-    public function getUserOnly()
+    public function getUserOnly(): bool
     {
         return $this->userOnly;
     }
@@ -70,9 +63,8 @@ class Constant extends Token implements ProcessorInterface
     /**
      * Load all currently defined constants into parser.
      *
-     * @return void
      */
-    public function loadConstants()
+    public function loadConstants(): void
     {
         if ($this->userOnly) {
             $constants = get_defined_constants(true);
@@ -86,10 +78,8 @@ class Constant extends Token implements ProcessorInterface
     /**
      * Should we use only user-defined constants?
      *
-     * @param  bool $userOnly
-     * @return self
      */
-    public function setUserOnly($userOnly)
+    public function setUserOnly(bool $userOnly): self
     {
         $this->userOnly = $userOnly;
         return $this;
@@ -101,11 +91,10 @@ class Constant extends Token implements ProcessorInterface
      * If the value is a string and evaluates to a class constant, returns
      * the class constant value; otherwise, delegates to the parent.
      *
-     * @param mixed $value
-     * @return mixed
+     * @param array<array-key, mixed> $replacements
      */
     #[Override]
-    protected function doProcess($value, array $replacements)
+    protected function doProcess(mixed $value, array $replacements): mixed
     {
         if (! is_string($value)) {
             return parent::doProcess($value, $replacements);

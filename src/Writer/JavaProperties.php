@@ -13,23 +13,26 @@ use function is_scalar;
 use function is_string;
 use function sprintf;
 
-class JavaProperties extends AbstractWriter
+/**
+ * @api
+ */
+final class JavaProperties extends AbstractWriter
 {
-    public const DELIMITER_DEFAULT = ':';
+    public const string DELIMITER_DEFAULT = ':';
 
     /**
      * Delimiter for key/value pairs.
      *
      * @var string
      */
-    private $delimiter;
+    private string $delimiter;
 
     /**
-     * @param string $delimiter Delimiter to use for key/value pairs; defaults
+     * @param mixed $delimiter Delimiter to use for key/value pairs; defaults
      *     to self::DELIMITER_DEFAULT (':')
      * @throws Exception\InvalidArgumentException For invalid $delimiter values.
      */
-    public function __construct($delimiter = self::DELIMITER_DEFAULT)
+    public function __construct(mixed $delimiter = self::DELIMITER_DEFAULT)
     {
         if (! is_string($delimiter) || '' === $delimiter) {
             throw new Exception\InvalidArgumentException(sprintf(
@@ -44,11 +47,11 @@ class JavaProperties extends AbstractWriter
     /**
      * processConfig(): defined by AbstractWriter.
      *
-     * @return string
      * @throws Exception\UnprocessableConfigException For non-scalar values in the $config array.
+     * @param array<array-key, mixed> $config
      */
     #[Override]
-    public function processConfig(array $config)
+    protected function processConfig(array $config): string
     {
         $string = '';
 

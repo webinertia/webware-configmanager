@@ -16,15 +16,80 @@ use Webware\FileWriter\FileWriter;
 use function is_array;
 use function method_exists;
 
+/**
+ * @api
+ */
 abstract class AbstractWriter implements WriterInterface
 {
     /**
+     * toFile(): defined by Writer interface.
+     *
+     * The file is replaced atomically, so a reader sees either the previous
+     * document or the new one and never a partial write. An advisory lock is not
+     * used because readers do not take one, so it would protect nothing; the atomic
+     * rename is what makes a partial write unobservable.
+     *
+     * @see    WriterInterface::toFile()
+     *
+     * @throws WriterException\InvalidArgumentException If the file name is empty.
+     * @throws WriterException\RuntimeException If the file cannot be written.
+     * @throws Exception\InvalidArgumentException If the config cannot be serialized.
+     */
+    #[Override]
+    public function toFile(string $filename, mixed $config): void
+    {
+        // Resolved before serialization: a writer that builds paths out of the
+        // destination must name the directory the file really lives in, which is the
+        // link target rather than the link.
+        $resolved = FileWriter::resolve($filename);
+
+        FileWriter::write($resolved, $this->toContent($config, $resolved));
+    }
+
+    /**
+     * toString(): defined by Writer interface.
+     *
+     * @see    WriterInterface::toString()
+     *
+     * @throws Exception\InvalidArgumentException
+     */
+    #[Override]
+    public function toString(mixed $config): string
+    {
+        return $this->processConfig($this->normalize($config));
+    }
+
+    /**
+     * @param array<array-key, mixed> $config
+     */
+    abstract protected function processConfig(array $config): string;
+
+    /**
+     * Serialize the configuration for a specific destination.
+     *
+     * Writers that need to rewrite the document in terms of where it will be
+     * written override this instead of overriding toFile(). The destination is
+     * already validated and resolved by the time this is called, so an override can
+     * rely on it naming the directory the file really lives in.
+     *
+     * @param string $filename exists for an override to read; this implementation only
+     *     forwards to toString(). It is not underscore-prefixed because this project
+     *     forbids that.
+     * @throws Exception\InvalidArgumentException
+     * @mago-expect analysis:unused-parameter
+     */
+    protected function toContent(mixed $config, string $filename): string
+    {
+        return $this->toString($config);
+    }
+
+    /**
      * @return mixed The value with every reachable Traversable converted to an array.
      */
-    private static function expand(mixed $config): mixed
+    private function expand(mixed $config): mixed
     {
         if (is_array($config)) {
-            return self::mapValues($config);
+            return $this->mapValues($config);
         }
 
         if (! $config instanceof Traversable) {
@@ -37,21 +102,22 @@ abstract class AbstractWriter implements WriterInterface
         }
 
         /** @var Traversable<array-key, mixed> $config */
-        return self::mapValues($config);
+        return $this->mapValues($config);
     }
 
     /**
+     * A merged config is untyped by nature, so values and keys stay mixed.
+     *
      * @param iterable<array-key, mixed> $iterable
      * @return array<array-key, mixed>
+     * @mago-expect analysis:mixed-assignment
      */
-    // A merged config is untyped by nature, so values and keys stay mixed.
-    // @mago-expect analysis:mixed-assignment
-    private static function mapValues(iterable $iterable): array
+    private function mapValues(iterable $iterable): array
     {
         $array = [];
 
         foreach ($iterable as $key => $value) {
-            $array[$key] = self::expand($value);
+            $array[$key] = $this->expand($value);
         }
 
         return $array;
@@ -67,82 +133,14 @@ abstract class AbstractWriter implements WriterInterface
      * @throws Exception\InvalidArgumentException If the value is not an array or Traversable.
      * @return array<array-key, mixed>
      */
-    private static function normalize(mixed $config): array
+    private function normalize(mixed $config): array
     {
         try {
-            return Type\mixed_dict()->coerce(self::expand($config));
+            return Type\mixed_dict()->coerce($this->expand($config));
         } catch (CoercionException) {
             throw new Exception\InvalidArgumentException(
-                self::class . '::toString expects an array or Traversable config',
+                static::class . '::toString expects an array or Traversable config',
             );
         }
-    }
-
-    /**
-     * toFile(): defined by Writer interface.
-     *
-     * The file is replaced atomically, so a reader sees either the previous
-     * document or the new one and never a partial write.
-     *
-     * @see    WriterInterface::toFile()
-     *
-     * @param  string  $filename
-     * @param  mixed   $config
-     * @param  bool $exclusiveLock Ignored; retained for interface compatibility. An
-     *                             advisory lock does not protect readers, because
-     *                             they do not take one, so it is replaced by the
-     *                             atomic rename.
-     * @return void
-     * @throws WriterException\InvalidArgumentException If the file name is empty.
-     * @throws WriterException\RuntimeException If the file cannot be written.
-     * @throws Exception\InvalidArgumentException If the config cannot be serialized.
-     */
-    #[Override]
-    public function toFile($filename, $config, $exclusiveLock = true)
-    {
-        // Resolved before serialization: a writer that builds paths out of the
-        // destination must name the directory the file really lives in, which is the
-        // link target rather than the link.
-        $resolved = FileWriter::resolve($filename);
-
-        FileWriter::write($resolved, $this->toContent($config, $resolved));
-    }
-
-    /**
-     * toString(): defined by Writer interface.
-     *
-     * @see    WriterInterface::toString()
-     *
-     * @param  mixed   $config
-     * @return string
-     * @throws Exception\InvalidArgumentException
-     */
-    #[Override]
-    public function toString($config)
-    {
-        return $this->processConfig(self::normalize($config));
-    }
-
-    /**
-     * @return string
-     */
-    abstract protected function processConfig(array $config);
-
-    /**
-     * Serialize the configuration for a specific destination.
-     *
-     * Writers that need to rewrite the document in terms of where it will be
-     * written override this instead of overriding toFile(). The destination is
-     * already validated and resolved by the time this is called, so an override can
-     * rely on it naming the directory the file really lives in.
-     *
-     * @throws Exception\InvalidArgumentException
-     */
-    // $filename exists for an override to read; this implementation only forwards to
-    // toString(). It is not underscore-prefixed because this project forbids that.
-    // @mago-expect analysis:unused-parameter
-    protected function toContent(mixed $config, string $filename): string
-    {
-        return $this->toString($config);
     }
 }

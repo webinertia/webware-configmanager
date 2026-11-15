@@ -12,6 +12,7 @@ use Traversable;
 use Webware\ConfigManager\Config;
 use Webware\ConfigManager\Exception;
 
+use function array_any;
 use function array_values;
 use function count;
 
@@ -20,22 +21,17 @@ use function count;
  *
  * This replaces Laminas\Stdlib\PriorityQueue so the package no longer depends on
  * laminas/laminas-stdlib. A processor inserted with a higher priority runs first, and the
- * queue is iterated in that order without consuming it.
+ * queue is iterated in that order without consuming it. Each method is a distinct queue
+ * operation rather than a nested branch.
  *
  * @implements IteratorAggregate<int, ProcessorInterface>
+ * @mago-expect lint:too-many-methods
+ * @mago-expect lint:cyclomatic-complexity
+ * @mago-expect lint:kan-defect
+ * @api
  */
-// The queue replaces Laminas\Stdlib\PriorityQueue, so it carries the storage, the ordering
-// and the non-destructive iteration that the library provided. Each method is a distinct
-// queue operation rather than a nested branch.
-// @mago-expect lint:too-many-methods
-// @mago-expect lint:cyclomatic-complexity
-// @mago-expect lint:kan-defect
-class Queue implements ProcessorInterface, Countable, IteratorAggregate
+final class Queue implements ProcessorInterface, Countable, IteratorAggregate
 {
-    public const int EXTR_DATA     = 0x0000_0001;
-    public const int EXTR_PRIORITY = 0x0000_0002;
-    public const int EXTR_BOTH     = 0x0000_0003;
-
     /** @var list<array{data: ProcessorInterface, priority: int}> */
     private array $items = [];
 
@@ -44,13 +40,11 @@ class Queue implements ProcessorInterface, Countable, IteratorAggregate
 
     public function contains(ProcessorInterface $datum): bool
     {
-        foreach ($this->items as $item) {
-            if ($item['data'] === $datum) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(
+            $this->items,
+            /** @param array{data: ProcessorInterface, priority: int} $item */
+            static fn(array $item): bool => $item['data'] === $datum,
+        );
     }
 
     #[Override]
@@ -108,13 +102,11 @@ class Queue implements ProcessorInterface, Countable, IteratorAggregate
 
     public function hasPriority(int $priority): bool
     {
-        foreach ($this->items as $item) {
-            if ($item['priority'] === $priority) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(
+            $this->items,
+            /** @param array{data: ProcessorInterface, priority: int} $item */
+            static fn(array $item): bool => $item['priority'] === $priority,
+        );
     }
 
     /**
@@ -124,7 +116,7 @@ class Queue implements ProcessorInterface, Countable, IteratorAggregate
      *
      * @return $this
      */
-    public function insert(ProcessorInterface $data, int $priority = 1): static
+    public function insert(ProcessorInterface $data, int $priority = 1): self
     {
         $this->items[] = [
             'data'     => $data,
@@ -206,14 +198,16 @@ class Queue implements ProcessorInterface, Countable, IteratorAggregate
     }
 
     /**
-     * @return array<array-key, mixed>
+     * @return ($contents is QueueContents::Both
+     *     ? list<array{data: ProcessorInterface, priority: int}>
+     *     : ($contents is QueueContents::Priorities ? list<int> : list<ProcessorInterface>))
      */
-    public function toArray(int $flag = self::EXTR_DATA): array
+    public function toArray(QueueContents $contents = QueueContents::Data): array
     {
-        return match ($flag) {
-            self::EXTR_BOTH => $this->items,
-            self::EXTR_PRIORITY => $this->priorities(),
-            default => $this->data(),
+        return match ($contents) {
+            QueueContents::Both       => $this->items,
+            QueueContents::Priorities => $this->priorities(),
+            QueueContents::Data       => $this->data(),
         };
     }
 

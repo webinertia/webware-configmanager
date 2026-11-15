@@ -32,7 +32,10 @@ final class ConfigFactoryIntegrationTest extends TestCase
         Factory::setReaderPluginManager(new ReaderPluginManager($container));
         Factory::setWriterPluginManager(new WriterPluginManager($container));
 
-        $config = Factory::fromFile(__DIR__ . '/../unit/TestAssets/Ini/include-base.ini', true);
+        $config = Factory::fromFile(
+            filename          : __DIR__ . '/../unit/TestAssets/Ini/include-base.ini',
+            returnConfigObject: true,
+        );
 
         static::assertInstanceOf(Config::class, $config);
         static::assertNotEmpty($config->toArray());
@@ -46,7 +49,10 @@ final class ConfigFactoryIntegrationTest extends TestCase
             __DIR__ . '/../unit/TestAssets/Php/include-base.php',
         ];
 
-        $config = Factory::fromFiles($files, true);
+        $config = Factory::fromFiles(
+            files             : $files,
+            returnConfigObject: true,
+        );
 
         static::assertInstanceOf(Config::class, $config);
         static::assertSame('bar', $config->base->foo);
@@ -60,7 +66,10 @@ final class ConfigFactoryIntegrationTest extends TestCase
 
         static::assertTrue(Factory::toFile($this->tmpFile, $config));
 
-        $result = Factory::fromFile($this->tmpFile, true);
+        $result = Factory::fromFile(
+            filename          : $this->tmpFile,
+            returnConfigObject: true,
+        );
 
         static::assertInstanceOf(Config::class, $result);
         static::assertTrue($result->webware->configmanager->enabled);

@@ -1,4 +1,5 @@
 <?php
-return array(
+
+return [
     'dir' => __DIR__ . '/foobar.php',
-);
+];

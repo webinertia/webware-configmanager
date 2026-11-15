@@ -24,39 +24,47 @@ final class TokenTest extends TestCase
     use DeprecatedAssertionTrait;
 
     #[Test]
-    public function testCanEnableKeyProcessingViaConstructorArgument()
+    public function canEnableKeyProcessingViaConstructorArgument()
     {
         $processor = new TokenProcessor([], '', '', true);
-        static::assertAttributeSame(true, 'processKeys', $processor);
+        static::assertAttributeSame(
+            value   : true,
+            property: 'processKeys',
+            instance: $processor,
+        );
     }
 
     #[Test]
-    public function testInvalidTokenRegistryIsRejected()
+    public function invalidTokenRegistryIsRejected()
     {
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot use string as token registry.');
+        $this->expectExceptionMessageIs('Cannot use string as token registry.');
 
         new TokenProcessor()->setTokens('not a registry');
     }
 
     #[Test]
-    public function testKeyProcessingDisabledByDefault()
+    public function keyProcessingDisabledByDefault()
     {
         $processor = new TokenProcessor();
-        static::assertAttributeSame(false, 'processKeys', $processor);
+        static::assertAttributeSame(
+            value   : false,
+            property: 'processKeys',
+            instance: $processor,
+        );
     }
 
     #[Test]
-    public function testPrefixAndSuffixAreExposed()
+    public function prefixAndSuffixAreExposed()
     {
         $processor = new TokenProcessor([], '##', '%%');
 
-        static::assertSame('##', $processor->getPrefix());
-        static::assertSame('%%', $processor->getSuffix());
+        static::assertSame('##', $processor->prefix);
+        static::assertSame('%%', $processor->suffix);
     }
 
     #[Test]
-    public function testReplacementMapIsCachedBetweenRuns()
+    public function replacementMapIsCachedBetweenRuns()
     {
         $processor = new TokenProcessor(['TOKEN' => 'one'], '(', ')');
 
@@ -65,17 +73,21 @@ final class TokenTest extends TestCase
     }
 
     #[Test]
-    public function testSetTokenRegistersASingleToken()
+    public function setTokenRegistersASingleToken()
     {
         $processor = new TokenProcessor();
-        $processor->setToken('TOKEN', 'replacement');
+        $processor->setToken(
+            token: 'TOKEN',
+            value: 'replacement',
+        );
 
-        static::assertSame(['TOKEN' => 'replacement'], $processor->getTokens());
+        static::assertSame(['TOKEN' => 'replacement'], $processor->tokens);
     }
 
     #[Test]
-    public function testTraversableValuesAreProcessedRecursively()
+    public function traversableValuesAreProcessedRecursively()
     {
+        // @mago-expect lint:no-literal-password
         $processor = new TokenProcessor(['TOKEN' => 'replacement']);
 
         $result = $processor->processValue(new ArrayIterator(['TOKEN']));

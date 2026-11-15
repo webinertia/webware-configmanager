@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WebwareTest\ConfigManager\Reader;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader\Ini;
@@ -12,8 +13,69 @@ use Webware\ConfigManager\Reader\Ini;
 #[CoversClass(Ini::class)]
 final class IniTest extends AbstractReaderTestCase
 {
+    /** @return array<string, array{string}> */
+    public static function emptySegmentKeyProvider(): array
+    {
+        return [
+            'leading separator'  => ['.foo = 1'],
+            'trailing separator' => ['foo. = 1'],
+        ];
+    }
+
+    #[DataProvider('emptySegmentKeyProvider')]
     #[Test]
-    public function testFromFileDontParseSections()
+    public function aKeyWithAnEmptySegmentIsRejected(string $ini)
+    {
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Invalid key');
+
+        new Ini()->fromString($ini);
+    }
+
+    #[Test]
+    public function anAlternateNestSeparatorChangesHowKeysAreSplit()
+    {
+        $reader = new Ini();
+
+        static::assertSame($reader, $reader->setNestSeparator('_'));
+        static::assertSame('_', $reader->nestSeparator);
+
+        // The default separator is a dot, so the underscore form only nests once the
+        // separator has been changed.
+        static::assertSame(['a' => ['b' => ['c' => '1']]], $reader->fromString('a_b_c = 1'));
+    }
+
+    #[Test]
+    public function anIncludeInAStringConfigIsRejectedBecauseThereIsNoDirectoryToResolveIt()
+    {
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Cannot process @include statement for a string config');
+
+        new Ini()->fromString('@include = other.ini');
+    }
+
+    #[Test]
+    public function aSubKeyOfAnExistingScalarIsRejected()
+    {
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Cannot create sub-key for "foo", as key already exists');
+
+        new Ini()->fromString("foo = 1\nfoo.bar = 2");
+    }
+
+    #[Test]
+    public function aZeroPrefixedKeyWrapsTheConfigBuiltSoFar()
+    {
+        // The '0' segment is wrapped rather than merged, which is the documented
+        // behaviour for numeric root keys.
+        static::assertSame(
+            [0 => ['a' => '1', 'b' => '2']],
+            new Ini()->fromString("a = 1\n0.b = 2"),
+        );
+    }
+
+    #[Test]
+    public function fromFileDontParseSections()
     {
         $reader = $this->reader;
         $reader->setProcessSections(false);
@@ -26,7 +88,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
+    public function fromFileIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
     {
         $reader = $this->reader;
         $reader->setProcessSections(false);
@@ -44,7 +106,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileParseSections()
+    public function fromFileParseSections()
     {
         $arrayIni = $this->reader->fromFile($this->getTestAssetPath('sections'));
 
@@ -55,7 +117,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileWithoutTypes()
+    public function fromFileWithoutTypes()
     {
         $arrayIni = $this->reader->fromFile($this->getTestAssetPath('types'));
 
@@ -68,7 +130,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileWithTypes()
+    public function fromFileWithTypes()
     {
         $reader = $this->reader;
         $reader->setTypedMode(true);
@@ -83,7 +145,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromString()
+    public function fromString()
     {
         $ini = <<<ECS
             test= "foo"
@@ -99,7 +161,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringDontParseSections()
+    public function fromStringDontParseSections()
     {
         $ini = <<<ECS
             [production]
@@ -122,7 +184,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
+    public function fromStringIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
     {
         $ini = <<<ECS
             [environments.production]
@@ -149,7 +211,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringNested()
+    public function fromStringNested()
     {
         $ini = <<<ECS
             bla.foo.bar = foobar
@@ -167,7 +229,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringParseSections()
+    public function fromStringParseSections()
     {
         $ini = <<<ECS
             [production]
@@ -188,7 +250,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringWithoutTypes()
+    public function fromStringWithoutTypes()
     {
         $ini = <<<ECS
             [production]
@@ -210,7 +272,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringWithSection()
+    public function fromStringWithSection()
     {
         $ini = <<<ECS
             [all]
@@ -227,7 +289,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringWithTypes()
+    public function fromStringWithTypes()
     {
         $ini = <<<ECS
             [production]
@@ -251,7 +313,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testInvalidIniFile()
+    public function invalidIniFile()
     {
         $this->reader = new Ini();
         $this->expectException(Exception\RuntimeException::class);
@@ -259,7 +321,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testInvalidString()
+    public function invalidString()
     {
         $ini = <<<ECS
             test== "foo"

@@ -13,16 +13,19 @@ use function json_last_error_msg;
 use const JSON_PRETTY_PRINT;
 use const JSON_UNESCAPED_SLASHES;
 
-class Json extends AbstractWriter
+/**
+ * @api
+ */
+final class Json extends AbstractWriter
 {
     /**
      * processConfig(): defined by AbstractWriter.
      *
-     * @return string
      * @throws Exception\RuntimeException If encoding errors occur.
+     * @param array<array-key, mixed> $config
      */
     #[Override]
-    public function processConfig(array $config)
+    protected function processConfig(array $config): string
     {
         $serialized = json_encode($config, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 

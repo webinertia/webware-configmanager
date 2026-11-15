@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager\Writer\TestAssets;
 
+use Override;
 use Webware\ConfigManager\Writer\WriterInterface;
 
 /**
@@ -12,12 +13,14 @@ use Webware\ConfigManager\Writer\WriterInterface;
  */
 final class PlainWriter implements WriterInterface
 {
-    public function toFile($filename, $config, $exclusiveLock = true)
+    #[Override]
+    public function toFile(string $filename, mixed $config): void
     {
-        return null;
+        // Intentionally empty: this writer only exists to be rejected.
     }
 
-    public function toString($config)
+    #[Override]
+    public function toString(mixed $config): string
     {
         return '';
     }

@@ -15,25 +15,25 @@ abstract class AbstractReaderTestCase extends TestCase
     protected $reader;
 
     #[Test]
-    public function testFromEmptyString()
+    public function fromEmptyString()
     {
         $config = $this->reader->fromString('');
         static::assertEmpty($config);
     }
 
     #[Test]
-    public function testFromFile()
+    public function fromFile()
     {
         $config = $this->reader->fromFile($this->getTestAssetPath('include-base'));
         static::assertSame('foo', $config['foo']);
     }
 
     #[Test]
-    public function testMissingFile()
+    public function missingFile()
     {
         $filename = $this->getTestAssetPath('no-file');
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage("doesn't exist or not readable");
+        $this->expectExceptionMessageIsOrContains("doesn't exist or not readable");
         $this->reader->fromFile($filename);
     }
 
