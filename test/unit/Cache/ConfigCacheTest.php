@@ -24,6 +24,8 @@ use function sys_get_temp_dir;
 use function uniqid;
 use function unlink;
 
+use const PHP_OS_FAMILY;
+
 #[CoversClass(ConfigCache::class)]
 #[CoversClass(Shape::class)]
 final class ConfigCacheTest extends TestCase
@@ -95,9 +97,15 @@ final class ConfigCacheTest extends TestCase
         // A directory cannot be replaced by the rename, so the write fails and the cache
         // is skipped. The explicit mode must not then be applied to the directory that is
         // still there in place of the file.
-        $directory = $this->path . '-dir';
-        mkdir($directory, 0o700);
-        chmod($directory, 0o700);
+        $directory = "{$this->path}-dir";
+        mkdir(
+            directory  : $directory,
+            permissions: 0o700,
+        );
+        chmod(
+            filename   : $directory,
+            permissions: 0o700,
+        );
 
         try {
             new ConfigCache($directory)->save([
