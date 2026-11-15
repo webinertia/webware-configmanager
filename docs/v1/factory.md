@@ -98,6 +98,10 @@ works unchanged:
 | class that does not exist | Throws `InvalidArgumentException` |
 | constructor requiring arguments | Throws `InvalidArgumentException`; supply an instance instead |
 | returns something other than an array | Throws `InvalidArgumentException` |
+| returns a `Generator` | Each yielded array is merged in order |
+
+A provider that streams arrays, rather than returning one, is merged value by value, so
+`PhpFileProvider` can contribute one array per file it matches.
 
 Providers are merged in the order given, so a later provider wins, and
 [MergeDirective](#steering-the-merge) is honoured in provider output exactly as it is in
@@ -114,6 +118,74 @@ $config = Factory::fromProviders([
     },
 ]);
 ```
+
+### Providers supplied by this package
+
+Two providers replace the ones the Laminas config aggregator shipped, so a provider list
+written against that package needs no rewriting:
+
+```php
+use Webware\ConfigManager\Provider\ArrayProvider;
+use Webware\ConfigManager\Provider\PhpFileProvider;
+
+$config = Factory::fromProviders([
+    new ArrayProvider(['config_cache_path' => 'data/cache/config-cache.php']),
+    new PhpFileProvider(__DIR__ . '/autoload/{{,*.}global,{,*.}local}.php'),
+]);
+```
+
+`PhpFileProvider` includes each matching file and merges what it returns, in the order
+the pattern produced. That order is the part that matters, and it is reproduced exactly:
+`{{,*.}global,{,*.}local}.php` yields `global.php`, then every `*.global.php` in name
+order, then `local.php`, then every `*.local.php`. A file that does not return an array is
+reported with its path.
+
+## Replacing the Laminas config aggregator
+
+`Webware\ConfigManager\ConfigAggregator` takes the same constructor arguments as
+`Laminas\ConfigAggregator\ConfigAggregator` and exposes the same `getMergedConfig()`, so
+a consumer changes the import and nothing else:
+
+```php
+use Webware\ConfigManager\ConfigAggregator;
+use Webware\ConfigManager\Provider\ArrayProvider;
+use Webware\ConfigManager\Provider\PhpFileProvider;
+
+$aggregator = new ConfigAggregator(
+    [
+        Webware\Core\ConfigProvider::class,
+        Webware\Log\ConfigProvider::class,
+        new ArrayProvider($cacheConfig),
+        new PhpFileProvider(realpath(__DIR__) . '/autoload/{{,*.}global,{,*.}local}.php'),
+    ],
+    $cacheConfig['config_cache_path'],
+);
+
+return $aggregator->getMergedConfig();
+```
+
+### Cache behaviour
+
+The cache rules are the aggregator's, reproduced rather than tidied, because moving here
+must not change how an application behaves:
+
+- the cache is **read** whenever the file exists, regardless of the setting. A present
+  cache file is authoritative and the providers do not run at all;
+- the cache is **written** only when the merged configuration sets
+  `ConfigAggregator::ENABLE_CACHE` to `true`;
+- a failure to write is swallowed, because an unwritable cache costs performance, not
+  correctness.
+
+The consequence of the first rule is that turning the setting off does nothing while a
+cache file exists. The file has to be deleted, which is what development mode does.
+
+One deliberate difference: the setting must be the boolean `true`. The aggregator tested
+it with `empty()`, so `1` or `'yes'` also enabled the cache; a mis-typed setting silently
+changing whether configuration is cached is worse than simply not caching.
+
+`ConfigAggregator::ENABLE_CACHE` and `ConfigAggregator::CACHE_FILEMODE` are declared on
+the class, so an application's config files that reference them by that name keep
+resolving after the class is swapped.
 
 ## Storing configuration
 
