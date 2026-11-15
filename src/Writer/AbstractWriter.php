@@ -4,17 +4,80 @@ declare(strict_types=1);
 
 namespace Webware\ConfigManager\Writer;
 
-use Laminas\Stdlib\ArrayUtils;
+use Iterator;
 use Override;
+use Psl\Type;
+use Psl\Type\Exception\CoercionException;
 use Traversable;
 use Webware\ConfigManager\Exception;
 use Webware\FileWriter\Exception as WriterException;
 use Webware\FileWriter\FileWriter;
 
 use function is_array;
+use function method_exists;
 
 abstract class AbstractWriter implements WriterInterface
 {
+    /**
+     * @return mixed The value with every reachable Traversable converted to an array.
+     */
+    private static function expand(mixed $config): mixed
+    {
+        if (is_array($config)) {
+            return self::mapValues($config);
+        }
+
+        if (! $config instanceof Traversable) {
+            return $config;
+        }
+
+        // An aggregate that offers its own array form is trusted over iteration.
+        if (! $config instanceof Iterator && method_exists($config, 'toArray')) {
+            return $config->toArray();
+        }
+
+        /** @var Traversable<array-key, mixed> $config */
+        return self::mapValues($config);
+    }
+
+    /**
+     * @param iterable<array-key, mixed> $iterable
+     * @return array<array-key, mixed>
+     */
+    // A merged config is untyped by nature, so values and keys stay mixed.
+    // @mago-expect analysis:mixed-assignment
+    private static function mapValues(iterable $iterable): array
+    {
+        $array = [];
+
+        foreach ($iterable as $key => $value) {
+            $array[$key] = self::expand($value);
+        }
+
+        return $array;
+    }
+
+    /**
+     * Converts a configuration value into a plain array.
+     *
+     * This replaces Laminas\Stdlib\ArrayUtils::iteratorToArray(). Nesting is followed,
+     * because a Config holds its children as Config instances and the writers only
+     * serialize plain arrays.
+     *
+     * @throws Exception\InvalidArgumentException If the value is not an array or Traversable.
+     * @return array<array-key, mixed>
+     */
+    private static function normalize(mixed $config): array
+    {
+        try {
+            return Type\mixed_dict()->coerce(self::expand($config));
+        } catch (CoercionException) {
+            throw new Exception\InvalidArgumentException(
+                self::class . '::toString expects an array or Traversable config',
+            );
+        }
+    }
+
     /**
      * toFile(): defined by Writer interface.
      *
@@ -57,15 +120,7 @@ abstract class AbstractWriter implements WriterInterface
     #[Override]
     public function toString($config)
     {
-        if ($config instanceof Traversable) {
-            $config = ArrayUtils::iteratorToArray($config);
-        }
-
-        if (! is_array($config)) {
-            throw new Exception\InvalidArgumentException(__METHOD__ . ' expects an array or Traversable config');
-        }
-
-        return $this->processConfig($config);
+        return $this->processConfig(self::normalize($config));
     }
 
     /**
