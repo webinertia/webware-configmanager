@@ -59,19 +59,12 @@ final class ProviderReference
 
     /**
      * Name a reference for an error message.
+     *
+     * A class-string is named as itself; everything else is named by its type, which
+     * for an object is already its class name and for a Closure is already "Closure".
      */
     private static function labelOf(mixed $value): string
     {
-        if (is_string($value)) {
-            return $value;
-        }
-
-        if ($value instanceof Closure) {
-            return 'Closure';
-        }
-
-        $type = get_debug_type($value);
-
-        return is_object($value) ? $value::class : $type;
+        return is_string($value) ? $value : get_debug_type($value);
     }
 }

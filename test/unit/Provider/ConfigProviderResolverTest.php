@@ -12,6 +12,7 @@ use stdClass;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Merge\MergeDirective;
 use Webware\ConfigManager\Provider\ConfigProviderResolver;
+use WebwareTest\ConfigManager\Provider\TestAssets\AbstractConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\ArrayConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\NotAnArrayConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\RequiresArgumentConfigProvider;
@@ -111,6 +112,19 @@ final class ConfigProviderResolverTest extends TestCase
         );
 
         new ConfigProviderResolver()->aggregate([NotAnArrayConfigProvider::class]);
+    }
+
+    #[Test]
+    public function anAbstractProviderIsRejectedRatherThanRaisingAnError(): void
+    {
+        // class_exists() is true for an abstract class and newInstance() raises Error,
+        // so the reject has to happen before instantiation.
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessageIsOrContains(
+            'Config provider class "' . AbstractConfigProvider::class . '" cannot be instantiated',
+        );
+
+        new ConfigProviderResolver()->resolve([AbstractConfigProvider::class]);
     }
 
     #[Test]

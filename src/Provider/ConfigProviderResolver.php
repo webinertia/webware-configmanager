@@ -104,12 +104,25 @@ final class ConfigProviderResolver
         }
 
         // Instantiated with no arguments, matching the aggregator. A provider that needs
-        // collaborators is supplied as an instance instead. The required-parameter check
-        // runs before instantiation so that a provider whose constructor demands
-        // arguments is reported as a configuration mistake rather than as an
-        // ArgumentCountError escaping to the caller, without catching Error to do it.
+        // collaborators is supplied as an instance instead.
+        //
+        // isInstantiable() is checked before instantiating because an abstract class
+        // raises Error rather than ReflectionException, and a class with a non-public
+        // constructor raises ReflectionException. Checking first turns both into one
+        // reported mistake without catching Error. The required-parameter check does the
+        // same for a constructor that demands arguments, which would otherwise escape as
+        // an ArgumentCountError.
         try {
-            $reflection  = new ReflectionClass($class);
+            $reflection = new ReflectionClass($class);
+
+            if (! $reflection->isInstantiable()) {
+                throw new Exception\InvalidArgumentException(sprintf(
+                    'Config provider class "%s" cannot be instantiated: it is abstract or '
+                        . 'its constructor is not public, so supply an instance instead',
+                    $class,
+                ));
+            }
+
             $constructor = $reflection->getConstructor();
             $required    = null === $constructor ? 0 : $constructor->getNumberOfRequiredParameters();
 
@@ -124,6 +137,9 @@ final class ConfigProviderResolver
 
             $instance = $reflection->newInstance();
         } catch (ReflectionException $exception) {
+            // newInstance() declares ReflectionException. isInstantiable() above covers
+            // every documented cause, so this is a guard rather than a reachable path;
+            // it stays so the public contract reports only our own exception.
             throw new Exception\InvalidArgumentException(sprintf(
                 'Config provider class "%s" cannot be instantiated: %s',
                 $class,

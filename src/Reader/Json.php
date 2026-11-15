@@ -105,11 +105,14 @@ final class Json implements ReaderInterface
             return $config;
         }
 
-        // A payload of "null" decodes cleanly to null; the array contract rejects
-        // it here, where it previously surfaced in process().
+        // A "null" payload decodes cleanly, so json_last_error() is NONE, but the
+        // result is not an array and cannot be returned from here. It is the same
+        // failure as any other non-array document, so it gets the same message
+        // rather than a TypeError escaping from the return statement.
         if (JSON_ERROR_NONE === json_last_error()) {
-            // @mago-expect analysis:invalid-return-statement
-            return $config;
+            throw new Exception\RuntimeException(
+                'Invalid JSON configuration; did not return an array or object',
+            );
         }
 
         throw new Exception\RuntimeException(json_last_error_msg());

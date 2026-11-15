@@ -126,6 +126,28 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
+    public function factoryFromFileRejectsAReaderPluginThatIsNotAReaderInterface()
+    {
+        // The extension is registered with a valid reader class, but the container
+        // that resolves it hands back something that does not implement the reader
+        // contract, so the resolved plugin is rejected instead of being used.
+        $file     = $this->getTestAssetFileName('dum');
+        $services = $this->createStub(ContainerInterface::class);
+        $services->method('get')->willReturn(new stdClass());
+        Factory::setReaderPluginManager($services);
+        Factory::registerReader('dum', Reader\TestAssets\DummyReader::class);
+        file_put_contents(
+            filename: $file,
+            data    : '',
+        );
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains("Reader plugin for extension '.dum' is not an instance of");
+
+        Factory::fromFile($file);
+    }
+
+    #[Test]
     public function factoryRegisterInvalidReader()
     {
         $this->expectException(InvalidArgumentException::class);

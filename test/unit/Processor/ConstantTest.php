@@ -51,6 +51,30 @@ final class ConstantTest extends TestCase
     }
 
     #[Test]
+    public function aClassPseudoConstantNamingAnUnknownClassIsReturnedVerbatim()
+    {
+        // PHP raises an error if ::class notation names a class that does not exist and
+        // is then used as a constant, so the value is handed back untouched.
+        $config = new Config(['test' => 'Missing\Klass::class'], true);
+
+        new ConstantProcessor()->process($config);
+
+        static::assertSame('Missing\Klass::class', $config->get('test'));
+    }
+
+    #[Test]
+    public function aDoubleColonThatIsNotAClassConstantIsLeftToTheParentProcessor()
+    {
+        // "::" is present so the class-constant code path is entered, but the string is
+        // neither a defined constant nor ::class notation, so it falls through unchanged.
+        $config = new Config(['test' => 'Missing\Klass::value'], true);
+
+        new ConstantProcessor()->process($config);
+
+        static::assertSame('Missing\Klass::value', $config->get('test'));
+    }
+
+    #[Test]
     public function canEnableKeyProcessingViaConstructorArgument()
     {
         $processor = new ConstantProcessor(true, '', '', true);

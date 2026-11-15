@@ -13,6 +13,18 @@ use Webware\ConfigManager\Reader\Json;
 final class JsonTest extends AbstractReaderTestCase
 {
     #[Test]
+    public function aNullJsonDocumentIsRejectedRatherThanReturningNull()
+    {
+        // "null" is valid JSON, so json_last_error() reports no error, but the result
+        // is not an array. It has to be rejected here instead of escaping as a
+        // TypeError from decode()'s return statement.
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Invalid JSON configuration; did not return an array or object');
+
+        $this->reader->fromString('null');
+    }
+
+    #[Test]
     public function fromString()
     {
         $json = '{ "test" : "foo", "bar" : [ "baz", "foo" ] }';

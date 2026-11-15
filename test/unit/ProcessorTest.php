@@ -487,6 +487,33 @@ final class ProcessorTest extends TestCase
     }
 
     #[Test]
+    public function translatorSettersAcceptNullLocaleAndUseItOnTranslation(): void
+    {
+        $processor = new TranslatorProcessor($this->createTranslator());
+
+        static::assertSame($processor, $processor->setLocale(null));
+        static::assertNull($processor->locale);
+    }
+
+    #[Test]
+    public function translatorSettersAssignAndReturnTheProcessorForChaining()
+    {
+        $processor   = new TranslatorProcessor($this->createTranslator());
+        $replacement = $this->createTranslator();
+
+        // The fluent form is the documented usage, so each setter must return the
+        // same instance and the assignment must be observable through the reader.
+        static::assertSame($processor, $processor->setLocale('de_DE'));
+        static::assertSame('de_DE', $processor->locale);
+
+        static::assertSame($processor, $processor->setTextDomain('animals'));
+        static::assertSame('animals', $processor->textDomain);
+
+        static::assertSame($processor, $processor->setTranslator($replacement));
+        static::assertSame($replacement, $processor->translator);
+    }
+
+    #[Test]
     public function translatorSingleValue()
     {
         $translator = $this->createTranslator();

@@ -7,6 +7,7 @@ namespace WebwareTest\ConfigManager\Writer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Webware\ConfigManager\Config;
+use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader\Xml as XmlReader;
 use Webware\ConfigManager\Writer\Xml as XmlWriter;
 
@@ -15,6 +16,17 @@ use function str_replace;
 #[CoversClass(XmlWriter::class)]
 final class XmlTest extends AbstractWriterTestCase
 {
+    #[Test]
+    public function aBranchMixingNumericAndStringKeysIsRejected()
+    {
+        // XML has no way to express a mixed branch, so the writer reports it rather
+        // than emitting something the reader cannot round-trip.
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Mixing of string and numeric keys is not allowed');
+
+        $this->writer->toString(['production' => [0 => 'foo', 'name' => 'bar']]);
+    }
+
     #[Test]
     public function addBranchProperyConstructsSubBranchesOfTypeNumeric()
     {
