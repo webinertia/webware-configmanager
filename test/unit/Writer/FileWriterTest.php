@@ -13,12 +13,15 @@ use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Writer\FileWriter;
 
 use function chmod;
+use function clearstatcache;
 use function file_get_contents;
 use function file_put_contents;
 use function fileinode;
+use function fileperms;
 use function glob;
 use function is_dir;
 use function is_file;
+use function is_writable;
 use function link;
 use function mkdir;
 use function restore_error_handler;
@@ -27,7 +30,10 @@ use function set_error_handler;
 use function strlen;
 use function sys_get_temp_dir;
 use function tempnam;
+use function umask;
 use function unlink;
+
+use const PHP_OS_FAMILY;
 
 #[CoversClass(FileWriter::class)]
 final class FileWriterTest extends TestCase
@@ -48,6 +54,59 @@ final class FileWriterTest extends TestCase
         } finally {
             restore_error_handler();
         }
+    }
+
+    #[Test]
+    public function testAnExistingDestinationKeepsItsMode(): void
+    {
+        if ('Windows' === PHP_OS_FAMILY) {
+            static::markTestSkipped('Windows does not model POSIX file modes');
+        }
+
+        $file = $this->path('target.txt');
+        file_put_contents(
+            filename: $file,
+            data    : 'previous document',
+        );
+        chmod(
+            filename   : $file,
+            permissions: 0o640,
+        );
+
+        FileWriter::write($file, 'new document');
+
+        clearstatcache();
+        static::assertSame(0o640, fileperms($file) & 0o7777);
+    }
+
+    #[Test]
+    public function testAttributesAreNotAdoptedWherePosixPermissionsAreUnavailable(): void
+    {
+        $inherit     = new ReflectionMethod(FileWriter::class, 'inheritAttributes');
+        $destination = $this->path('target.txt');
+        file_put_contents(
+            filename: $destination,
+            data    : 'previous document',
+        );
+        chmod(
+            filename   : $destination,
+            permissions: 0o644,
+        );
+
+        $temporary = $this->path('.wcmprobe');
+        file_put_contents(
+            filename: $temporary,
+            data    : 'new document',
+        );
+
+        $inherit->invoke(null, $temporary, $destination, false);
+
+        // On Windows chmod toggles only the read-only bit, so adopting the
+        // destination's mode there could leave the file unrenameable and break the
+        // next write. The temporary file must be left as it was created.
+        clearstatcache();
+        static::assertSame('new document', file_get_contents($temporary));
+        static::assertTrue(is_writable($temporary));
     }
 
     #[Test]
@@ -91,6 +150,77 @@ final class FileWriterTest extends TestCase
         }
 
         static::assertSame([], $this->leftovers($directory));
+    }
+
+    #[Test]
+    public function testOwnershipThatCannotBeRestoredIsNotFatal(): void
+    {
+        $adoptOwnership = new ReflectionMethod(FileWriter::class, 'adoptOwnership');
+        $destination    = $this->path('target.txt');
+        file_put_contents(
+            filename: $destination,
+            data    : 'previous document',
+        );
+
+        // A temporary file that does not exist stands in for a host where ownership
+        // cannot be restored: every attempt fails, and the write must still stand.
+        $adoptOwnership->invoke(null, $this->path('gone.txt'), $destination);
+
+        static::assertFileExists($destination);
+    }
+
+    #[Test]
+    public function testPosixInheritanceGivesANewDestinationTheDefaultMode(): void
+    {
+        $temporary = $this->path('.wcmprobe');
+        file_put_contents(
+            filename: $temporary,
+            data    : 'new document',
+        );
+        chmod(
+            filename   : $temporary,
+            permissions: 0o600,
+        );
+
+        $inherit = new ReflectionMethod(FileWriter::class, 'inheritAttributes');
+        $inherit->invoke(null, $temporary, $this->path('missing.txt'), true);
+
+        static::assertFileExists($temporary);
+
+        if ('Windows' !== PHP_OS_FAMILY) {
+            clearstatcache();
+            static::assertSame(0o666 & ~umask(), fileperms($temporary) & 0o7777);
+        }
+    }
+
+    #[Test]
+    public function testPosixInheritanceGivesTheTemporaryFileTheExistingMode(): void
+    {
+        $destination = $this->path('target.txt');
+        file_put_contents(
+            filename: $destination,
+            data    : 'previous document',
+        );
+        chmod(
+            filename   : $destination,
+            permissions: 0o640,
+        );
+
+        $temporary = $this->path('.wcmprobe');
+        file_put_contents(
+            filename: $temporary,
+            data    : 'new document',
+        );
+
+        $inherit = new ReflectionMethod(FileWriter::class, 'inheritAttributes');
+        $inherit->invoke(null, $temporary, $destination, true);
+
+        static::assertSame('new document', file_get_contents($temporary));
+
+        if ('Windows' !== PHP_OS_FAMILY) {
+            clearstatcache();
+            static::assertSame(0o640, fileperms($temporary) & 0o7777);
+        }
     }
 
     #[Test]

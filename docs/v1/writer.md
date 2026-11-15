@@ -29,6 +29,34 @@ document or the new one, and never a truncated or half written file. The destina
 rather than modified in place, which means the file's inode changes and any hard link to the previous
 document continues to refer to the previous content.
 
+### Ownership and mode
+
+Because the destination is replaced rather than written through, the new file would otherwise belong to
+whichever user ran PHP and carry a mode derived from the process umask. A configuration file is usually
+owned by the deployer, and its mode is often restrictive on purpose, so the existing attributes are
+carried over: the mode, and the owner and group where the process is permitted to set them.
+
+`Filesystem\change_owner()` and `Filesystem\change_group()` need privilege, so they are attempted and a
+failure is ignored rather than failing the write. The consequences depend on how PHP is deployed:
+
+| Host configuration | Result |
+|---|---|
+| PHP runs as the file's owner (FPM pool per user, suexec, CLI as the deployer) | owner, group and mode preserved |
+| PHP runs as a privileged user | owner, group and mode preserved |
+| PHP runs as a different unprivileged user than the owner | mode preserved, owner becomes the PHP user |
+
+The third row is a host misconfiguration, not something this library can correct: an unprivileged
+process cannot hand a file to another user. Such a deployment needs the PHP process user to be the
+deployer, or the file to remain writable by the deploying account, otherwise ownership has to be
+corrected outside the application. A new file gets mode `0666` narrowed by umask.
+
+On Windows none of this is attempted. Windows does not model POSIX permission bits, and `chmod` there
+only toggles the read-only attribute, which would also make the file unrenameable and break the next
+write, so the temporary file keeps the writable mode it was created with.
+
+Replacing the destination also means the write needs write permission on the containing directory,
+whereas writing through an existing file needed write permission only on the file itself.
+
 If serialization or the write fails, the temporary file is removed and
 `Webware\ConfigManager\Exception\RuntimeException` is thrown; the destination is left untouched.
 Writing to a directory, to an unwritable location, or with an empty file name fails the same way.
