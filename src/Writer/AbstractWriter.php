@@ -9,25 +9,24 @@ use Override;
 use Traversable;
 use Webware\ConfigManager\Exception;
 
-use function file_put_contents;
 use function is_array;
-use function restore_error_handler;
-use function set_error_handler;
-use function sprintf;
-
-use const E_WARNING;
-use const LOCK_EX;
 
 abstract class AbstractWriter implements WriterInterface
 {
     /**
      * toFile(): defined by Writer interface.
      *
+     * The file is replaced atomically, so a reader sees either the previous
+     * document or the new one and never a partial write.
+     *
      * @see    WriterInterface::toFile()
      *
      * @param  string  $filename
      * @param  mixed   $config
-     * @param  bool $exclusiveLock
+     * @param  bool $exclusiveLock Ignored; retained for interface compatibility. An
+     *                             advisory lock does not protect readers, because
+     *                             they do not take one, so it is replaced by the
+     *                             atomic rename.
      * @return void
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
@@ -35,30 +34,7 @@ abstract class AbstractWriter implements WriterInterface
     #[Override]
     public function toFile($filename, $config, $exclusiveLock = true)
     {
-        if ('' === $filename) {
-            throw new Exception\InvalidArgumentException('No file name specified');
-        }
-
-        $flags = 0;
-        if ($exclusiveLock) {
-            $flags |= LOCK_EX;
-        }
-
-        set_error_handler(
-            static function ($error, $message = '') use ($filename) {
-                throw new Exception\RuntimeException(
-                    sprintf('Error writing to "%s": %s', $filename, $message),
-                    $error,
-                );
-            },
-            E_WARNING,
-        );
-
-        try {
-            file_put_contents($filename, $this->toString($config), $flags);
-        } finally {
-            restore_error_handler();
-        }
+        FileWriter::write($filename, $this->toContent($config, $filename));
     }
 
     /**
@@ -88,4 +64,23 @@ abstract class AbstractWriter implements WriterInterface
      * @return string
      */
     abstract protected function processConfig(array $config);
+
+    /**
+     * Serialize the configuration for a specific destination.
+     *
+     * Writers that need to rewrite the document in terms of where it will be
+     * written override this instead of overriding toFile(). The destination is
+     * validated before the configuration is serialized, so an unusable file name
+     * is reported as such rather than as a problem with the configuration.
+     *
+     * @throws Exception\InvalidArgumentException
+     */
+    protected function toContent(mixed $config, string $filename): string
+    {
+        if ('' === $filename) {
+            throw new Exception\InvalidArgumentException('No file name specified');
+        }
+
+        return $this->toString($config);
+    }
 }

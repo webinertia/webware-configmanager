@@ -8,19 +8,15 @@ use Laminas\Stdlib\ArrayUtils;
 use Psr\Container\ContainerInterface;
 
 use function array_key_exists;
-use function dirname;
 use function file_exists;
-use function file_put_contents;
 use function get_include_path;
 use function gettype;
 use function is_a;
 use function is_array;
-use function is_dir;
 use function is_file;
 use function is_object;
 use function is_readable;
 use function is_string;
-use function is_writable;
 use function pathinfo;
 use function sprintf;
 use function stream_resolve_include_path;
@@ -277,19 +273,6 @@ class Factory
         }
 
         $extension = substr(strrchr($filename, needle: '.'), offset: 1);
-        $directory = dirname($filename);
-
-        if (! is_dir($directory)) {
-            throw new Exception\RuntimeException(
-                "Directory '{$directory}' does not exists!",
-            );
-        }
-
-        if (! is_writable($directory)) {
-            throw new Exception\RuntimeException(
-                "Cannot write in directory '{$directory}'",
-            );
-        }
 
         if (! array_key_exists($extension, static::$writerExtensions)) {
             throw new Exception\RuntimeException(
@@ -299,17 +282,31 @@ class Factory
 
         $writer = static::$writerExtensions[$extension];
         if (! $writer instanceof Writer\AbstractWriter) {
-            $writer                               = self::getWriterPluginManager()->get($writer);
-            static::$writerExtensions[$extension] = $writer;
+            $resolved = self::getWriterPluginManager()->get($writer);
+
+            if (! $resolved instanceof Writer\AbstractWriter) {
+                throw new Exception\RuntimeException(sprintf(
+                    "Writer plugin for extension '.%s' is not an instance of %s",
+                    $extension,
+                    Writer\AbstractWriter::class,
+                ));
+            }
+
+            $writer                               = $resolved;
+            static::$writerExtensions[$extension] = $resolved;
         }
 
         if (is_object($config)) {
             $config = $config->toArray();
         }
 
-        $content = $writer->processConfig($config);
+        // The writer owns the write. It replaces the file atomically, and reports
+        // a missing or unwritable directory through its own exception, so the
+        // pre-flight checks this method used to perform are gone: they could only
+        // pass and then be invalidated before the write happened.
+        $writer->toFile($filename, $config);
 
-        return file_put_contents($filename, $content) !== false;
+        return true;
     }
 
     /**

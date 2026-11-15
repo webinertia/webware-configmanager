@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Webware\ConfigManager\Writer;
 
 use Override;
-use Webware\ConfigManager\Exception;
 
 use function addslashes;
 use function class_exists;
 use function dirname;
-use function file_put_contents;
 use function interface_exists;
 use function is_array;
 use function is_bool;
@@ -18,17 +16,11 @@ use function is_int;
 use function is_object;
 use function is_string;
 use function preg_match;
-use function restore_error_handler;
-use function set_error_handler;
-use function sprintf;
 use function str_repeat;
 use function str_replace;
 use function strlen;
 use function trait_exists;
 use function var_export;
-
-use const E_WARNING;
-use const LOCK_EX;
 
 class PhpArray extends AbstractWriter
 {
@@ -92,61 +84,6 @@ class PhpArray extends AbstractWriter
     {
         $this->useClassNameScalars = $value;
         return $this;
-    }
-
-    /**
-     * toFile(): defined by Writer interface.
-     *
-     * @see    WriterInterface::toFile()
-     *
-     * @param  string  $filename
-     * @param  mixed   $config
-     * @param  bool $exclusiveLock
-     * @return void
-     * @throws Exception\InvalidArgumentException
-     * @throws Exception\RuntimeException
-     */
-    #[Override]
-    public function toFile($filename, $config, $exclusiveLock = true)
-    {
-        if ('' === $filename) {
-            throw new Exception\InvalidArgumentException('No file name specified');
-        }
-
-        $flags = 0;
-        if ($exclusiveLock) {
-            $flags |= LOCK_EX;
-        }
-
-        set_error_handler(
-            static function ($error, $message = '') use ($filename) {
-                throw new Exception\RuntimeException(
-                    sprintf('Error writing to "%s": %s', $filename, $message),
-                    $error,
-                );
-            },
-            E_WARNING,
-        );
-
-        try {
-            // for Windows, paths are escaped.
-            $dirname = str_replace(
-                search : '\\',
-                replace: '\\\\',
-                subject: dirname($filename),
-            );
-
-            $string = $this->toString($config);
-            $string = str_replace(
-                search : "'{$dirname}",
-                replace: "__DIR__ . '",
-                subject: $string,
-            );
-
-            file_put_contents($filename, $string, $flags);
-        } finally {
-            restore_error_handler();
-        }
     }
 
     /**
@@ -273,5 +210,31 @@ class PhpArray extends AbstractWriter
         }
 
         return var_export($value, return: true);
+    }
+
+    /**
+     * Rewrite the serialized script so that paths beneath the destination
+     * directory are expressed relative to __DIR__.
+     *
+     * This is a content transformation, not a write, so it happens before the
+     * shared atomic write in AbstractWriter::toFile().
+     */
+    #[Override]
+    protected function toContent(mixed $config, string $filename): string
+    {
+        $content = parent::toContent($config, $filename);
+
+        // for Windows, paths are escaped.
+        $dirname = str_replace(
+            search : '\\',
+            replace: '\\\\',
+            subject: dirname($filename),
+        );
+
+        return str_replace(
+            search : "'{$dirname}",
+            replace: "__DIR__ . '",
+            subject: $content,
+        );
     }
 }

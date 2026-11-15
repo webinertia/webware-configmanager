@@ -14,6 +14,39 @@ We have six writers implementing the interface:
 - `Webware\ConfigManager\Writer\Xml`
 - `Webware\ConfigManager\Writer\Yaml`
 
+## Atomic writes
+
+`toFile()` never writes into the destination itself. Every writer delegates the write to
+`Webware\ConfigManager\Writer\FileWriter`, which:
+
+1. creates a uniquely named temporary file in the destination directory,
+2. writes the serialized configuration into it,
+3. applies the final file mode (0666, narrowed by the process umask), and
+4. renames the temporary file onto the destination.
+
+A rename within a single directory is atomic, so a concurrent reader sees either the previous
+document or the new one, and never a truncated or half written file. The destination is replaced
+rather than modified in place, which means the file's inode changes and any hard link to the previous
+document continues to refer to the previous content.
+
+If serialization or the write fails, the temporary file is removed and
+`Webware\ConfigManager\Exception\RuntimeException` is thrown; the destination is left untouched.
+Writing to a directory, to an unwritable location, or with an empty file name fails the same way.
+
+On Windows, renaming over a file that another handle holds open is refused by the operating system, so
+the rename is retried a bounded number of times before failing.
+
+PSL supplies the temporary file, the write, and the mode change
+(`php-standard-library/file` and `php-standard-library/filesystem`). PSL has no rename equivalent, so
+the swap itself is the one native call.
+
+> ### Deprecated: the `$exclusiveLock` argument
+>
+> `toFile()` still accepts `$exclusiveLock`, for compatibility with the interface, but the argument is
+> ignored. An advisory lock only protects writers that agree to take one, and readers of a
+> configuration file take none, so a lock cannot protect a reader from a partial document. The atomic
+> rename replaces it.
+
 ## Webware\\ConfigManager\\Writer\\Ini
 
 The INI writer has two modes for rendering with regard to sections. By default, the top-level

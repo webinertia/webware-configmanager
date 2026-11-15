@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager\Writer;
 
+use ArrayIterator;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Config;
@@ -60,6 +61,23 @@ abstract class AbstractWriterTestCase extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('No file name specified');
         $this->writer->toFile('', '');
+    }
+
+    #[Test]
+    public function testToStringAcceptsATraversableConfig()
+    {
+        $content = $this->writer->toString(new ArrayIterator(['test' => 'foo']));
+
+        static::assertNotSame('', $content);
+    }
+
+    #[Test]
+    public function testToStringRejectsAConfigThatIsNeitherArrayNorTraversable()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('expects an array or Traversable config');
+
+        $this->writer->toString('not a configuration');
     }
 
     #[Test]
