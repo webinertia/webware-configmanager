@@ -120,7 +120,9 @@ abstract class AbstractWriterTestCase extends TestCase
     public function toStringRejectsAConfigThatIsNeitherArrayNorTraversable()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('expects an array or Traversable config');
+        $this->expectExceptionMessage(
+            $this->writer::class . '::toString expects an array or Traversable config',
+        );
 
         $this->writer->toString('not a configuration');
     }
