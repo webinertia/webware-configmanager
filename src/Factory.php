@@ -6,6 +6,7 @@ namespace Webware\ConfigManager;
 
 use Psr\Container\ContainerInterface;
 use Webware\ConfigManager\Merge\ConfigMerger;
+use Webware\ConfigManager\Provider\ConfigProviderResolver;
 use Webware\FileWriter\Exception as WriterException;
 
 use function array_key_exists;
@@ -25,21 +26,29 @@ use function strrchr;
 use function strtolower;
 use function substr;
 
-class Factory
+/**
+ * Reading, writing and plugin registration are separate responsibilities that share the
+ * static reader and writer tables, so they stay together rather than being split into
+ * collaborators that would each need the same registry.
+ *
+ * @mago-expect lint:too-many-methods
+ * @api
+ */
+final class Factory
 {
     /**
      * Plugin manager for loading readers
      *
      * @var null|ContainerInterface
      */
-    public static $readers;
+    public static ?ContainerInterface $readers = null;
 
     /**
      * Plugin manager for loading writers
      *
      * @var null|ContainerInterface
      */
-    public static $writers;
+    public static ?ContainerInterface $writers = null;
 
     /**
      * Registered config file extensions.
@@ -47,7 +56,7 @@ class Factory
      *
      * @var array<string, class-string<Reader\ReaderInterface>|Reader\ReaderInterface>
      */
-    protected static $extensions = [
+    private static array $extensions = [
         'ini'        => Reader\Ini::class,
         'json'       => Reader\Json::class,
         'xml'        => Reader\Xml::class,
@@ -62,7 +71,7 @@ class Factory
      *
      * @var array<string, class-string<Writer\AbstractWriter>|Writer\AbstractWriter>
      */
-    protected static $writerExtensions = [
+    private static array $writerExtensions = [
         'php'  => Writer\PhpArray::class,
         'ini'  => Writer\Ini::class,
         'json' => Writer\Json::class,
@@ -74,33 +83,29 @@ class Factory
     /**
      * Read a config from a file.
      *
-     * @param  string  $filename
-     * @param  bool $returnConfigObject
-     * @param  bool $useIncludePath
      * @return ($returnConfigObject is true ? Config : array<array-key, mixed>)
      * @throws Exception\InvalidArgumentException
+     * The two flags are the public signature inherited from laminas-config, and both
+     * callers rely on them positionally.
+     *
      * @throws Exception\RuntimeException
+     * @mago-expect lint:no-boolean-flag-parameter
      */
-    public static function fromFile($filename, $returnConfigObject = false, $useIncludePath = false)
-    {
-        $filepath = $filename;
-        if (! file_exists($filename)) {
-            if (! $useIncludePath) {
-                throw new Exception\RuntimeException(sprintf(
-                    'Filename "%s" cannot be found relative to the working directory',
-                    $filename,
-                ));
-            }
+    public static function fromFile(
+        string $filename,
+        bool $returnConfigObject = false,
+        bool $useIncludePath = false,
+    ): array|Config {
+        $filepath = self::existingOrIncludePath($filename);
 
-            $fromIncludePath = stream_resolve_include_path($filename);
-            if (! $fromIncludePath) {
-                throw new Exception\RuntimeException(sprintf(
-                    'Filename "%s" cannot be found relative to the working directory or the include_path ("%s")',
-                    $filename,
-                    get_include_path(),
-                ));
-            }
-            $filepath = $fromIncludePath;
+        if (null === $filepath || (! $useIncludePath && ! file_exists($filename))) {
+            throw new Exception\RuntimeException(sprintf(
+                $useIncludePath
+                    ? 'Filename "%s" cannot be found relative to the working directory or the include_path ("%s")'
+                    : 'Filename "%s" cannot be found relative to the working directory',
+                $filename,
+                get_include_path(),
+            ));
         }
 
         $pathinfo = pathinfo($filepath);
@@ -114,55 +119,54 @@ class Factory
 
         $extension = strtolower($pathinfo['extension']);
 
-        if ('php' === $extension) {
-            if (! is_file($filepath) || ! is_readable($filepath)) {
-                throw new Exception\RuntimeException(sprintf(
-                    "File '%s' doesn't exist or not readable",
-                    $filename,
-                ));
-            }
+        $config = self::readConfig($extension, $filepath, $filename);
 
-            $config = include $filepath;
-
-            return $returnConfigObject ? new Config($config) : $config;
-        }
-
-        if (array_key_exists($extension, static::$extensions)) {
-            $reader = static::$extensions[$extension];
-            if (! $reader instanceof Reader\ReaderInterface) {
-                $reader                         = static::getReaderPluginManager()->get($reader);
-                static::$extensions[$extension] = $reader;
-            }
-
-            /** @var Reader\ReaderInterface $reader */
-            $config = $reader->fromFile($filepath);
-
-            return $returnConfigObject ? new Config($config) : $config;
-        }
-
-        throw new Exception\RuntimeException(sprintf(
-            'Unsupported config file extension: .%s',
-            $pathinfo['extension'],
-        ));
+        return $returnConfigObject ? new Config($config) : $config;
     }
 
     /**
      * Read configuration from multiple files and merge them.
      *
-     * @param  bool $returnConfigObject
-     * @param  bool $useIncludePath
-     * @return array|Config
+     * @return ($returnConfigObject is true ? Config : array<array-key, mixed>)
+     * @mago-expect lint:no-boolean-flag-parameter
      */
-    public static function fromFiles(array $files, $returnConfigObject = false, $useIncludePath = false)
-    {
+    public static function fromFiles(
+        array $files,
+        bool $returnConfigObject = false,
+        bool $useIncludePath = false,
+    ): array|Config {
         $config = [];
 
         foreach ($files as $file) {
             $config = ConfigMerger::merge(
                 $config,
-                static::fromFile($file, false, $useIncludePath),
+                static::fromFile(
+                    filename          : $file,
+                    returnConfigObject: false,
+                    useIncludePath    : $useIncludePath,
+                ),
             );
         }
+
+        return $returnConfigObject ? new Config($config) : $config;
+    }
+
+    /**
+     * Read configuration from a set of config providers and merge them.
+     *
+     * The provider contract is the laminas one: a class-string is instantiated with no
+     * arguments and must then be callable, and a callable is used verbatim. Every
+     * provider must return an array, and the arrays are merged in the order given,
+     * so a later provider wins. A provider listed twice is an error.
+     *
+     * @param iterable<class-string|callable> $providers
+     * @return ($returnConfigObject is true ? Config : array<array-key, mixed>)
+     * @throws Exception\InvalidArgumentException
+     * @mago-expect lint:no-boolean-flag-parameter
+     */
+    public static function fromProviders(iterable $providers, bool $returnConfigObject = false): array|Config
+    {
+        $config = new ConfigProviderResolver()->aggregate($providers);
 
         return $returnConfigObject ? new Config($config) : $config;
     }
@@ -175,7 +179,7 @@ class Factory
      *
      * @return ContainerInterface
      */
-    public static function getReaderPluginManager()
+    public static function getReaderPluginManager(): ContainerInterface
     {
         if (null === static::$readers) {
             static::$readers = new StandaloneReaderPluginManager();
@@ -191,7 +195,7 @@ class Factory
      *
      * @return ContainerInterface
      */
-    public static function getWriterPluginManager()
+    public static function getWriterPluginManager(): ContainerInterface
     {
         if (null === static::$writers) {
             static::$writers = new StandaloneWriterPluginManager();
@@ -203,39 +207,42 @@ class Factory
     /**
      * Set config reader for file extension
      *
-     * @param  string $extension
      * @param  class-string<Reader\ReaderInterface>|Reader\ReaderInterface $reader
      * @throws Exception\InvalidArgumentException
-     * @return void
      */
-    public static function registerReader($extension, $reader)
+    public static function registerReader(string $extension, mixed $reader): void
     {
         $extension = strtolower($extension);
 
-        static::$extensions[$extension] = self::assertPlugin($reader, Reader\ReaderInterface::class, 'Reader');
+        static::$extensions[$extension] = self::assertPlugin(
+            plugin: $reader,
+            type  : Reader\ReaderInterface::class,
+            label : 'Reader',
+        );
     }
 
     /**
      * Set config writer for file extension
      *
-     * @param  string $extension
      * @param  class-string<Writer\AbstractWriter>|Writer\AbstractWriter $writer
      * @throws Exception\InvalidArgumentException
-     * @return void
      */
-    public static function registerWriter($extension, $writer)
+    public static function registerWriter(string $extension, mixed $writer): void
     {
         $extension = strtolower($extension);
 
-        static::$writerExtensions[$extension] = self::assertPlugin($writer, Writer\AbstractWriter::class, 'Writer');
+        static::$writerExtensions[$extension] = self::assertPlugin(
+            plugin: $writer,
+            type  : Writer\AbstractWriter::class,
+            label : 'Writer',
+        );
     }
 
     /**
      * Set reader plugin manager
      *
-     * @return void
      */
-    public static function setReaderPluginManager(ContainerInterface $readers)
+    public static function setReaderPluginManager(ContainerInterface $readers): void
     {
         static::$readers = $readers;
     }
@@ -243,9 +250,8 @@ class Factory
     /**
      * Set writer plugin manager
      *
-     * @return void
      */
-    public static function setWriterPluginManager(ContainerInterface $writers)
+    public static function setWriterPluginManager(ContainerInterface $writers): void
     {
         static::$writers = $writers;
     }
@@ -253,7 +259,6 @@ class Factory
     /**
      * Writes a config to a file
      *
-     * @param string $filename
      * @param array|Config $config
      * @return bool TRUE on success | FALSE on failure
      * @throws Exception\RuntimeException
@@ -261,7 +266,7 @@ class Factory
      * @throws WriterException\InvalidArgumentException
      * @throws WriterException\RuntimeException If the resolved writer cannot write the file
      */
-    public static function toFile($filename, $config)
+    public static function toFile(string $filename, mixed $config): bool
     {
         if (
             (
@@ -318,7 +323,9 @@ class Factory
     /**
      * Accept only an instance of the given type, or the class name of a class of that type.
      *
-     * @param class-string $type
+     * @template T of object
+     * @param class-string<T> $type
+     * @return class-string<T>|T
      * @throws Exception\InvalidArgumentException
      */
     private static function assertPlugin(mixed $plugin, string $type, string $label): string|object
@@ -337,5 +344,73 @@ class Factory
         }
 
         return $plugin;
+    }
+
+    /**
+     * Return the path of a config file, trying the include path when the plain name
+     * does not exist.
+     */
+    private static function existingOrIncludePath(string $filename): ?string
+    {
+        if (file_exists($filename)) {
+            return $filename;
+        }
+
+        $resolved = stream_resolve_include_path($filename);
+
+        return false === $resolved ? null : $resolved;
+    }
+
+    /**
+     * Read a config file using the strategy its extension selects.
+     *
+     * A PHP file is included and must return an array; every other extension is
+     * delegated to the reader registered for it.
+     *
+     * @return array<array-key, mixed>
+     * @throws Exception\RuntimeException If the file cannot be read or no reader handles it.
+     * @throws \Psr\Container\ContainerExceptionInterface If the reader cannot be resolved.
+     * @throws \Psr\Container\NotFoundExceptionInterface If no reader is registered for the plugin.
+     */
+    private static function readConfig(string $extension, string $filepath, string $filename): array
+    {
+        if ('php' === $extension) {
+            if (! is_file($filepath) || ! is_readable($filepath)) {
+                throw new Exception\RuntimeException(sprintf(
+                    "File '%s' doesn't exist or not readable",
+                    $filename,
+                ));
+            }
+
+            // @mago-expect analysis:mixed-return-statement
+            return include $filepath;
+        }
+
+        if (! array_key_exists($extension, static::$extensions)) {
+            throw new Exception\RuntimeException(sprintf(
+                'Unsupported config file extension: .%s',
+                $extension,
+            ));
+        }
+
+        $reader = static::$extensions[$extension];
+
+        if ($reader instanceof Reader\ReaderInterface) {
+            return $reader->fromFile($filepath);
+        }
+
+        $resolved = static::getReaderPluginManager()->get($reader);
+
+        if (! $resolved instanceof Reader\ReaderInterface) {
+            throw new Exception\RuntimeException(sprintf(
+                "Reader plugin for extension '.%s' is not an instance of %s",
+                $extension,
+                Reader\ReaderInterface::class,
+            ));
+        }
+
+        static::$extensions[$extension] = $resolved;
+
+        return $resolved->fromFile($filepath);
     }
 }

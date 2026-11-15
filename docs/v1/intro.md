@@ -78,3 +78,65 @@ $config = new Webware\ConfigManager\Config(include 'config.php');
 
 echo $config->webhost; // 'www.example.com'
 ```
+
+## Reading configuration from a container
+
+`Webware\ConfigManager\AbstractConfigFactory` is a Laminas abstract factory that turns
+subtrees of the container's `config` service into individually injectable services, so a
+constructor can depend on `config-db` rather than on the whole `config` array:
+
+```php
+// config/autoload/dependencies.global.php
+return [
+    'dependencies' => [
+        'abstract_factories' => [
+            Webware\ConfigManager\AbstractConfigFactory::class,
+        ],
+    ],
+];
+```
+
+With that registered, a service name is mapped to a config key by matching it against a
+list of patterns and taking the first capture group:
+
+| Requested name | Config key |
+|---|---|
+| `config-db` | `db` |
+| `config_db` | `db` |
+| `Db\Config` | `Db` |
+| `db-config` | `db` |
+
+A key whose value is absent, or is `null`, is not resolvable: `has()` reports false and
+`get()` throws. Falsy values that are not `null`, such as `0`, `''`, `false` and `[]`,
+are resolvable.
+
+Patterns are validated when they are supplied. A pattern that is not a non-empty string,
+or that does not compile as a regular expression, raises
+`Webware\ConfigManager\Exception\InvalidArgumentException` immediately rather than
+failing later at match time. A pattern that matches without a capturing group is treated
+as no match.
+
+## Typed resolution
+
+`resolve()` applies a caller-supplied `Psl\Type\TypeInterface` to the resolved entry, so
+the return type is stated by the caller instead of described in a docblock:
+
+```php
+use Psl\Type;
+
+$database = (new Webware\ConfigManager\AbstractConfigFactory())->resolve(
+    container    : $container,
+    requestedName: 'config-db',
+    type         : Type\shape([
+        'host' => Type\non_empty_string(),
+        'port' => Type\positive_int(),
+    ]),
+);
+```
+
+The source is always the container's `config` service, the same one the abstract factory
+reads, so a type can never be applied to an arbitrary array. A missing entry and an entry
+that does not match both raise
+`Webware\ConfigManager\Exception\InvalidArgumentException`; the coercion failure is
+attached as the previous exception.
+

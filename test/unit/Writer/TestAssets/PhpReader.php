@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager\Writer\TestAssets;
 
+use function is_array;
+
 class PhpReader
 {
     /**
-     * @param string $filename
-     * @return mixed
+     * @return array<array-key, mixed>
      */
-    public function fromFile($filename)
+    public function fromFile(string $filename): array
     {
-        return include $filename;
+        $config = include $filename;
+
+        return is_array($config) ? $config : [];
     }
 }

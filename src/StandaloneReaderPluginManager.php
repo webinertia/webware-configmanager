@@ -15,8 +15,9 @@ use function sprintf;
  *
  * Implements PSR-11 2.x, so identifiers are typed strings. Readers are
  * identified by their fully qualified class name; no aliases are registered.
+ * @internal
  */
-class StandaloneReaderPluginManager implements ContainerInterface
+final class StandaloneReaderPluginManager implements ContainerInterface
 {
     /** @var list<class-string<Reader\ReaderInterface>> */
     private const array PLUGINS = [
@@ -35,12 +36,12 @@ class StandaloneReaderPluginManager implements ContainerInterface
     public function get(string $id): Reader\ReaderInterface
     {
         return match ($id) {
-            Reader\Ini::class => new Reader\Ini(),
-            Reader\Json::class => new Reader\Json(),
-            Reader\Xml::class => new Reader\Xml(),
-            Reader\Yaml::class => new Reader\Yaml(),
+            Reader\Ini::class            => new Reader\Ini(),
+            Reader\Json::class           => new Reader\Json(),
+            Reader\Xml::class            => new Reader\Xml(),
+            Reader\Yaml::class           => new Reader\Yaml(),
             Reader\JavaProperties::class => new Reader\JavaProperties(),
-            default => throw new Exception\PluginNotFoundException(sprintf(
+            default                      => throw new Exception\PluginNotFoundException(sprintf(
                 'Config reader plugin by name %s not found',
                 $id,
             )),

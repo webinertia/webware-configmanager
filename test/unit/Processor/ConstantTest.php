@@ -51,10 +51,14 @@ final class ConstantTest extends TestCase
     }
 
     #[Test]
-    public function testCanEnableKeyProcessingViaConstructorArgument()
+    public function canEnableKeyProcessingViaConstructorArgument()
     {
         $processor = new ConstantProcessor(true, '', '', true);
-        static::assertAttributeSame(true, 'processKeys', $processor);
+        static::assertAttributeSame(
+            value   : true,
+            property: 'processKeys',
+            instance: $processor,
+        );
     }
 
     /**
@@ -63,7 +67,7 @@ final class ConstantTest extends TestCase
      */
     #[DataProvider('constantProvider')]
     #[Test]
-    public function testCanProcessConstantValuesInKeys($constantString, $constantValue)
+    public function canProcessConstantValuesInKeys($constantString, $constantValue)
     {
         $config    = new Config([$constantString => 'value'], true);
         $processor = new ConstantProcessor();
@@ -80,7 +84,7 @@ final class ConstantTest extends TestCase
      */
     #[DataProvider('constantProvider')]
     #[Test]
-    public function testCanResolveConstantValues($constantString, $constantValue)
+    public function canResolveConstantValues($constantString, $constantValue)
     {
         $config = new Config(['test' => $constantString], true);
 
@@ -91,10 +95,14 @@ final class ConstantTest extends TestCase
     }
 
     #[Test]
-    public function testKeyProcessingDisabledByDefault()
+    public function keyProcessingDisabledByDefault()
     {
         $processor = new ConstantProcessor();
-        static::assertAttributeSame(false, 'processKeys', $processor);
+        static::assertAttributeSame(
+            value   : false,
+            property: 'processKeys',
+            instance: $processor,
+        );
     }
 
     /**
@@ -103,7 +111,7 @@ final class ConstantTest extends TestCase
      */
     #[DataProvider('constantProvider')]
     #[Test]
-    public function testWillNotProcessConstantValuesInKeysByDefault($constantString, $constantValue)
+    public function willNotProcessConstantValuesInKeysByDefault($constantString, $constantValue)
     {
         $config    = new Config([$constantString => 'value'], true);
         $processor = new ConstantProcessor();

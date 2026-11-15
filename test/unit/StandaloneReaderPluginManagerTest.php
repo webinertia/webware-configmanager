@@ -47,7 +47,7 @@ final class StandaloneReaderPluginManagerTest extends TestCase
      */
     #[DataProvider('supportedConfigClassNames')]
     #[Test]
-    public function testCanRetrieveReaderByPluginClassName(string $class): void
+    public function canRetrieveReaderByPluginClassName(string $class): void
     {
         $manager = new StandaloneReaderPluginManager();
 
@@ -56,30 +56,30 @@ final class StandaloneReaderPluginManagerTest extends TestCase
     }
 
     #[Test]
-    public function testGetThrowsExceptionIfPluginNotFound(): void
+    public function getThrowsExceptionIfPluginNotFound(): void
     {
         $manager = new StandaloneReaderPluginManager();
 
         $this->expectException(Exception\PluginNotFoundException::class);
-        $this->expectExceptionMessage('Config reader plugin by name unknown not found');
+        $this->expectExceptionMessageIs('Config reader plugin by name unknown not found');
         $manager->get('unknown');
     }
 
     #[Test]
-    public function testHasReturnsFalseForClassThatIsNotAReader(): void
+    public function hasReturnsFalseForClassThatIsNotAReader(): void
     {
         static::assertFalse(new StandaloneReaderPluginManager()->has(stdClass::class));
     }
 
     #[Test]
-    public function testHasReturnsFalseForTheReaderInterface(): void
+    public function hasReturnsFalseForTheReaderInterface(): void
     {
         static::assertFalse(new StandaloneReaderPluginManager()->has(Reader\ReaderInterface::class));
     }
 
     #[DataProvider('shortNameProvider')]
     #[Test]
-    public function testShortNamesAreNotSupported(string $id): void
+    public function shortNamesAreNotSupported(string $id): void
     {
         $manager = new StandaloneReaderPluginManager();
 

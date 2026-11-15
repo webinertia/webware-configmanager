@@ -25,13 +25,16 @@ final class YamlTest extends AbstractReaderTestCase
     private static function withoutDecoder(): YamlReader
     {
         $reader = new YamlReader();
-        new ReflectionProperty(YamlReader::class, 'yamlDecoder')->setValue($reader, null);
+        new ReflectionProperty(YamlReader::class, 'yamlDecoder')->setValue(
+            objectOrValue: $reader,
+            value        : null,
+        );
 
         return $reader;
     }
 
     #[Test]
-    public function testConstructorUsesTheYamlExtensionWhenItIsAvailable()
+    public function constructorUsesTheYamlExtensionWhenItIsAvailable()
     {
         $reader = new YamlReader();
 
@@ -44,18 +47,18 @@ final class YamlTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testDecoderReturningNullIsReportedAsParseError()
+    public function decoderReturningNullIsReportedAsParseError()
     {
         $reader = new YamlReader(static fn(string $yaml): null => null);
 
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Error parsing YAML data');
+        $this->expectExceptionMessageIs('Error parsing YAML data');
 
         $reader->fromString('foo: bar');
     }
 
     #[Test]
-    public function testFromString()
+    public function fromString()
     {
         $yaml = <<<ECS
             test: foo
@@ -66,13 +69,22 @@ final class YamlTest extends AbstractReaderTestCase
             ECS;
 
         $arrayYaml = $this->reader->fromString($yaml);
-        static::assertSame($arrayYaml['test'], 'foo');
-        static::assertSame($arrayYaml['bar'][0], 'baz');
-        static::assertSame($arrayYaml['bar'][1], 'foo');
+        static::assertSame(
+            expected: $arrayYaml['test'],
+            actual  : 'foo',
+        );
+        static::assertSame(
+            expected: $arrayYaml['bar'][0],
+            actual  : 'baz',
+        );
+        static::assertSame(
+            expected: $arrayYaml['bar'][1],
+            actual  : 'foo',
+        );
     }
 
     #[Test]
-    public function testFromStringWithSection()
+    public function fromStringWithSection()
     {
         $yaml = <<<ECS
             all:
@@ -84,50 +96,59 @@ final class YamlTest extends AbstractReaderTestCase
             ECS;
 
         $arrayYaml = $this->reader->fromString($yaml);
-        static::assertSame($arrayYaml['all']['test'], 'foo');
-        static::assertSame($arrayYaml['all']['bar'][0], 'baz');
-        static::assertSame($arrayYaml['all']['bar'][1], 'foo');
+        static::assertSame(
+            expected: $arrayYaml['all']['test'],
+            actual  : 'foo',
+        );
+        static::assertSame(
+            expected: $arrayYaml['all']['bar'][0],
+            actual  : 'baz',
+        );
+        static::assertSame(
+            expected: $arrayYaml['all']['bar'][1],
+            actual  : 'foo',
+        );
     }
 
     #[Test]
-    public function testIncludeStatementInStringIsRejected()
+    public function includeStatementInStringIsRejected()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Cannot process @include statement for a json string');
+        $this->expectExceptionMessageIs('Cannot process @include statement for a json string');
 
         $this->reader->fromString("'@include': include-target.yaml");
     }
 
     #[Test]
-    public function testInvalidIniFile()
+    public function invalidIniFile()
     {
         $this->expectException(Exception\RuntimeException::class);
         $this->reader->fromFile($this->getTestAssetPath('invalid'));
     }
 
     #[Test]
-    public function testReaderWithoutDecoderThrowsOnFromFile()
+    public function readerWithoutDecoderThrowsOnFromFile()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage("You didn't specify a Yaml callback decoder");
+        $this->expectExceptionMessageIs("You didn't specify a Yaml callback decoder");
 
         self::withoutDecoder()->fromFile($this->getTestAssetPath('include-target'));
     }
 
     #[Test]
-    public function testReaderWithoutDecoderThrowsOnFromString()
+    public function readerWithoutDecoderThrowsOnFromString()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage("You didn't specify a Yaml callback decoder");
+        $this->expectExceptionMessageIs("You didn't specify a Yaml callback decoder");
 
         self::withoutDecoder()->fromString('foo: bar');
     }
 
     #[Test]
-    public function testSetYamlDecoderRejectsNonCallable()
+    public function setYamlDecoderRejectsNonCallable()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Invalid parameter to setYamlDecoder() - must be callable');
+        $this->expectExceptionMessageIs('Invalid parameter to setYamlDecoder() - must be callable');
 
         new YamlReader()->setYamlDecoder('not-a-callable-function-name');
     }

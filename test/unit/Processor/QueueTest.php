@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Processor\Queue;
+use Webware\ConfigManager\Processor\QueueContents;
 use WebwareTest\ConfigManager\Processor\TestAssets\IdentityProcessor;
 
 use function iterator_to_array;
@@ -16,12 +17,15 @@ use function iterator_to_array;
 class QueueTest extends TestCase
 {
     #[Test]
-    public function testContainsAndHasPriority(): void
+    public function containsAndHasPriority(): void
     {
         $processor = new IdentityProcessor();
         $other     = new IdentityProcessor();
         $queue     = new Queue();
-        $queue->insert($processor, 7);
+        $queue->insert(
+            data    : $processor,
+            priority: 7,
+        );
 
         static::assertTrue($queue->contains($processor));
         static::assertFalse($queue->contains($other));
@@ -30,14 +34,20 @@ class QueueTest extends TestCase
     }
 
     #[Test]
-    public function testExtractKeepsOneEntryWhenTheSameProcessorWasInsertedTwice(): void
+    public function extractKeepsOneEntryWhenTheSameProcessorWasInsertedTwice(): void
     {
         $processor = new IdentityProcessor();
         $queue     = new Queue();
 
         // High priority first, so the scan meets the lower priority duplicate afterwards.
-        $queue->insert($processor, 10);
-        $queue->insert($processor, 1);
+        $queue->insert(
+            data    : $processor,
+            priority: 10,
+        );
+        $queue->insert(
+            data    : $processor,
+            priority: 1,
+        );
 
         static::assertSame($processor, $queue->extract());
         static::assertCount(1, $queue);
@@ -45,13 +55,19 @@ class QueueTest extends TestCase
     }
 
     #[Test]
-    public function testExtractRemovesTheHighestPriorityProcessor(): void
+    public function extractRemovesTheHighestPriorityProcessor(): void
     {
         $high  = new IdentityProcessor();
         $low   = new IdentityProcessor();
         $queue = new Queue();
-        $queue->insert($low, 1);
-        $queue->insert($high, 10);
+        $queue->insert(
+            data    : $low,
+            priority: 1,
+        );
+        $queue->insert(
+            data    : $high,
+            priority: 10,
+        );
 
         static::assertSame($high, $queue->extract());
         static::assertCount(1, $queue);
@@ -61,7 +77,7 @@ class QueueTest extends TestCase
     }
 
     #[Test]
-    public function testInsertReturnsTheQueueAndCountsTheProcessors(): void
+    public function insertReturnsTheQueueAndCountsTheProcessors(): void
     {
         $queue = new Queue();
 
@@ -73,29 +89,47 @@ class QueueTest extends TestCase
     }
 
     #[Test]
-    public function testIterationRunsTheHighestPriorityProcessorFirst(): void
+    public function iterationRunsTheHighestPriorityProcessorFirst(): void
     {
         $low     = new IdentityProcessor();
         $high    = new IdentityProcessor();
         $highest = new IdentityProcessor();
         $queue   = new Queue();
-        $queue->insert($low, 1);
-        $queue->insert($highest, 100);
-        $queue->insert($high, 50);
+        $queue->insert(
+            data    : $low,
+            priority: 1,
+        );
+        $queue->insert(
+            data    : $highest,
+            priority: 100,
+        );
+        $queue->insert(
+            data    : $high,
+            priority: 50,
+        );
 
         static::assertSame([$highest, $high, $low], iterator_to_array($queue, preserve_keys: false));
     }
 
     #[Test]
-    public function testRemoveLeavesTheRemainingProcessorsOrderable(): void
+    public function removeLeavesTheRemainingProcessorsOrderable(): void
     {
         $first  = new IdentityProcessor();
         $second = new IdentityProcessor();
         $third  = new IdentityProcessor();
         $queue  = new Queue();
-        $queue->insert($first, 1);
-        $queue->insert($second, 30);
-        $queue->insert($third, 20);
+        $queue->insert(
+            data    : $first,
+            priority: 1,
+        );
+        $queue->insert(
+            data    : $second,
+            priority: 30,
+        );
+        $queue->insert(
+            data    : $third,
+            priority: 20,
+        );
 
         static::assertTrue($queue->remove($second));
 
@@ -104,7 +138,7 @@ class QueueTest extends TestCase
     }
 
     #[Test]
-    public function testRemoveReportsWhetherTheProcessorWasPresent(): void
+    public function removeReportsWhetherTheProcessorWasPresent(): void
     {
         $processor = new IdentityProcessor();
         $queue     = new Queue();
@@ -117,11 +151,14 @@ class QueueTest extends TestCase
     }
 
     #[Test]
-    public function testTheQueueCanBeIteratedRepeatedly(): void
+    public function theQueueCanBeIteratedRepeatedly(): void
     {
         $processor = new IdentityProcessor();
         $queue     = new Queue();
-        $queue->insert($processor, 5);
+        $queue->insert(
+            data    : $processor,
+            priority: 5,
+        );
 
         static::assertSame([$processor], iterator_to_array($queue, preserve_keys: false));
         static::assertSame([$processor], iterator_to_array($queue, preserve_keys: false));
@@ -129,48 +166,69 @@ class QueueTest extends TestCase
     }
 
     #[Test]
-    public function testToArrayReturnsBothDataAndPriority(): void
+    public function toArrayReturnsBothDataAndPriority(): void
     {
         $processor = new IdentityProcessor();
         $queue     = new Queue();
-        $queue->insert($processor, 7);
+        $queue->insert(
+            data    : $processor,
+            priority: 7,
+        );
 
         static::assertSame(
             [['data' => $processor, 'priority' => 7]],
-            $queue->toArray(Queue::EXTR_BOTH),
+            $queue->toArray(QueueContents::Both),
         );
     }
 
     #[Test]
-    public function testToArrayReturnsDataInInsertionOrder(): void
+    public function toArrayReturnsDataInInsertionOrder(): void
     {
         $first  = new IdentityProcessor();
         $second = new IdentityProcessor();
         $queue  = new Queue();
-        $queue->insert($first, 100);
-        $queue->insert($second, 1);
+        $queue->insert(
+            data    : $first,
+            priority: 100,
+        );
+        $queue->insert(
+            data    : $second,
+            priority: 1,
+        );
 
         static::assertSame([$first, $second], $queue->toArray());
     }
 
     #[Test]
-    public function testToArrayReturnsPriorities(): void
+    public function toArrayReturnsPriorities(): void
     {
         $queue = new Queue();
-        $queue->insert(new IdentityProcessor(), 7);
-        $queue->insert(new IdentityProcessor(), 3);
+        $queue->insert(
+            data    : new IdentityProcessor(),
+            priority: 7,
+        );
+        $queue->insert(
+            data    : new IdentityProcessor(),
+            priority: 3,
+        );
 
-        static::assertSame([7, 3], $queue->toArray(Queue::EXTR_PRIORITY));
+        static::assertSame([7, 3], $queue->toArray(QueueContents::Priorities));
     }
 
     #[Test]
-    public function testTopPeeksWithoutRemoving(): void
+    public function topPeeksWithoutRemoving(): void
     {
         $high  = new IdentityProcessor();
         $low   = new IdentityProcessor();
         $queue = new Queue();
-        $queue->insert($low, 1);
-        $queue->insert($high, 10);
+        $queue->insert(
+            data    : $low,
+            priority: 1,
+        );
+        $queue->insert(
+            data    : $high,
+            priority: 10,
+        );
 
         static::assertSame($high, $queue->top());
         static::assertSame($high, $queue->top());

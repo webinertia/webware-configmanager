@@ -18,7 +18,7 @@ use function sys_get_temp_dir;
 final class XmlTest extends AbstractReaderTestCase
 {
     #[Test]
-    public function testCloseWhenCallFromFileReaderGetInvalid()
+    public function closeWhenCallFromFileReaderGetInvalid()
     {
         $configReader = new Xml();
 
@@ -29,11 +29,14 @@ final class XmlTest extends AbstractReaderTestCase
         $this->expectException(Error::class);
 
         // following operation should fail because the internal reader is closed (and expected to be closed)
-        $xmlReader->setParserProperty(XMLReader::VALIDATE, true);
+        $xmlReader->setParserProperty(
+            property: XMLReader::VALIDATE,
+            value   : true,
+        );
     }
 
     #[Test]
-    public function testCloseWhenCallFromStringReaderGetInvalid()
+    public function closeWhenCallFromStringReaderGetInvalid()
     {
         $xml = <<<ECS
             <?xml version="1.0" encoding="UTF-8"?>
@@ -54,11 +57,14 @@ final class XmlTest extends AbstractReaderTestCase
         $this->expectException(Error::class);
 
         // following operation should fail because the internal reader is closed (and expected to be closed)
-        $xmlReader->setParserProperty(XMLReader::VALIDATE, true);
+        $xmlReader->setParserProperty(
+            property: XMLReader::VALIDATE,
+            value   : true,
+        );
     }
 
     #[Test]
-    public function testElementWithBothAttributesAndAStringValueIsProcessedCorrectly()
+    public function elementWithBothAttributesAndAStringValueIsProcessedCorrectly()
     {
         $this->reader = new Xml();
         $arrayXml     = $this->reader->fromFile($this->getTestAssetPath('attributes'));
@@ -81,7 +87,7 @@ final class XmlTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromString()
+    public function fromString()
     {
         $xml = <<<ECS
             <?xml version="1.0" encoding="UTF-8"?>
@@ -94,13 +100,22 @@ final class XmlTest extends AbstractReaderTestCase
             ECS;
 
         $arrayXml = $this->reader->fromString($xml);
-        static::assertSame($arrayXml['test'], 'foo');
-        static::assertSame($arrayXml['bar'][0], 'baz');
-        static::assertSame($arrayXml['bar'][1], 'foo');
+        static::assertSame(
+            expected: $arrayXml['test'],
+            actual  : 'foo',
+        );
+        static::assertSame(
+            expected: $arrayXml['bar'][0],
+            actual  : 'baz',
+        );
+        static::assertSame(
+            expected: $arrayXml['bar'][1],
+            actual  : 'foo',
+        );
     }
 
     #[Test]
-    public function testInvalidString()
+    public function invalidString()
     {
         $xml = <<<ECS
             <?xml version="1.0" encoding="UTF-8"?>
@@ -114,7 +129,7 @@ final class XmlTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testInvalidXmlFile()
+    public function invalidXmlFile()
     {
         $this->reader = new Xml();
         $this->expectException(Exception\RuntimeException::class);
@@ -122,7 +137,7 @@ final class XmlTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testLaminas00ArraysWithMultipleChildren()
+    public function laminas00ArraysWithMultipleChildren()
     {
         $config = $this->reader->fromFile($this->getTestAssetPath('array'));
 
@@ -135,7 +150,7 @@ final class XmlTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testLaminas00MultipleKeysOfTheSameName()
+    public function laminas00MultipleKeysOfTheSameName()
     {
         $config = $this->reader->fromFile($this->getTestAssetPath('array'));
 
@@ -146,7 +161,7 @@ final class XmlTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testReadNonExistingFilesWillFailWithException()
+    public function readNonExistingFilesWillFailWithException()
     {
         $configReader = new Xml();
 

@@ -9,6 +9,10 @@
     "threads": 4,
     "minMsi": 98,
     "minCoveredMsi": 98,
+    // A timeout is not a verified kill: it cannot distinguish a mutant that hangs
+    // from one that would have passed given more time. Treat any timeout as a
+    // failure so it has to be resolved by a test that fails deterministically.
+    "maxTimeouts": 0,
     "logs": {
         "text": "infection.log",
         "summary": "summary.log",

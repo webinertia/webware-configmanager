@@ -14,47 +14,56 @@ use function is_float;
 use function is_int;
 use function str_contains;
 
-class Ini extends AbstractWriter
+/**
+ * @api
+ */
+final class Ini extends AbstractWriter
 {
     /**
      * Separator for nesting levels of configuration data identifiers.
-     *
-     * @var string
      */
-    protected $nestSeparator = '.';
+    public private(set) string $nestSeparator = '.';
 
     /**
      * If true the INI string is rendered in the global namespace without
      * sections.
-     *
-     * @var bool
      */
-    protected $renderWithoutSections = false;
+    public private(set) bool $renderWithoutSections = false;
 
     /**
-     * Get nest separator.
-     *
-     * @return string
+     * Set nest separator.
      */
-    public function getNestSeparator()
+    public function setNestSeparator(string $separator): self
     {
-        return $this->nestSeparator;
+        $this->nestSeparator = $separator;
+
+        return $this;
+    }
+
+    /**
+     * Set if rendering should occur without sections or not.
+     *
+     * If set to true, the INI file is rendered without sections completely
+     * into the global namespace of the INI file.
+     */
+    public function setRenderWithoutSectionsFlags(bool $withoutSections): self
+    {
+        $this->renderWithoutSections = $withoutSections;
+
+        return $this;
     }
 
     /**
      * processConfig(): defined by AbstractWriter.
-     *
-     * @return string
+     * @param array<array-key, mixed> $config
      */
     #[Override]
-    public function processConfig(array $config)
+    protected function processConfig(array $config): string
     {
         $iniString = '';
 
-        if ($this->shouldRenderWithoutSections()) {
-            $iniString .= $this->addBranch($config);
-
-            return $iniString;
+        if ($this->renderWithoutSections) {
+            return $this->addBranch($config);
         }
 
         $config = $this->sortRootElements($config);
@@ -72,54 +81,17 @@ class Ini extends AbstractWriter
     }
 
     /**
-     * Set nest separator.
-     *
-     * @param  string $separator
-     * @return self
-     */
-    public function setNestSeparator($separator)
-    {
-        $this->nestSeparator = $separator;
-        return $this;
-    }
-
-    /**
-     * Set if rendering should occur without sections or not.
-     *
-     * If set to true, the INI file is rendered without sections completely
-     * into the global namespace of the INI file.
-     *
-     * @param bool $withoutSections
-     * @return self
-     */
-    public function setRenderWithoutSectionsFlags($withoutSections)
-    {
-        $this->renderWithoutSections = $withoutSections;
-        return $this;
-    }
-
-    /**
-     * Return whether the writer should render without sections.
-     *
-     * @return bool
-     */
-    public function shouldRenderWithoutSections()
-    {
-        return $this->renderWithoutSections;
-    }
-
-    /**
      * Add a branch to an INI string recursively.
      *
-     * @param  array $parents
-     * @return string
+     * @param array<array-key, mixed> $config
+     * @param list<string> $parents
      */
-    protected function addBranch(array $config, $parents = [])
+    private function addBranch(array $config, array $parents = []): string
     {
         $iniString = '';
 
         foreach ($config as $key => $value) {
-            $group = [...$parents, $key];
+            $group = [...$parents, (string) $key];
 
             if (is_array($value)) {
                 $iniString .= $this->addBranch($value, $group);
@@ -139,20 +111,19 @@ class Ini extends AbstractWriter
     /**
      * Prepare a value for INI.
      *
-     * @param  mixed $value
-     * @return string
-     * @throws Exception\RuntimeException
+     * @throws Exception\RuntimeException If the value contains a double quote.
      */
-    protected function prepareValue($value)
+    private function prepareValue(mixed $value): string
     {
         if (is_int($value) || is_float($value)) {
-            return $value;
+            return (string) $value;
         }
 
         if (is_bool($value)) {
             return $value ? 'true' : 'false';
         }
 
+        // A non-string reaches str_contains() and raises a TypeError, as it always has.
         if (! str_contains($value, '"')) {
             return "\"{$value}\"";
         }
@@ -163,10 +134,10 @@ class Ini extends AbstractWriter
     /**
      * Root elements that are not assigned to any section needs to be on the
      * top of config.
-     *
-     * @return array
+     * @return array<array-key, mixed>
+     * @param array<array-key, mixed> $config
      */
-    protected function sortRootElements(array $config)
+    private function sortRootElements(array $config): array
     {
         $sections = [];
 

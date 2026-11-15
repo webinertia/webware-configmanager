@@ -4,28 +4,30 @@ declare(strict_types=1);
 
 namespace Webware\ConfigManager\Processor;
 
-use Laminas\Filter\FilterInterface as LaminasFilter;
+use Laminas\Filter\FilterInterface;
 use Override;
 use Webware\ConfigManager\Config;
 use Webware\ConfigManager\Exception;
 
-class Filter implements ProcessorInterface
+/**
+ * @api
+ */
+final class Filter implements ProcessorInterface
 {
-    /** @var LaminasFilter */
-    protected $filter;
+    private FilterInterface $filter;
 
     /**
      * Filter all config values using the supplied Laminas\Filter
      */
-    public function __construct(LaminasFilter $filter)
+    public function __construct(FilterInterface $filter)
     {
         $this->setFilter($filter);
     }
 
     /**
-     * @return LaminasFilter
+     * @return FilterInterface
      */
-    public function getFilter()
+    public function getFilter(): FilterInterface
     {
         return $this->filter;
     }
@@ -37,7 +39,7 @@ class Filter implements ProcessorInterface
      * @throws Exception\InvalidArgumentException
      */
     #[Override]
-    public function process(Config $config)
+    public function process(Config $config): Config
     {
         if ($config->isReadOnly()) {
             throw new Exception\InvalidArgumentException('Cannot process config because it is read-only');
@@ -52,6 +54,7 @@ class Filter implements ProcessorInterface
                 continue;
             }
 
+            // @mago-expect analysis:string-member-selector
             $config->$key = $this->filter->filter($val);
         }
 
@@ -61,19 +64,14 @@ class Filter implements ProcessorInterface
     /**
      * Process a single value
      *
-     * @param  mixed $value
-     * @return mixed
      */
     #[Override]
-    public function processValue($value)
+    public function processValue(mixed $value): mixed
     {
         return $this->filter->filter($value);
     }
 
-    /**
-     * @return self
-     */
-    public function setFilter(LaminasFilter $filter)
+    public function setFilter(FilterInterface $filter): self
     {
         $this->filter = $filter;
         return $this;

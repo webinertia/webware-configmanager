@@ -31,7 +31,7 @@ final class ConfigTest extends TestCase
     private array $invalidkey;
 
     #[Test]
-    public function testArray()
+    public function array()
     {
         $config = new Config($this->all);
 
@@ -46,7 +46,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testArrayAccess()
+    public function arrayAccess()
     {
         $config = new Config($this->all, true);
 
@@ -66,7 +66,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testArrayAccessModification()
+    public function arrayAccessModification()
     {
         $config = new Config($this->numericData, true);
 
@@ -95,14 +95,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testCount()
-    {
-        $data = new Config($this->menuData1);
-        static::assertCount(3, $data->button);
-    }
-
-    #[Test]
-    public function testCountAfterMerge()
+    public function countAfterMerge()
     {
         $data = new Config($this->toCombineB);
         $data->merge(
@@ -112,7 +105,14 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testCountWithDoubleKeys()
+    public function countingReportsTheNumberOfTopLevelNodes()
+    {
+        $data = new Config($this->menuData1);
+        static::assertCount(3, $data->button);
+    }
+
+    #[Test]
+    public function countWithDoubleKeys()
     {
         $config = new Config([], true);
 
@@ -124,16 +124,16 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testErrorWriteToReadOnly()
+    public function errorWriteToReadOnly()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Config is read only');
+        $this->expectExceptionMessageIs('Config is read only');
         $config       = new Config($this->all);
         $config->test = '32';
     }
 
     #[Test]
-    public function testExtendedConfigHasSubnodesTheSameType()
+    public function extendedConfigHasSubnodesTheSameType()
     {
         $config = new TestAssets\ExtendedConfig([
             'node' => [
@@ -145,7 +145,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testIsset()
+    public function isset()
     {
         $config = new Config($this->all, false);
 
@@ -155,7 +155,40 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testIterator()
+    public function issetTreatsANullValueAsNotSetButKeepsOtherFalsyValuesSet()
+    {
+        // PHP's isset() semantics, which ArrayAccess::offsetExists() must mirror:
+        // only null is "not set". get() is deliberately different and still returns
+        // the null, because it is keyed on array_key_exists().
+        // The contract members are called directly so this stays clear of the
+        // no-isset lint rule; testIsset() above covers the isset() dispatch itself.
+        $config = new Config([
+            'nothing'     => null,
+            'empty'       => '',
+            'zero'        => 0,
+            'false'       => false,
+            'empty-array' => [],
+        ]);
+
+        static::assertFalse($config->__isset(name: 'nothing'));
+        static::assertFalse($config->offsetExists(offset: 'nothing'));
+        static::assertNull($config->get(
+            name   : 'nothing',
+            default: 'default-not-used',
+        ));
+
+        static::assertTrue($config->__isset(name: 'empty'));
+        static::assertTrue($config->offsetExists(offset: 'empty'));
+        static::assertTrue($config->__isset(name: 'zero'));
+        static::assertTrue($config->offsetExists(offset: 'zero'));
+        static::assertTrue($config->__isset(name: 'false'));
+        static::assertTrue($config->offsetExists(offset: 'false'));
+        static::assertTrue($config->__isset(name: 'empty-array'));
+        static::assertTrue($config->offsetExists(offset: 'empty-array'));
+    }
+
+    #[Test]
+    public function iterator()
     {
         // top level
         $config = new Config($this->all);
@@ -186,7 +219,21 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLaminas1019EmptyKeys()
+    public function iteratorPrimitivesAdvanceThePointer()
+    {
+        $config = new Config(['first' => 1, 'second' => 2]);
+
+        // current() must not arm the skip flag, and next() must advance the pointer.
+        // Without this, a foreach over a Config never terminates, which is reported
+        // as a hang rather than a failure.
+        $config->current();
+        $config->next();
+
+        static::assertSame('second', $config->key());
+    }
+
+    #[Test]
+    public function laminas1019EmptyKeys()
     {
         $config = new Config($this->invalidkey);
         $array  = $config->toArray();
@@ -195,7 +242,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLaminas1019HandlingInvalidKeyNames()
+    public function laminas1019HandlingInvalidKeyNames()
     {
         $config = new Config($this->leadingdot);
         $array  = $config->toArray();
@@ -203,10 +250,13 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLaminas1417DefaultValues()
+    public function laminas1417DefaultValues()
     {
         $config = new Config($this->all);
-        $value  = $config->get('notthere', 'default');
+        $value  = $config->get(
+            name   : 'notthere',
+            default: 'default',
+        );
         static::assertSame('default', $value);
         static::assertNull($config->notThere);
     }
@@ -216,7 +266,7 @@ final class ConfigTest extends TestCase
      *
      */
     #[Test]
-    public function testLaminas186MergeReplacingUnnamedConfigSettings()
+    public function laminas186MergeReplacingUnnamedConfigSettings()
     {
         $arrayA = [
             'flag'      => true,
@@ -248,7 +298,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLaminas402()
+    public function laminas402()
     {
         $configArray = [
             'data1'  => 'someValue',
@@ -264,7 +314,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLaminas408CountNotDecreasingOnUnset()
+    public function laminas408CountNotDecreasingOnUnset()
     {
         $configData = [
             'a' => 'a',
@@ -278,18 +328,26 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLaminas4107EnsureCloneDoesNotKeepNestedReferences()
+    public function laminas4107EnsureCloneDoesNotKeepNestedReferences()
     {
         $parent    = new Config(['key' => ['nested' => 'parent']], true);
         $newConfig = clone $parent;
         $newConfig->merge(new Config(['key' => ['nested' => 'override']], true));
 
-        static::assertSame('override', $newConfig->key->nested, '$newConfig is not overridden');
-        static::assertSame('parent', $parent->key->nested, '$parent has been overridden');
+        static::assertSame(
+            expected: 'override',
+            actual  : $newConfig->key->nested,
+            message : '$newConfig is not overridden',
+        );
+        static::assertSame(
+            expected: 'parent',
+            actual  : $parent->key->nested,
+            message : '$parent has been overridden',
+        );
     }
 
     #[Test]
-    public function testLaminas43()
+    public function laminas43()
     {
         $configArray = [
             'controls' => [
@@ -305,7 +363,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLaminas6995ToArrayDoesNotDisturbInternalIterator()
+    public function laminas6995ToArrayDoesNotDisturbInternalIterator()
     {
         $config = new Config(range(
             start: 1,
@@ -319,7 +377,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testLoadSingleSection()
+    public function loadSingleSection()
     {
         $config = new Config($this->all, false);
 
@@ -330,7 +388,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testMerge()
+    public function merge()
     {
         $configA = new Config($this->toCombineA);
         $configB = new Config($this->toCombineB);
@@ -381,7 +439,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testMergeHonoursAllowModificationsFlagAtAllLevels()
+    public function mergeHonoursAllowModificationsFlagAtAllLevels()
     {
         $config  = new Config(['key' => ['nested' => 'yes'], 'key2' => 'yes'], false);
         $config2 = new Config([], true);
@@ -398,7 +456,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testModification()
+    public function modification()
     {
         $config = new Config($this->all, true);
 
@@ -418,25 +476,25 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testNoModifications()
+    public function noModifications()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Config is read only');
+        $this->expectExceptionMessageIs('Config is read only');
         $config           = new Config($this->all);
         $config->hostname = 'test';
     }
 
     #[Test]
-    public function testNoNestedModifications()
+    public function noNestedModifications()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Config is read only');
+        $this->expectExceptionMessageIs('Config is read only');
         $config           = new Config($this->all);
         $config->db->host = 'test';
     }
 
     #[Test]
-    public function testNumericKeys()
+    public function numericKeys()
     {
         $data = new Config($this->numericData);
         static::assertSame('test', $data->{1});
@@ -447,7 +505,7 @@ final class ConfigTest extends TestCase
      * ensure that modification is not allowed after calling setReadOnly()
      */
     #[Test]
-    public function testSetReadOnly()
+    public function setReadOnly()
     {
         $configData = [
             'a' => 'a',
@@ -457,19 +515,25 @@ final class ConfigTest extends TestCase
 
         $config->setReadOnly();
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessage('Config is read only');
+        $this->expectExceptionMessageIs('Config is read only');
         $config->c = 'c';
     }
 
     #[Test]
-    public function testSetReadOnlyAppliesToChildren()
+    public function setReadOnlyAppliesToChildren()
     {
         $config = new Config($this->all, true);
 
         $config->setReadOnly();
         static::assertTrue($config->isReadOnly());
-        static::assertTrue($config->one->isReadOnly(), 'First level children are writable');
-        static::assertTrue($config->one->two->isReadOnly(), 'Second level children are writable');
+        static::assertTrue(
+            condition: $config->one->isReadOnly(),
+            message  : 'First level children are writable',
+        );
+        static::assertTrue(
+            condition: $config->one->two->isReadOnly(),
+            message  : 'Second level children are writable',
+        );
     }
 
     /**
@@ -478,7 +542,7 @@ final class ConfigTest extends TestCase
      * @return void
      */
     #[Test]
-    public function testToArraySupportsObjects()
+    public function toArraySupportsObjects()
     {
         $configData = [
             'a' => new stdClass(),
@@ -495,7 +559,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testUnset()
+    public function unset()
     {
         // allow modifications is on
         $config = new Config($this->all, true);
@@ -511,7 +575,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testUnsetException()
+    public function unsetException()
     {
         // allow modifications is off - expect an exception
         $config = new Config($this->all, false);
@@ -519,12 +583,12 @@ final class ConfigTest extends TestCase
         static::assertTrue(isset($config->hostname)); // top level
 
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage('is read only');
+        $this->expectExceptionMessageIsOrContains('is read only');
         unset($config->hostname);
     }
 
     #[Test]
-    public function testUnsettingAMiddleElementDuringForeachDoesNotSkipAnElement()
+    public function unsettingAMiddleElementDuringForeachDoesNotSkipAnElement()
     {
         $config = new Config([
             'first'  => [1],
@@ -546,7 +610,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testUnsettingFirstElementDuringForeachDoesNotSkipAnElement()
+    public function unsettingFirstElementDuringForeachDoesNotSkipAnElement()
     {
         $config = new Config([
             'first'  => [1],
@@ -568,7 +632,7 @@ final class ConfigTest extends TestCase
     }
 
     #[Test]
-    public function testUnsettingLastElementDuringForeachDoesNotSkipAnElement()
+    public function unsettingLastElementDuringForeachDoesNotSkipAnElement()
     {
         $config = new Config([
             'first'  => [1],

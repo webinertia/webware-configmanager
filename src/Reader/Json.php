@@ -24,27 +24,27 @@ use const JSON_ERROR_NONE;
 
 /**
  * JSON config reader.
+ * @api
  */
-class Json implements ReaderInterface
+final class Json implements ReaderInterface
 {
     /**
      * Directory of the JSON file
      *
      * @var string
      */
-    protected $directory;
+    private ?string $directory = null;
 
     /**
      * fromFile(): defined by Reader interface.
      *
      * @see    ReaderInterface::fromFile()
      *
-     * @param  string $filename
-     * @return array
      * @throws Exception\RuntimeException
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromFile($filename)
+    public function fromFile(string $filename): array
     {
         if (! is_file($filename) || ! is_readable($filename)) {
             throw new Exception\RuntimeException(sprintf(
@@ -65,12 +65,11 @@ class Json implements ReaderInterface
      *
      * @see    ReaderInterface::fromString()
      *
-     * @param  string $string
-     * @return array|bool
      * @throws Exception\RuntimeException
+     * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromString($string)
+    public function fromString(string $string): array
     {
         if ('' === $string) {
             return [];
@@ -84,12 +83,46 @@ class Json implements ReaderInterface
     }
 
     /**
+     * Decode JSON configuration.
+     *
+     * Decodes the JSON payload through ext/json and normalises the result into
+     * an array, raising an exception when the payload cannot be decoded.
+     *
+     * @throws Exception\RuntimeException For any decoding errors.
+     * @return array<array-key, mixed>
+     */
+    private function decode(string $data): array
+    {
+        $config = json_decode($data, associative: true);
+
+        if (null !== $config && ! is_array($config)) {
+            throw new Exception\RuntimeException(
+                'Invalid JSON configuration; did not return an array or object',
+            );
+        }
+
+        if (null !== $config) {
+            return $config;
+        }
+
+        // A payload of "null" decodes cleanly to null; the array contract rejects
+        // it here, where it previously surfaced in process().
+        if (JSON_ERROR_NONE === json_last_error()) {
+            // @mago-expect analysis:invalid-return-statement
+            return $config;
+        }
+
+        throw new Exception\RuntimeException(json_last_error_msg());
+    }
+
+    /**
      * Process the array for @include
      *
-     * @return array
      * @throws Exception\RuntimeException
+     * @return array<array-key, mixed>
+     * @param array<array-key, mixed> $data
      */
-    protected function process(array $data)
+    private function process(array $data): array
     {
         foreach ($data as $key => $value) {
             if (is_array($value)) {
@@ -105,36 +138,5 @@ class Json implements ReaderInterface
             }
         }
         return $data;
-    }
-
-    /**
-     * Decode JSON configuration.
-     *
-     * Decodes the JSON payload through ext/json and normalises the result into
-     * an array, raising an exception when the payload cannot be decoded.
-     *
-     * @param string $data
-     * @return array
-     * @throws Exception\RuntimeException For any decoding errors.
-     */
-    private function decode($data)
-    {
-        $config = json_decode($data, associative: true);
-
-        if (null !== $config && ! is_array($config)) {
-            throw new Exception\RuntimeException(
-                'Invalid JSON configuration; did not return an array or object',
-            );
-        }
-
-        if (null !== $config) {
-            return $config;
-        }
-
-        if (JSON_ERROR_NONE === json_last_error()) {
-            return $config;
-        }
-
-        throw new Exception\RuntimeException(json_last_error_msg());
     }
 }

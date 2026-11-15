@@ -6,4 +6,7 @@ namespace Webware\ConfigManager\Exception;
 
 use InvalidArgumentException as BaseInvalidArgumentException;
 
-class InvalidArgumentException extends BaseInvalidArgumentException implements ExceptionInterface {}
+/**
+ * @api
+ */
+final class InvalidArgumentException extends BaseInvalidArgumentException implements ExceptionInterface {}

@@ -15,7 +15,7 @@ use Webware\ConfigManager\Writer\JavaProperties as JavaPropertiesWriter;
 final class JavaPropertiesTest extends AbstractWriterTestCase
 {
     #[Test]
-    public function testConstructorRejectsEmptyDelimiter()
+    public function constructorRejectsEmptyDelimiter()
     {
         $this->expectException(JavaPropertiesException\InvalidArgumentException::class);
 
@@ -23,25 +23,25 @@ final class JavaPropertiesTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testConstructorRejectsInvalidDelimiterValues()
+    public function constructorRejectsInvalidDelimiterValues()
     {
         $this->expectException(JavaPropertiesException\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid delimiter of type "NULL"');
+        $this->expectExceptionMessageIsOrContains('Invalid delimiter of type "NULL"');
 
         new JavaPropertiesWriter(null);
     }
 
     #[Test]
-    public function testNonScalarValuesAreRejected()
+    public function nonScalarValuesAreRejected()
     {
         $this->expectException(JavaPropertiesException\UnprocessableConfigException::class);
-        $this->expectExceptionMessage('can only process scalar values');
+        $this->expectExceptionMessageIsOrContains('can only process scalar values');
 
-        new JavaPropertiesWriter()->processConfig(['key' => ['nested']]);
+        new JavaPropertiesWriter()->toString(['key' => ['nested']]);
     }
 
     #[Test]
-    public function testNoSection()
+    public function noSection()
     {
         $config = new Config(['test' => 'foo', 'test2.test3' => 'bar']);
 
@@ -54,13 +54,13 @@ final class JavaPropertiesTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testWriteAndRead()
+    public function writeAndRead()
     {
         static::markTestSkipped('JavaProperties writer cannot handle multi-dimensional configuration');
     }
 
     #[Test]
-    public function testWriteAndReadOriginalFile()
+    public function writeAndReadOriginalFile()
     {
         $config = $this->reader->fromFile(__DIR__ . '/_files/allsections.properties');
 
@@ -72,7 +72,7 @@ final class JavaPropertiesTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testWriteAndReadOriginalFileWithCustomDelimiter()
+    public function writeAndReadOriginalFileWithCustomDelimiter()
     {
         $config = $this->reader->fromFile(__DIR__ . '/_files/allsections.properties');
 

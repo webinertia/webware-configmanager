@@ -16,7 +16,7 @@ use function str_replace;
 final class XmlTest extends AbstractWriterTestCase
 {
     #[Test]
-    public function testAddBranchProperyConstructsSubBranchesOfTypeNumeric()
+    public function addBranchProperyConstructsSubBranchesOfTypeNumeric()
     {
         $config             = new Config([], true);
         $config->production = [['foo'], ['bar']];
@@ -36,7 +36,7 @@ final class XmlTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testSectionsToString()
+    public function sectionsToString()
     {
         $config             = new Config([], true);
         $config->production = [];
@@ -78,7 +78,7 @@ final class XmlTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testToString()
+    public function toStringRendersNestedElementsAsXml()
     {
         $config = new Config(['test' => 'foo', 'bar' => [0 => 'baz', 1 => 'foo']]);
 

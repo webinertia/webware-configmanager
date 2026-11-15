@@ -19,16 +19,62 @@ use function file_put_contents;
 use function preg_replace;
 use function sprintf;
 use function trim;
-use function version_compare;
 
 use const PHP_EOL;
-use const PHP_VERSION;
 
 #[CoversClass(PhpArray::class)]
 final class PhpArrayTest extends AbstractWriterTestCase
 {
     #[Test]
-    public function testRender()
+    public function bracketArraySyntaxIsUsedByDefault()
+    {
+        static::assertTrue($this->writer->useBracketArraySyntax);
+    }
+
+    #[Test]
+    public function classNameScalarsAreUsedByDefault()
+    {
+        static::assertTrue($this->writer->useClassNameScalars);
+    }
+
+    #[Test]
+    public function keysAreAlignedWithinEachScope()
+    {
+        // Each array literal is padded to its own widest key, which is how mago fmt
+        // aligns them, and numeric keys take part in the width.
+        $configString = $this->writer->toString(new Config([
+            'a'         => 1,
+            'longerKey' => 2,
+            'mid'       => 3,
+            'nested'    => ['x' => 'y', 'veryLongInnerKey' => 'z', 'q' => 1],
+            0           => 'zero',
+            10          => 'ten',
+            'mixed'     => [0 => 'a', 100 => 'b'],
+        ]));
+
+        $expected = "<?php\n\n";
+        $expected .= "return [\n";
+        $expected .= "    'a'         => 1,\n";
+        $expected .= "    'longerKey' => 2,\n";
+        $expected .= "    'mid'       => 3,\n";
+        $expected .= "    'nested'    => [\n";
+        $expected .= "        'x'                => 'y',\n";
+        $expected .= "        'veryLongInnerKey' => 'z',\n";
+        $expected .= "        'q'                => 1,\n";
+        $expected .= "    ],\n";
+        $expected .= "    0           => 'zero',\n";
+        $expected .= "    10          => 'ten',\n";
+        $expected .= "    'mixed'     => [\n";
+        $expected .= "        0   => 'a',\n";
+        $expected .= "        100 => 'b',\n";
+        $expected .= "    ],\n";
+        $expected .= "];\n";
+
+        static::assertSame($expected, $configString);
+    }
+
+    #[Test]
+    public function render()
     {
         $config = new Config([
             'test'       => 'foo',
@@ -42,88 +88,71 @@ final class PhpArrayTest extends AbstractWriterTestCase
 
         $configString = $this->writer->toString($config);
 
-        $object =
-            "stdClass::__set_state(array(\n"
-            . "   'foo' => 'bar',\n"
-            . ')),';
-
-        if (
-            version_compare(
-                version1: PHP_VERSION,
-                version2: '7.3.0',
-            ) !== -1
-        ) {
-            $object =
-                '(object) array('
-                . "\n"
-                . "   'foo' => 'bar',\n"
-                . '),';
-        }
-
         // build string line by line as we are trailing-whitespace sensitive.
-        $expected = "<?php\n";
-        $expected .= "return array(\n";
-        $expected .= "    'test' => 'foo',\n";
-        $expected .= "    'bar' => array(\n";
+        $expected = "<?php\n\n";
+        $expected .= "return [\n";
+        $expected .= "    'test'       => 'foo',\n";
+        $expected .= "    'bar'        => [\n";
         $expected .= "        0 => 'baz',\n";
         $expected .= "        1 => 'foo',\n";
-        $expected .= "    ),\n";
-        $expected .= "    'emptyArray' => array(),\n";
-        $expected .= "    'object' => {$object}\n";
-        $expected .= "    'integer' => 123,\n";
-        $expected .= "    'boolean' => false,\n";
-        $expected .= "    'null' => null,\n";
-        $expected .= ");\n";
-
-        static::assertEquals($expected, $configString);
-    }
-
-    #[Test]
-    public function testRenderConvertsNestedTraversables()
-    {
-        $configString = $this->writer->toString([
-            'default' => new ArrayIterator(['test' => new ArrayIterator(['deep' => 'foo'])]),
-        ]);
-
-        $expected = "<?php\n";
-        $expected .= "return array(\n";
-        $expected .= "    'default' => array(\n";
-        $expected .= "        'test' => array(\n";
-        $expected .= "            'deep' => 'foo',\n";
-        $expected .= "        ),\n";
-        $expected .= "    ),\n";
-        $expected .= ");\n";
+        $expected .= "    ],\n";
+        $expected .= "    'emptyArray' => [],\n";
+        $expected .= "    'object'     => (object) array(\n";
+        $expected .= "   'foo' => 'bar',\n";
+        $expected .= "),\n";
+        $expected .= "    'integer'    => 123,\n";
+        $expected .= "    'boolean'    => false,\n";
+        $expected .= "    'null'       => null,\n";
+        $expected .= "];\n";
 
         static::assertSame($expected, $configString);
     }
 
     #[Test]
-    public function testRenderWithBracketArraySyntax()
+    public function renderConvertsNestedTraversables()
     {
-        $config = new Config(['test' => 'foo', 'bar' => [0 => 'baz', 1 => 'foo'], 'emptyArray' => []]);
+        $configString = $this->writer->toString([
+            'default' => new ArrayIterator(['test' => new ArrayIterator(['deep' => 'foo'])]),
+        ]);
 
-        $this->writer->setUseBracketArraySyntax(true);
-        $configString = $this->writer->toString($config);
-
-        // build string line by line as we are trailing-whitespace sensitive.
-        $expected = "<?php\n";
+        $expected = "<?php\n\n";
         $expected .= "return [\n";
-        $expected .= "    'test' => 'foo',\n";
-        $expected .= "    'bar' => [\n";
-        $expected .= "        0 => 'baz',\n";
-        $expected .= "        1 => 'foo',\n";
+        $expected .= "    'default' => [\n";
+        $expected .= "        'test' => [\n";
+        $expected .= "            'deep' => 'foo',\n";
+        $expected .= "        ],\n";
         $expected .= "    ],\n";
-        $expected .= "    'emptyArray' => [],\n";
         $expected .= "];\n";
 
-        static::assertEquals($expected, $configString);
+        static::assertSame($expected, $configString);
     }
 
     #[Test]
-    public function testRenderWithClassNameScalarsEnabled()
+    public function renderEscapesKeysThatAreNotClassNames()
     {
-        $this->writer->setUseClassNameScalars(true);
+        $configString = $this->writer->toString(new Config([
+            '\\~'                   => 'bar',
+            ''                      => 'emptyString',
+            'TestAssets\DummyClass' => 'foo',
+        ]));
 
+        $expected = <<<'ECS'
+            <?php
+
+            return [
+                '\\~'                    => 'bar',
+                ''                       => 'emptyString',
+                'TestAssets\\DummyClass' => 'foo',
+            ];
+
+            ECS;
+
+        static::assertSame($expected, $configString);
+    }
+
+    #[Test]
+    public function renderWithClassNameScalars()
+    {
         $dummyFqnA = DummyClassA::class;
         $dummyFqnB = DummyClassB::class;
 
@@ -135,71 +164,77 @@ final class PhpArrayTest extends AbstractWriterTestCase
         static::assertFalse(class_exists($dummyFqnB, false), $message);
 
         $config = new Config([
-            "\\~"                   => 'bar',
-            'PhpArrayTest'          => 'PhpArrayTest',
-            ''                      => 'emptyString',
-            'TestAssets\DummyClass' => 'foo',
-            $dummyFqnA              => [
-                'fqnValue' => $dummyFqnB,
-            ],
-            "\\{$dummyFqnA}"        => '',
+            $dummyFqnA       => ['fqnValue' => $dummyFqnB],
+            "\\{$dummyFqnA}" => '',
         ]);
 
         $expected = <<<ECS
             <?php
-            return array(
-                '\\\~' => 'bar',
-                'PhpArrayTest' => 'PhpArrayTest',
-                '' => 'emptyString',
-                'TestAssets\\\\DummyClass' => 'foo',
-                \\{$dummyFqnA}::class => array(
+
+            return [
+                \\{$dummyFqnA}::class => [
                     'fqnValue' => \\{$dummyFqnB}::class,
-                ),
+                ],
                 \\{$dummyFqnA}::class => '',
-            );
+            ];
 
             ECS;
-        $result = $this->writer->toString($config);
 
-        static::assertSame($expected, $result);
+        static::assertSame($expected, $this->writer->toString($config));
     }
 
     #[Test]
-    public function testRenderWithQuotesInString()
+    public function renderWithLegacyArraySyntax()
+    {
+        $config = new Config(['test' => 'foo', 'bar' => [0 => 'baz', 1 => 'foo'], 'emptyArray' => []]);
+
+        $this->writer->setUseBracketArraySyntax(false);
+        $configString = $this->writer->toString($config);
+
+        // build string line by line as we are trailing-whitespace sensitive.
+        $expected = "<?php\n\n";
+        $expected .= "return array(\n";
+        $expected .= "    'test'       => 'foo',\n";
+        $expected .= "    'bar'        => array(\n";
+        $expected .= "        0 => 'baz',\n";
+        $expected .= "        1 => 'foo',\n";
+        $expected .= "    ),\n";
+        $expected .= "    'emptyArray' => array(),\n";
+        $expected .= ");\n";
+
+        static::assertSame($expected, $configString);
+    }
+
+    #[Test]
+    public function renderWithQuotesInString()
     {
         $config = new Config(['one' => 'Test with "double" quotes', 'two' => 'Test with \'single\' quotes']);
 
         $configString = $this->writer->toString($config);
 
-        $expected = "<?php\n";
-        $expected .= "return array(\n";
+        $expected = "<?php\n\n";
+        $expected .= "return [\n";
         $expected .= "    'one' => 'Test with \"double\" quotes',\n";
         $expected .= "    'two' => 'Test with \\'single\\' quotes',\n";
-        $expected .= ");\n";
+        $expected .= "];\n";
 
-        static::assertEquals($expected, $configString);
+        static::assertSame($expected, $configString);
     }
 
     #[Test]
-    public function testSetUseBracketArraySyntaxReturnsFluentInterface()
+    public function setUseBracketArraySyntaxReturnsFluentInterface()
     {
         static::assertSame($this->writer, $this->writer->setUseBracketArraySyntax(true));
     }
 
     #[Test]
-    public function testSetUseClassNameScalarsReturnsFluentInterface()
+    public function setUseClassNameScalarsReturnsFluentInterface()
     {
         static::assertSame($this->writer, $this->writer->setUseClassNameScalars(true));
     }
 
     #[Test]
-    public function testUseClassNameScalarsIsFalseByDefault()
-    {
-        static::assertFalse($this->writer->getUseClassNameScalars(), 'useClassNameScalars should be false by default');
-    }
-
-    #[Test]
-    public function testWriteAndReadANestedTraversableValue()
+    public function writeAndReadANestedTraversableValue()
     {
         $filename = $this->getTestAssetFileName();
 
@@ -211,7 +246,7 @@ final class PhpArrayTest extends AbstractWriterTestCase
     }
 
     #[Test]
-    public function testWriteConvertsPathToDirWhenWritingBackToFile()
+    public function writeConvertsPathToDirWhenWritingBackToFile()
     {
         $filename = $this->getTestAssetFileName();
         file_put_contents($filename, file_get_contents(__DIR__ . '/_files/array.php'));

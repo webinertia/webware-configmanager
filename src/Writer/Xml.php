@@ -12,15 +12,18 @@ use function is_array;
 use function is_numeric;
 use function str_repeat;
 
-class Xml extends AbstractWriter
+/**
+ * @api
+ */
+final class Xml extends AbstractWriter
 {
     /**
      * processConfig(): defined by AbstractWriter.
      *
-     * @return string
+     * @param array<array-key, mixed> $config
      */
     #[Override]
-    public function processConfig(array $config)
+    protected function processConfig(array $config): string
     {
         $writer = new XMLWriter();
         $writer->openMemory();
@@ -30,7 +33,10 @@ class Xml extends AbstractWriter
             times : 4,
         ));
 
-        $writer->startDocument('1.0', 'UTF-8');
+        $writer->startDocument(
+            version : '1.0',
+            encoding: 'UTF-8',
+        );
         $writer->startElement('webware-configmanager');
 
         foreach ($config as $sectionName => $data) {
@@ -51,11 +57,10 @@ class Xml extends AbstractWriter
     /**
      * Add a branch to an XML object recursively.
      *
-     * @param  string    $branchName
-     * @return void
      * @throws Exception\RuntimeException
+     * @param array<array-key, mixed> $config
      */
-    protected function addBranch($branchName, array $config, XMLWriter $writer)
+    private function addBranch(string $branchName, array $config, XMLWriter $writer): void
     {
         $branchType = null;
 

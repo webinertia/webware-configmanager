@@ -21,8 +21,9 @@ use function array_replace_recursive;
  *
  * @extends AbstractSingleInstancePluginManager<Reader\ReaderInterface>
  * @import-type ServiceManagerConfiguration from ServiceManager
+ * @api
  */
-class ReaderPluginManager extends AbstractSingleInstancePluginManager
+final class ReaderPluginManager extends AbstractSingleInstancePluginManager
 {
     /** @var class-string<Reader\ReaderInterface> */
     protected string $instanceOf = Reader\ReaderInterface::class;
@@ -36,6 +37,9 @@ class ReaderPluginManager extends AbstractSingleInstancePluginManager
         Reader\JavaProperties::class => InvokableFactory::class,
     ];
 
+    /**
+     * @param array<array-key, mixed> $config
+     */
     public function __construct(ContainerInterface $creationContext, array $config = [])
     {
         /** @var ServiceManagerConfiguration $merged */

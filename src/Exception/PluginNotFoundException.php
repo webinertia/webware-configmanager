@@ -6,4 +6,7 @@ namespace Webware\ConfigManager\Exception;
 
 use Psr\Container\NotFoundExceptionInterface;
 
-class PluginNotFoundException extends RuntimeException implements NotFoundExceptionInterface {}
+/**
+ * @api
+ */
+final class PluginNotFoundException extends RuntimeException implements NotFoundExceptionInterface {}

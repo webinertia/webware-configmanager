@@ -13,7 +13,7 @@ use Webware\ConfigManager\Reader\Ini;
 final class IniTest extends AbstractReaderTestCase
 {
     #[Test]
-    public function testFromFileDontParseSections()
+    public function fromFileDontParseSections()
     {
         $reader = $this->reader;
         $reader->setProcessSections(false);
@@ -26,7 +26,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
+    public function fromFileIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
     {
         $reader = $this->reader;
         $reader->setProcessSections(false);
@@ -44,7 +44,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileParseSections()
+    public function fromFileParseSections()
     {
         $arrayIni = $this->reader->fromFile($this->getTestAssetPath('sections'));
 
@@ -55,7 +55,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileWithoutTypes()
+    public function fromFileWithoutTypes()
     {
         $arrayIni = $this->reader->fromFile($this->getTestAssetPath('types'));
 
@@ -68,7 +68,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromFileWithTypes()
+    public function fromFileWithTypes()
     {
         $reader = $this->reader;
         $reader->setTypedMode(true);
@@ -83,7 +83,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromString()
+    public function fromString()
     {
         $ini = <<<ECS
             test= "foo"
@@ -99,7 +99,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringDontParseSections()
+    public function fromStringDontParseSections()
     {
         $ini = <<<ECS
             [production]
@@ -122,7 +122,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
+    public function fromStringIgnoresNestingInSectionNamesWhenSectionsNotProcessed()
     {
         $ini = <<<ECS
             [environments.production]
@@ -149,7 +149,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringNested()
+    public function fromStringNested()
     {
         $ini = <<<ECS
             bla.foo.bar = foobar
@@ -167,7 +167,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringParseSections()
+    public function fromStringParseSections()
     {
         $ini = <<<ECS
             [production]
@@ -188,7 +188,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringWithoutTypes()
+    public function fromStringWithoutTypes()
     {
         $ini = <<<ECS
             [production]
@@ -210,7 +210,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringWithSection()
+    public function fromStringWithSection()
     {
         $ini = <<<ECS
             [all]
@@ -227,7 +227,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testFromStringWithTypes()
+    public function fromStringWithTypes()
     {
         $ini = <<<ECS
             [production]
@@ -251,7 +251,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testInvalidIniFile()
+    public function invalidIniFile()
     {
         $this->reader = new Ini();
         $this->expectException(Exception\RuntimeException::class);
@@ -259,7 +259,7 @@ final class IniTest extends AbstractReaderTestCase
     }
 
     #[Test]
-    public function testInvalidString()
+    public function invalidString()
     {
         $ini = <<<ECS
             test== "foo"
