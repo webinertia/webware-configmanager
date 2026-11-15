@@ -8,6 +8,8 @@ use Laminas\Stdlib\ArrayUtils;
 use Override;
 use Traversable;
 use Webware\ConfigManager\Exception;
+use Webware\FileWriter\Exception as WriterException;
+use Webware\FileWriter\FileWriter;
 
 use function is_array;
 
@@ -28,8 +30,9 @@ abstract class AbstractWriter implements WriterInterface
      *                             they do not take one, so it is replaced by the
      *                             atomic rename.
      * @return void
-     * @throws Exception\InvalidArgumentException
-     * @throws Exception\RuntimeException
+     * @throws WriterException\InvalidArgumentException If the file name is empty.
+     * @throws WriterException\RuntimeException If the file cannot be written.
+     * @throws Exception\InvalidArgumentException If the config cannot be serialized.
      */
     #[Override]
     public function toFile($filename, $config, $exclusiveLock = true)

@@ -17,7 +17,8 @@ We have six writers implementing the interface:
 ## Atomic writes
 
 `toFile()` never writes into the destination itself. Every writer delegates the write to
-`Webware\ConfigManager\Writer\FileWriter`, which:
+[`webware/webware-filewriter`](https://github.com/webinertia/webware-filewriter), whose
+`FileWriter`:
 
 1. creates a uniquely named temporary file in the destination directory,
 2. writes the serialized configuration into it,
@@ -87,9 +88,9 @@ Writing to a directory, to an unwritable location, or with an empty file name fa
 On Windows, renaming over a file that another handle holds open is refused by the operating system, so
 the rename is retried a bounded number of times before failing.
 
-PSL supplies the temporary file, the write, and the mode change
-(`php-standard-library/file` and `php-standard-library/filesystem`). PSL has no rename equivalent, so
-the swap itself is the one native call.
+The writer is a separate package so that a generator needing the same guarantees can depend on it
+without depending on configuration handling. Its own documentation covers the link behaviour, the
+ownership rules per deployment shape, and the Windows exclusion.
 
 > ### Deprecated: the `$exclusiveLock` argument
 >

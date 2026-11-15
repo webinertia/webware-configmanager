@@ -9,9 +9,10 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Config;
 use Webware\ConfigManager\Exception\InvalidArgumentException;
-use Webware\ConfigManager\Exception\RuntimeException;
 use Webware\ConfigManager\Reader\ReaderInterface;
 use Webware\ConfigManager\Writer\WriterInterface;
+use Webware\FileWriter\Exception\InvalidArgumentException as WriterInvalidArgumentException;
+use Webware\FileWriter\Exception\RuntimeException as WriterRuntimeException;
 
 use function chmod;
 use function file_exists;
@@ -59,14 +60,14 @@ abstract class AbstractWriterTestCase extends TestCase
     #[Test]
     public function testFileNotValid()
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(WriterRuntimeException::class);
         $this->writer->toFile('.', new Config([]));
     }
 
     #[Test]
     public function testNoFilenameSet()
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(WriterInvalidArgumentException::class);
         $this->expectExceptionMessage('No file name specified');
         $this->writer->toFile('', '');
     }
@@ -95,7 +96,7 @@ abstract class AbstractWriterTestCase extends TestCase
         // POSIX replaces a read-only destination. Windows refuses to rename over a
         // read-only file, so there the write still fails.
         if ('Windows' === PHP_OS_FAMILY) {
-            $this->expectException(RuntimeException::class);
+            $this->expectException(WriterRuntimeException::class);
         }
 
         $this->writer->toFile($testAssetFileName, new Config(['test' => 'foo']));
