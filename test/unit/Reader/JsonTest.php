@@ -106,7 +106,7 @@ final class JsonTest extends AbstractReaderTestCase
     public function includeStatementInStringIsRejected()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessageIs('Cannot process @include statement for a JSON string');
+        $this->expectExceptionMessageIs('Cannot process @include statement for a string');
 
         $this->reader->fromString('{ "@include": "other.json" }');
     }

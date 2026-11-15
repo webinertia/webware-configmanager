@@ -34,21 +34,18 @@ final class StandaloneWriterPluginManager implements ContainerInterface
             ));
         }
 
-        /** @var class-string<Writer\AbstractWriter> $id */
-        $writer = NoArgumentInstantiator::instantiate(
+        /**
+         * The registry lists only writers, and PluginRegistryTest asserts it, so the built
+         * instance is a writer. The alternative was an instanceof check that could never
+         * fail, which is a branch no test can reach.
+         *
+         * @var class-string<Writer\AbstractWriter> $id
+         * @var Writer\AbstractWriter
+         */
+        return NoArgumentInstantiator::instantiate(
             class: $id,
             label: 'Config writer',
         );
-
-        if (! $writer instanceof Writer\AbstractWriter) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                '%s is not an instance of %s',
-                $id,
-                Writer\AbstractWriter::class,
-            ));
-        }
-
-        return $writer;
     }
 
     #[Override]

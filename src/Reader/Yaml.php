@@ -65,12 +65,6 @@ final class Yaml extends AbstractReader
         return $this;
     }
 
-    #[Override]
-    protected function includeStatementMessage(): string
-    {
-        return 'Cannot process @include statement for a json string';
-    }
-
     /**
      * Read a file whose existence has already been checked.
      *

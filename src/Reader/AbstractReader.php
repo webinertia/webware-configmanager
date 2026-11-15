@@ -94,15 +94,6 @@ abstract class AbstractReader implements ReaderInterface
     abstract protected function readString(string $string): array;
 
     /**
-     * The message used when an `@include` is found but there is no directory to resolve
-     * it against, which happens when the document came from a string.
-     */
-    protected function includeStatementMessage(): string
-    {
-        return 'Cannot process @include statement for a string';
-    }
-
-    /**
      * Resolve every `@include` directive in a decoded document, recursively.
      *
      * A directive is a key named `@include` whose value names a sibling file. Its content
@@ -143,8 +134,11 @@ abstract class AbstractReader implements ReaderInterface
      */
     private function readInclude(mixed $value): array
     {
+        // A document read from a string has no directory, so an include in it cannot be
+        // resolved. The wording is format-agnostic because only this class knows, and a
+        // per-format copy had already drifted between two readers.
         $directory = $this->directory ?? throw new Exception\RuntimeException(
-            $this->includeStatementMessage(),
+            'Cannot process @include statement for a string',
         );
 
         return (clone $this)->fromFile("{$directory}/{$value}");

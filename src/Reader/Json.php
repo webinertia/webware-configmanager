@@ -21,12 +21,6 @@ use const JSON_ERROR_NONE;
  */
 final class Json extends AbstractReader
 {
-    #[Override]
-    protected function includeStatementMessage(): string
-    {
-        return 'Cannot process @include statement for a JSON string';
-    }
-
     /**
      * @throws Exception\RuntimeException
      * @return array<array-key, mixed>

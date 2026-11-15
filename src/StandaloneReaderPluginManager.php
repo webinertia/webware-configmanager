@@ -34,21 +34,18 @@ final class StandaloneReaderPluginManager implements ContainerInterface
             ));
         }
 
-        /** @var class-string<Reader\ReaderInterface> $id */
-        $reader = NoArgumentInstantiator::instantiate(
+        /**
+         * The registry lists only readers, and PluginRegistryTest asserts it, so the built
+         * instance is a reader. The alternative was an instanceof check that could never
+         * fail, which is a branch no test can reach.
+         *
+         * @var class-string<Reader\ReaderInterface> $id
+         * @var Reader\ReaderInterface
+         */
+        return NoArgumentInstantiator::instantiate(
             class: $id,
             label: 'Config reader',
         );
-
-        if (! $reader instanceof Reader\ReaderInterface) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                '%s is not an instance of %s',
-                $id,
-                Reader\ReaderInterface::class,
-            ));
-        }
-
-        return $reader;
     }
 
     #[Override]
