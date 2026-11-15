@@ -7,12 +7,12 @@ namespace Webware\ConfigManager\Provider;
 use Generator;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Merge\ConfigMerger;
+use Webware\ConfigManager\Shape;
 use Webware\ConfigManager\Support\NoArgumentInstantiator;
 
 use function array_key_exists;
 use function array_map;
 use function get_debug_type;
-use function is_array;
 use function is_callable;
 use function is_string;
 use function iterator_to_array;
@@ -42,15 +42,10 @@ final class ConfigProviderResolver
      */
     private static function asConfig(callable $provider, mixed $contribution): array
     {
-        if (! is_array($contribution)) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'Config provider "%s" does not return an array; received "%s"',
-                ProviderReference::of($provider)->label,
-                get_debug_type($contribution),
-            ));
-        }
-
-        return $contribution;
+        return Shape::array(
+            $contribution,
+            sprintf('Config provider "%s"', ProviderReference::of($provider)->label),
+        );
     }
 
     /**

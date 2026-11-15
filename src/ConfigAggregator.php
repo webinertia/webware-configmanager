@@ -9,11 +9,6 @@ use Webware\ConfigManager\Cache\ConfigCache;
 use Webware\ConfigManager\Processor\ProcessorResolver;
 use Webware\ConfigManager\Provider\ConfigProviderResolver;
 
-use function get_debug_type;
-use function is_array;
-use function is_iterable;
-use function sprintf;
-
 /**
  * Merges configuration from a list of providers into a read-only Config.
  *
@@ -93,39 +88,6 @@ final class ConfigAggregator extends Config
     }
 
     /**
-     * @return array<array-key, mixed>
-     * @throws Exception\InvalidArgumentException
-     */
-    private static function asConfig(mixed $config): array
-    {
-        if (! is_array($config)) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'A config post-processor must return an array; it returned "%s"',
-                get_debug_type($config),
-            ));
-        }
-
-        return $config;
-    }
-
-    /**
-     * @return iterable<class-string|callable>
-     * @throws Exception\InvalidArgumentException
-     */
-    private static function asProviderList(mixed $providers): iterable
-    {
-        if (! is_iterable($providers)) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'A config pre-processor must return an iterable of providers; it returned "%s"',
-                get_debug_type($providers),
-            ));
-        }
-
-        /** @var iterable<class-string|callable> $providers */
-        return $providers;
-    }
-
-    /**
      * Let each post-processor transform the merged configuration.
      *
      * @param list<class-string|callable> $processors
@@ -138,7 +100,10 @@ final class ConfigAggregator extends Config
         $resolver = new ProcessorResolver();
 
         foreach ($processors as $processor) {
-            $config = self::asConfig($resolver->resolve($processor)($config));
+            $config = Shape::array(
+                value  : $resolver->resolve($processor)($config),
+                subject: 'A config post-processor',
+            );
         }
 
         return $config;
@@ -157,7 +122,10 @@ final class ConfigAggregator extends Config
         $resolver = new ProcessorResolver();
 
         foreach ($processors as $processor) {
-            $providers = self::asProviderList($resolver->resolve($processor)($providers));
+            $providers = Shape::providerList(
+                value  : $resolver->resolve($processor)($providers),
+                subject: 'A config pre-processor',
+            );
         }
 
         return $providers;

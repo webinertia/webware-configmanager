@@ -8,9 +8,8 @@ use Generator;
 use Psl\Type;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\File\Glob;
+use Webware\ConfigManager\Shape;
 
-use function get_debug_type;
-use function is_array;
 use function sprintf;
 
 /**
@@ -43,37 +42,23 @@ final class PhpFileProvider
     }
 
     /**
-     * @return array<array-key, mixed>
-     * @throws Exception\RuntimeException
-     */
-    private static function asConfig(string $file, mixed $config): array
-    {
-        if (! is_array($config)) {
-            throw new Exception\RuntimeException(sprintf(
-                'Config file "%s" must return an array; it returned "%s"',
-                $file,
-                get_debug_type($config),
-            ));
-        }
-
-        return $config;
-    }
-
-    /**
      * Yield one configuration array per matching file, in pattern order.
      *
      * A file that does not return an array is rejected here rather than by the caller,
      * because this is the layer that knows which file it was.
      *
      * @return Generator<int, array<array-key, mixed>>
-     * @throws Exception\RuntimeException
+     * @throws Exception\InvalidArgumentException
      */
     public function __invoke(): Generator
     {
         foreach (Glob::match($this->pattern) as $file) {
             // Included positionally into the argument so the file's untyped return
             // reaches the check without being stored in a variable first.
-            yield self::asConfig($file, include $file);
+            yield Shape::array(
+                include $file,
+                sprintf('Config file "%s"', $file),
+            );
         }
     }
 }

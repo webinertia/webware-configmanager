@@ -37,7 +37,7 @@ final class ConfigCacheTest extends TestCase
     {
         file_put_contents($this->path, data: "<?php\n\nreturn 'nope';\n");
 
-        $this->expectException(Exception\RuntimeException::class);
+        $this->expectException(Exception\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             sprintf('Config cache file "%s" must return an array; it returned "string"', $this->path),
         );

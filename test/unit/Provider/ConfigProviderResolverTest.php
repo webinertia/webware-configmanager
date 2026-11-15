@@ -57,7 +57,7 @@ final class ConfigProviderResolverTest extends TestCase
     public function aClosureIsNamedAsAClosureInAnErrorMessage(): void
     {
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Config provider "Closure" does not return an array; received "string"');
+        $this->expectExceptionMessageIs('Config provider "Closure" must return an array; it returned "string"');
 
         new ConfigProviderResolver()->aggregate([static fn(): string => 'nope']);
     }
@@ -109,7 +109,7 @@ final class ConfigProviderResolverTest extends TestCase
         $this->expectExceptionMessageIs(
             'Config provider "'
                 . NotAnArrayConfigProvider::class
-                . '" does not return an array; received "string"',
+                . '" must return an array; it returned "string"',
         );
 
         new ConfigProviderResolver()->aggregate([NotAnArrayConfigProvider::class]);
@@ -212,7 +212,7 @@ final class ConfigProviderResolverTest extends TestCase
         };
 
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs('Config provider "Closure" does not return an array; received "string"');
+        $this->expectExceptionMessageIs('Config provider "Closure" must return an array; it returned "string"');
 
         new ConfigProviderResolver()->aggregate([$streaming]);
     }

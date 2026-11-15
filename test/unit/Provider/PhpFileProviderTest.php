@@ -28,7 +28,7 @@ final class PhpFileProviderTest extends TestCase
         $provider = $this->provider('scalar.php');
         $path     = $this->path('scalar.php');
 
-        $this->expectException(Exception\RuntimeException::class);
+        $this->expectException(Exception\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             sprintf('Config file "%s" must return an array; it returned "string"', $path),
         );
