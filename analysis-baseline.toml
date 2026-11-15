@@ -292,19 +292,13 @@ count = 1
 file = "src/Factory.php"
 code = "impossible-condition"
 message = "This condition (type `false`) will always evaluate to false."
-count = 3
+count = 1
 
 [[issues]]
 file = "src/Factory.php"
 code = "imprecise-type"
 message = "Type `array` in parameter `$files` is imprecise, equivalent to `array<array-key, mixed>`."
 count = 1
-
-[[issues]]
-file = "src/Factory.php"
-code = "invalid-class-string-expression"
-message = "Expression of type `never` cannot be used as a class name."
-count = 2
 
 [[issues]]
 file = "src/Factory.php"
@@ -442,31 +436,13 @@ count = 1
 file = "src/Factory.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 5
-
-[[issues]]
-file = "src/Factory.php"
-code = "mixed-method-access"
-message = "Attempting to call method `processConfig()` on a non-object type (`mixed`)."
-count = 1
+count = 4
 
 [[issues]]
 file = "src/Factory.php"
 code = "mixed-return-statement"
 message = 'Could not infer a precise return type for function `Webware\ConfigManager\Factory::fromFile`. Saw type `mixed`.'
 count = 1
-
-[[issues]]
-file = "src/Factory.php"
-code = "no-value"
-message = "Argument #1 passed to function `gettype` has type `never`, meaning it cannot produce a value."
-count = 2
-
-[[issues]]
-file = "src/Factory.php"
-code = "no-value"
-message = "Argument #1 passed to function `is_object` has type `never`, meaning it cannot produce a value."
-count = 2
 
 [[issues]]
 file = "src/Factory.php"
@@ -484,7 +460,7 @@ count = 1
 file = "src/Factory.php"
 code = "redundant-logical-operation"
 message = "Redundant `&&` operation: left operand is evaluated and right operand is always falsy."
-count = 4
+count = 2
 
 [[issues]]
 file = "src/Factory.php"
@@ -496,18 +472,6 @@ count = 1
 file = "src/Factory.php"
 code = "redundant-type-comparison"
 message = "Redundant type assertion: `$config` is already `array<array-key, mixed>`."
-count = 1
-
-[[issues]]
-file = "src/Factory.php"
-code = "redundant-type-comparison"
-message = "Redundant type assertion: `$reader` is already `never`."
-count = 1
-
-[[issues]]
-file = "src/Factory.php"
-code = "redundant-type-comparison"
-message = "Redundant type assertion: `$writer` is already `never`."
 count = 1
 
 [[issues]]
@@ -1730,26 +1694,8 @@ count = 1
 
 [[issues]]
 file = "src/Writer/AbstractWriter.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #2 of `Exception::__construct`: expected `int`, but found `mixed`."
-count = 1
-
-[[issues]]
-file = "src/Writer/AbstractWriter.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
-count = 1
-
-[[issues]]
-file = "src/Writer/AbstractWriter.php"
 code = "unhandled-thrown-type"
 message = 'Potentially unhandled exception `Laminas\Stdlib\Exception\InvalidArgumentException` in `Webware\ConfigManager\Writer\AbstractWriter::toString`.'
-count = 1
-
-[[issues]]
-file = "src/Writer/AbstractWriter.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Writer/AbstractWriter.php:48:13}`.'
 count = 1
 
 [[issues]]
@@ -2084,18 +2030,6 @@ count = 1
 
 [[issues]]
 file = "src/Writer/PhpArray.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #2 of `Exception::__construct`: expected `int`, but found `mixed`."
-count = 1
-
-[[issues]]
-file = "src/Writer/PhpArray.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
-count = 1
-
-[[issues]]
-file = "src/Writer/PhpArray.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
 count = 1
@@ -2123,12 +2057,6 @@ file = "src/Writer/PhpArray.php"
 code = "possibly-undefined-string-array-index"
 message = "Possibly undefined array key `string('open')` accessed on `array<array-key, mixed>`."
 count = 2
-
-[[issues]]
-file = "src/Writer/PhpArray.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `Webware\ConfigManager\Exception\RuntimeException` in `{closure:src/Writer/PhpArray.php:122:13}`.'
-count = 1
 
 [[issues]]
 file = "src/Writer/WriterInterface.php"

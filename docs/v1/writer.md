@@ -14,6 +14,90 @@ We have six writers implementing the interface:
 - `Webware\ConfigManager\Writer\Xml`
 - `Webware\ConfigManager\Writer\Yaml`
 
+## Atomic writes
+
+`toFile()` never writes into the destination itself. Every writer delegates the write to
+`Webware\ConfigManager\Writer\FileWriter`, which:
+
+1. creates a uniquely named temporary file in the destination directory,
+2. writes the serialized configuration into it,
+3. gives it the mode, owner and group of the document it replaces, and
+4. renames the temporary file onto the destination.
+
+A rename within a single directory is atomic, so a concurrent reader sees either the previous
+document or the new one, and never a truncated or half written file. The destination is replaced
+rather than modified in place, which means the file's inode changes and any hard link to the previous
+document continues to refer to the previous content.
+
+### Ownership and mode
+
+Because the destination is replaced rather than written through, the new file would otherwise belong to
+whichever user ran PHP and carry a mode derived from the process umask. A configuration file is usually
+owned by the deployer, and its mode is often restrictive on purpose, so the existing attributes are
+carried over: the mode, and the owner and group where the process is permitted to set them.
+
+`Filesystem\change_owner()` and `Filesystem\change_group()` need privilege, so they are attempted and a
+failure is ignored rather than failing the write. The consequences depend on how PHP is deployed:
+
+| Host configuration | Result |
+|---|---|
+| PHP runs as the file's owner (FPM pool per user, suexec, CLI as the deployer) | owner, group and mode preserved |
+| PHP runs as a privileged user | owner, group and mode preserved |
+| PHP runs as a different unprivileged user than the owner | mode preserved, owner becomes the PHP user |
+
+The third row is a host misconfiguration, not something this library can correct: an unprivileged
+process cannot hand a file to another user. Such a deployment needs the PHP process user to be the
+deployer, or the file to remain writable by the deploying account, otherwise ownership has to be
+corrected outside the application. A new file gets mode `0666` narrowed by umask.
+
+On Windows none of this is attempted. Windows does not model POSIX permission bits, and `chmod` there
+only toggles the read-only attribute, which would also make the file unrenameable and break the next
+write, so the temporary file keeps the writable mode it was created with.
+
+Replacing the destination also means the write needs write permission on the containing directory,
+whereas writing through an existing file needed write permission only on the file itself.
+
+### Symbolic links
+
+A configuration file is sometimes a link into a shared directory, which is the usual shape of a
+release-directory deployment: each release carries `config/app.php` as a link to
+`shared/config/app.php`. Writing to the link path would replace the link and leave the shared file
+untouched, so every other release would keep reading the previous content and the next deploy would
+recreate the link and lose the write.
+
+`toFile()` therefore resolves the destination first, and the write lands on the link target. The link
+survives. Resolution happens before the content is serialized, so a writer that builds paths out of the
+destination names the directory the file really lives in, which is what `__DIR__` resolves to at
+runtime.
+
+A link whose target does not exist has nothing to follow, so it is reported rather than replaced:
+
+```text
+Webware\ConfigManager\Exception\RuntimeException: The symbolic link "config/app.php" points at
+"../shared/config/app.php", which does not exist
+```
+
+Only a link at the final path component requires resolution. A link to the containing directory needs
+none, because the write then lands in the real directory and remains a rename within it.
+
+If serialization or the write fails, the temporary file is removed and
+`Webware\ConfigManager\Exception\RuntimeException` is thrown; the destination is left untouched.
+Writing to a directory, to an unwritable location, or with an empty file name fails the same way.
+
+On Windows, renaming over a file that another handle holds open is refused by the operating system, so
+the rename is retried a bounded number of times before failing.
+
+PSL supplies the temporary file, the write, and the mode change
+(`php-standard-library/file` and `php-standard-library/filesystem`). PSL has no rename equivalent, so
+the swap itself is the one native call.
+
+> ### Deprecated: the `$exclusiveLock` argument
+>
+> `toFile()` still accepts `$exclusiveLock`, for compatibility with the interface, but the argument is
+> ignored. An advisory lock only protects writers that agree to take one, and readers of a
+> configuration file take none, so a lock cannot protect a reader from a partial document. The atomic
+> rename replaces it.
+
 ## Webware\\ConfigManager\\Writer\\Ini
 
 The INI writer has two modes for rendering with regard to sections. By default, the top-level

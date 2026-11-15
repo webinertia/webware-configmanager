@@ -9,25 +9,24 @@ use Override;
 use Traversable;
 use Webware\ConfigManager\Exception;
 
-use function file_put_contents;
 use function is_array;
-use function restore_error_handler;
-use function set_error_handler;
-use function sprintf;
-
-use const E_WARNING;
-use const LOCK_EX;
 
 abstract class AbstractWriter implements WriterInterface
 {
     /**
      * toFile(): defined by Writer interface.
      *
+     * The file is replaced atomically, so a reader sees either the previous
+     * document or the new one and never a partial write.
+     *
      * @see    WriterInterface::toFile()
      *
      * @param  string  $filename
      * @param  mixed   $config
-     * @param  bool $exclusiveLock
+     * @param  bool $exclusiveLock Ignored; retained for interface compatibility. An
+     *                             advisory lock does not protect readers, because
+     *                             they do not take one, so it is replaced by the
+     *                             atomic rename.
      * @return void
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
@@ -35,30 +34,12 @@ abstract class AbstractWriter implements WriterInterface
     #[Override]
     public function toFile($filename, $config, $exclusiveLock = true)
     {
-        if ('' === $filename) {
-            throw new Exception\InvalidArgumentException('No file name specified');
-        }
+        // Resolved before serialization: a writer that builds paths out of the
+        // destination must name the directory the file really lives in, which is the
+        // link target rather than the link.
+        $resolved = FileWriter::resolve($filename);
 
-        $flags = 0;
-        if ($exclusiveLock) {
-            $flags |= LOCK_EX;
-        }
-
-        set_error_handler(
-            static function ($error, $message = '') use ($filename) {
-                throw new Exception\RuntimeException(
-                    sprintf('Error writing to "%s": %s', $filename, $message),
-                    $error,
-                );
-            },
-            E_WARNING,
-        );
-
-        try {
-            file_put_contents($filename, $this->toString($config), $flags);
-        } finally {
-            restore_error_handler();
-        }
+        FileWriter::write($resolved, $this->toContent($config, $resolved));
     }
 
     /**
@@ -88,4 +69,22 @@ abstract class AbstractWriter implements WriterInterface
      * @return string
      */
     abstract protected function processConfig(array $config);
+
+    /**
+     * Serialize the configuration for a specific destination.
+     *
+     * Writers that need to rewrite the document in terms of where it will be
+     * written override this instead of overriding toFile(). The destination is
+     * already validated and resolved by the time this is called, so an override can
+     * rely on it naming the directory the file really lives in.
+     *
+     * @throws Exception\InvalidArgumentException
+     */
+    // $filename exists for an override to read; this implementation only forwards to
+    // toString(). It is not underscore-prefixed because this project forbids that.
+    // @mago-expect analysis:unused-parameter
+    protected function toContent(mixed $config, string $filename): string
+    {
+        return $this->toString($config);
+    }
 }

@@ -183,6 +183,23 @@ final class FactoryTest extends TestCase
     }
 
     #[Test]
+    public function testFactoryToFileRejectsAWriterPluginThatIsNotAnAbstractWriter()
+    {
+        // The extension is registered with a valid writer class, but the container
+        // that resolves it hands back a writer that does not extend AbstractWriter,
+        // so the resolved plugin is rejected instead of being used.
+        $services = $this->createStub(ContainerInterface::class);
+        $services->method('get')->willReturn(new Writer\TestAssets\PlainWriter());
+        Factory::setWriterPluginManager($services);
+        Factory::registerWriter('plain', Writer\TestAssets\DummyWriter::class);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('is not an instance of');
+
+        Factory::toFile($this->getTestAssetFileName('plain'), ['one' => 1]);
+    }
+
+    #[Test]
     public function testFactoryToFileRejectsObjectThatIsNotConfig()
     {
         $this->expectException(InvalidArgumentException::class);
