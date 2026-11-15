@@ -21,6 +21,7 @@
     ],
     "require": {
         "php": "~8.4.1 || ~8.5.0",
+        "brick/varexporter": "^0.7.0",
         "ext-json": "*",
         "php-standard-library/type": "^6.4.2",
         "psr/container": "^2.0",

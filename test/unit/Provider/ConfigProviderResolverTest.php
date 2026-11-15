@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager\Provider;
 
+use Generator;
 use Not\A\Real\Provider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -172,6 +173,58 @@ final class ConfigProviderResolverTest extends TestCase
         );
 
         new ConfigProviderResolver()->resolve([ArrayConfigProvider::class, ArrayConfigProvider::class]);
+    }
+
+    #[Test]
+    public function aStreamingProviderContributesEveryYieldingArray(): void
+    {
+        $streaming = static function (): Generator {
+            yield ['layers' => ['first']];
+            yield ['layers' => ['second'], 'second' => true];
+        };
+
+        static::assertSame(
+            ['layers' => ['first', 'second'], 'second' => true],
+            new ConfigProviderResolver()->aggregate([$streaming]),
+        );
+    }
+
+    #[Test]
+    public function aStreamingProviderIsMergedInStreamOrder(): void
+    {
+        $streaming = static function (): Generator {
+            yield ['value' => 'first'];
+            yield ['value' => 'second'];
+        };
+
+        static::assertSame(
+            ['value' => 'second'],
+            new ConfigProviderResolver()->aggregate([$streaming]),
+        );
+    }
+
+    #[Test]
+    public function aStreamIsReportedAgainstTheProviderThatYieldedIt(): void
+    {
+        $streaming = static function (): Generator {
+            yield ['fine' => true];
+            yield 'not an array';
+        };
+
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Config provider "Closure" does not return an array; received "string"');
+
+        new ConfigProviderResolver()->aggregate([$streaming]);
+    }
+
+    #[Test]
+    public function aStreamThatYieldsNothingContributesNothing(): void
+    {
+        $streaming = static function (): Generator {
+            yield from [];
+        };
+
+        static::assertSame([], new ConfigProviderResolver()->aggregate([$streaming]));
     }
 
     #[Test]

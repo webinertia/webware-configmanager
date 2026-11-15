@@ -140,3 +140,33 @@ that does not match both raise
 `Webware\ConfigManager\Exception\InvalidArgumentException`; the coercion failure is
 attached as the previous exception.
 
+## Merging configuration from providers
+
+An application's configuration is normally assembled from a list of `ConfigProvider`
+classes rather than read from one file. `Webware\ConfigManager\ConfigAggregator` does
+that, and is a drop-in replacement for `Laminas\ConfigAggregator\ConfigAggregator`:
+
+```php
+use Webware\ConfigManager\ConfigAggregator;
+use Webware\ConfigManager\Provider\ArrayProvider;
+use Webware\ConfigManager\Provider\PhpFileProvider;
+
+$aggregator = new ConfigAggregator(
+    [
+        Webware\Core\ConfigProvider::class,
+        Webware\Log\ConfigProvider::class,
+        new ArrayProvider(['config_cache_path' => 'data/cache/config-cache.php']),
+        new PhpFileProvider(realpath(__DIR__) . '/autoload/{{,*.}global,{,*.}local}.php'),
+    ],
+    'data/cache/config-cache.php',
+);
+
+return $aggregator->getMergedConfig();
+```
+
+The provider contract, the merge rules and the cache semantics are the aggregator's, so
+the provider list needs no rewriting. See [the factory](factory.md) for the provider
+table, the file ordering, and how the cache is read and written.
+
+Once the array is built, `Webware\ConfigManager\Config` gives it object access, and
+`Webware\ConfigManager\AbstractConfigFactory` makes its subtrees injectable.

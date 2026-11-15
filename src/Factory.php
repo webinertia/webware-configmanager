@@ -156,8 +156,19 @@ final class Factory
      *
      * The provider contract is the laminas one: a class-string is instantiated with no
      * arguments and must then be callable, and a callable is used verbatim. Every
-     * provider must return an array, and the arrays are merged in the order given,
-     * so a later provider wins. A provider listed twice is an error.
+     * provider must return an array, or stream arrays, and the arrays are merged in the
+     * order given, so a later provider wins. A provider listed twice is an error.
+     *
+     * This is the replacement for `Laminas\ConfigAggregator\ConfigAggregator`, so a
+     * provider list written for that package is used unchanged:
+     *
+     * ```php
+     * $config = Factory::fromProviders([
+     *     \Mezzio\ConfigProvider::class,
+     *     new ArrayProvider(['config_cache_enabled' => false]),
+     *     new PhpFileProvider(__DIR__ . '/autoload/{{,*.}global,{,*.}local}.php'),
+     * ]);
+     * ```
      *
      * @param iterable<class-string|callable> $providers
      * @return ($returnConfigObject is true ? Config : array<array-key, mixed>)

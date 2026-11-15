@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace Webware\ConfigManager\Provider;
 
+use Generator;
 use ReflectionClass;
 use ReflectionException;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Merge\ConfigMerger;
 
 use function array_key_exists;
+use function array_map;
 use function class_exists;
 use function get_debug_type;
 use function is_array;
 use function is_callable;
 use function is_string;
+use function iterator_to_array;
 use function sprintf;
 
 /**
@@ -24,7 +27,8 @@ use function sprintf;
  * `Laminas\ConfigAggregator\ConfigAggregator`, so a provider list written for that
  * package works here unchanged: a class-string is instantiated with no arguments and
  * must then be callable, a callable is used verbatim, a reference listed twice is an
- * error, and a provider that does not return an array is an error.
+ * error, and a provider that does not return an array is an error. A provider may also
+ * stream its contributions, in which case each value yielded must be an array.
  *
  * Merging is delegated to {@see ConfigMerger}, which reproduces the aggregator's own
  * merge, so a provider may steer the merge with {@see \Webware\ConfigManager\Merge\MergeDirective}
@@ -34,6 +38,59 @@ use function sprintf;
  */
 final class ConfigProviderResolver
 {
+    /**
+     * @return array<array-key, mixed>
+     * @throws Exception\InvalidArgumentException
+     */
+    private static function asConfig(callable $provider, mixed $contribution): array
+    {
+        if (! is_array($contribution)) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Config provider "%s" does not return an array; received "%s"',
+                ProviderReference::of($provider)->label,
+                get_debug_type($contribution),
+            ));
+        }
+
+        return $contribution;
+    }
+
+    /**
+     * Normalise a streamed contribution, validating each item as it passes.
+     *
+     * array_map is used rather than a foreach so the item type comes from the callback's
+     * declared return type. Iterating the Generator directly leaves each yielded value
+     * untyped, and validating an untyped value needs a variable to hold it.
+     *
+     * @return array<array-key, array<array-key, mixed>>
+     * @throws Exception\InvalidArgumentException
+     */
+    private static function flattenStream(callable $provider, Generator $stream): array
+    {
+        return array_map(
+            /**
+             * @return array<array-key, mixed>
+             * @throws Exception\InvalidArgumentException
+             */
+            static fn(mixed $contribution): array => self::asConfig($provider, $contribution),
+            iterator_to_array($stream, preserve_keys: false),
+        );
+    }
+
+    /**
+     * @param array<array-key, mixed> $config
+     * @return array<array-key, mixed>
+     * @throws Exception\InvalidArgumentException
+     */
+    private static function mergeStream(array $config, callable $provider, Generator $stream): array
+    {
+        foreach (self::flattenStream($provider, $stream) as $contribution) {
+            $config = ConfigMerger::merge($config, $contribution);
+        }
+
+        return $config;
+    }
+
     /**
      * Merge every provider's output into a single configuration array.
      *
@@ -48,15 +105,17 @@ final class ConfigProviderResolver
         foreach ($this->resolve($providers) as $provider) {
             $contribution = $provider();
 
-            if (! is_array($contribution)) {
-                throw new Exception\InvalidArgumentException(sprintf(
-                    'Config provider "%s" does not return an array; received "%s"',
-                    ProviderReference::of($provider)->label,
-                    get_debug_type($contribution),
-                ));
+            // A provider may stream several arrays rather than return one, which is how
+            // PhpFileProvider contributes one array per matched file. mergeStream()
+            // re-checks every item it receives, so a provider that yields something
+            // other than an array is still reported.
+            if ($contribution instanceof Generator) {
+                $config = self::mergeStream($config, $provider, $contribution);
+
+                continue;
             }
 
-            $config = ConfigMerger::merge($config, $contribution);
+            $config = ConfigMerger::merge($config, self::asConfig($provider, $contribution));
         }
 
         return $config;
