@@ -34,7 +34,12 @@ abstract class AbstractWriter implements WriterInterface
     #[Override]
     public function toFile($filename, $config, $exclusiveLock = true)
     {
-        FileWriter::write($filename, $this->toContent($config, $filename));
+        // Resolved before serialization: a writer that builds paths out of the
+        // destination must name the directory the file really lives in, which is the
+        // link target rather than the link.
+        $resolved = FileWriter::resolve($filename);
+
+        FileWriter::write($resolved, $this->toContent($config, $resolved));
     }
 
     /**
@@ -70,17 +75,15 @@ abstract class AbstractWriter implements WriterInterface
      *
      * Writers that need to rewrite the document in terms of where it will be
      * written override this instead of overriding toFile(). The destination is
-     * validated before the configuration is serialized, so an unusable file name
-     * is reported as such rather than as a problem with the configuration.
+     * already validated and resolved by the time this is called, so an override can
+     * rely on it naming the directory the file really lives in.
      *
+     * @param string $_filename Unused here; it exists so an override can see the
+     *                          destination.
      * @throws Exception\InvalidArgumentException
      */
-    protected function toContent(mixed $config, string $filename): string
+    protected function toContent(mixed $config, string $_filename): string
     {
-        if ('' === $filename) {
-            throw new Exception\InvalidArgumentException('No file name specified');
-        }
-
         return $this->toString($config);
     }
 }

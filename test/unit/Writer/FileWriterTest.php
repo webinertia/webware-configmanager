@@ -21,13 +21,16 @@ use function fileperms;
 use function glob;
 use function is_dir;
 use function is_file;
+use function is_link;
 use function is_writable;
 use function link;
 use function mkdir;
+use function realpath;
 use function restore_error_handler;
 use function rmdir;
 use function set_error_handler;
 use function strlen;
+use function symlink;
 use function sys_get_temp_dir;
 use function tempnam;
 use function umask;
@@ -260,6 +263,56 @@ final class FileWriterTest extends TestCase
     }
 
     #[Test]
+    public function testResolveFollowsASymbolicLink(): void
+    {
+        $target = $this->path('target.txt');
+        file_put_contents(
+            filename: $target,
+            data    : 'content',
+        );
+
+        $link = $this->path('link.txt');
+        $this->symlink(
+            target: 'target.txt',
+            link  : $link,
+        );
+
+        static::assertSame(realpath($target), FileWriter::resolve($link));
+    }
+
+    #[Test]
+    public function testResolveLeavesANonLinkUnchanged(): void
+    {
+        $file = $this->path('target.txt');
+
+        static::assertSame($file, FileWriter::resolve($file));
+    }
+
+    #[Test]
+    public function testResolveRejectsADanglingSymbolicLink(): void
+    {
+        $link = $this->path('link.txt');
+        $this->symlink(
+            target: 'missing.txt',
+            link  : $link,
+        );
+
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessage('points at "missing.txt", which does not exist');
+
+        FileWriter::resolve($link);
+    }
+
+    #[Test]
+    public function testResolveRejectsAnEmptyName(): void
+    {
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessage('No file name specified');
+
+        FileWriter::resolve('');
+    }
+
+    #[Test]
     public function testShorterContentLeavesNoTrailingBytes(): void
     {
         $file = $this->path('target.txt');
@@ -269,6 +322,30 @@ final class FileWriterTest extends TestCase
 
         static::assertSame('short', file_get_contents($file));
         static::assertSame(5, strlen((string) file_get_contents($file)));
+    }
+
+    #[Test]
+    public function testTheDestinationIsResolvedBeforeContentIsBuilt(): void
+    {
+        TestAssets\RecordingWriter::$lastFilename = null;
+
+        $target = $this->path('target.txt');
+        file_put_contents(
+            filename: $target,
+            data    : 'previous document',
+        );
+
+        $link = $this->path('link.txt');
+        $this->symlink(
+            target: 'target.txt',
+            link  : $link,
+        );
+
+        new TestAssets\RecordingWriter()->toFile($link, ['one' => 1]);
+
+        // A writer that builds paths from the destination must be given the target,
+        // because __DIR__ inside the written file resolves to the target's directory.
+        static::assertSame(realpath($target), TestAssets\RecordingWriter::$lastFilename);
     }
 
     #[Test]
@@ -305,6 +382,28 @@ final class FileWriterTest extends TestCase
     }
 
     #[Test]
+    public function testWriteFollowsASymbolicLinkAndKeepsTheLink(): void
+    {
+        $target = $this->path('target.txt');
+        file_put_contents(
+            filename: $target,
+            data    : 'previous document',
+        );
+
+        $link = $this->path('link.txt');
+        $this->symlink(
+            target: 'target.txt',
+            link  : $link,
+        );
+
+        FileWriter::write($link, 'new document');
+
+        // The link survives and the target carries the new content.
+        static::assertTrue(is_link($link));
+        static::assertSame('new document', file_get_contents($target));
+    }
+
+    #[Test]
     public function testWritesContent(): void
     {
         $file = $this->path('target.txt');
@@ -331,6 +430,12 @@ final class FileWriterTest extends TestCase
     protected function tearDown(): void
     {
         foreach ($this->created as $file) {
+            if (is_link($file)) {
+                unlink($file);
+
+                continue;
+            }
+
             if (! is_file($file)) {
                 continue;
             }
@@ -373,5 +478,22 @@ final class FileWriterTest extends TestCase
         $this->created = [...$this->created, $path];
 
         return $path;
+    }
+
+    private function symlink(string $target, string $link): void
+    {
+        set_error_handler(static fn(): bool => true);
+
+        try {
+            $created = symlink($target, $link);
+        } catch (Throwable) {
+            $created = false;
+        } finally {
+            restore_error_handler();
+        }
+
+        if (! $created) {
+            static::markTestSkipped('This host does not permit creating symbolic links');
+        }
     }
 }

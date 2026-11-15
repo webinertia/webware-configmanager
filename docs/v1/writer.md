@@ -21,7 +21,7 @@ We have six writers implementing the interface:
 
 1. creates a uniquely named temporary file in the destination directory,
 2. writes the serialized configuration into it,
-3. applies the final file mode (0666, narrowed by the process umask), and
+3. gives it the mode, owner and group of the document it replaces, and
 4. renames the temporary file onto the destination.
 
 A rename within a single directory is atomic, so a concurrent reader sees either the previous
@@ -56,6 +56,29 @@ write, so the temporary file keeps the writable mode it was created with.
 
 Replacing the destination also means the write needs write permission on the containing directory,
 whereas writing through an existing file needed write permission only on the file itself.
+
+### Symbolic links
+
+A configuration file is sometimes a link into a shared directory, which is the usual shape of a
+release-directory deployment: each release carries `config/app.php` as a link to
+`shared/config/app.php`. Writing to the link path would replace the link and leave the shared file
+untouched, so every other release would keep reading the previous content and the next deploy would
+recreate the link and lose the write.
+
+`toFile()` therefore resolves the destination first, and the write lands on the link target. The link
+survives. Resolution happens before the content is serialized, so a writer that builds paths out of the
+destination names the directory the file really lives in, which is what `__DIR__` resolves to at
+runtime.
+
+A link whose target does not exist has nothing to follow, so it is reported rather than replaced:
+
+```text
+Webware\ConfigManager\Exception\RuntimeException: The symbolic link "config/app.php" points at
+"../shared/config/app.php", which does not exist
+```
+
+Only a link at the final path component requires resolution. A link to the containing directory needs
+none, because the write then lands in the real directory and remains a rename within it.
 
 If serialization or the write fails, the temporary file is removed and
 `Webware\ConfigManager\Exception\RuntimeException` is thrown; the destination is left untouched.

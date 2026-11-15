@@ -10,6 +10,8 @@ use Psl\Filesystem;
 use Throwable;
 use Webware\ConfigManager\Exception;
 
+use function is_string;
+use function readlink;
 use function rename;
 use function restore_error_handler;
 use function set_error_handler;
@@ -30,8 +32,10 @@ use const PHP_OS_FAMILY;
  * the one native call.
  */
 // The steps are one operation each, kept separate so their failure can be handled
-// differently, which is clearer than a single method that branches four ways.
+// differently, which is clearer than a single method that branches four ways. Each
+// branch is a distinct filesystem outcome rather than nested logic.
 // @mago-expect lint:too-many-methods
+// @mago-expect lint:cyclomatic-complexity
 final class FileWriter
 {
     /** Mode applied to a new file, before the process umask is applied. */
@@ -50,16 +54,62 @@ final class FileWriter
     private const int RENAME_ATTEMPTS = 100;
 
     /**
+     * Resolve a symbolic link at the destination to the file it names.
+     *
+     * A configuration file is often a link into a shared directory, so the write has
+     * to land on the target. Replacing the link would appear to succeed while every
+     * other release kept reading the previous content, and the next deploy would
+     * recreate the link and lose the write.
+     *
+     * A link whose target does not exist has nothing to follow, so it is reported
+     * rather than replaced: guessing where the file belongs is worse than saying so.
+     *
+     * Only a link at the final path component matters. A link to the containing
+     * directory needs no resolution, because the write then lands in the real
+     * directory and stays a rename within it.
+     *
+     * @param string $filename Callers may pass an empty name, which is rejected here
+     *                         so every path reports it the same way.
+     * @return non-empty-string
+     * @throws Exception\InvalidArgumentException If the file name is empty.
+     * @throws Exception\RuntimeException If the link cannot be resolved.
+     */
+    public static function resolve(string $filename): string
+    {
+        if ('' === $filename) {
+            throw new Exception\InvalidArgumentException('No file name specified');
+        }
+
+        if (! Filesystem\is_symbolic_link($filename)) {
+            return $filename;
+        }
+
+        // canonicalize() covers a chain of links and relative targets, but only while
+        // the final target exists. It also returns null rather than an empty string,
+        // which states the non-empty result honestly.
+        $resolved = Filesystem\canonicalize($filename);
+
+        if (null !== $resolved) {
+            return $resolved;
+        }
+
+        $target = readlink($filename);
+
+        throw new Exception\RuntimeException(sprintf(
+            'The symbolic link "%s" points at "%s", which does not exist',
+            $filename,
+            is_string($target) ? $target : 'an unreadable target',
+        ));
+    }
+
+    /**
      * @param string $filename Callers may pass an empty name, which is rejected.
      * @throws Exception\InvalidArgumentException If the file name is empty.
      * @throws Exception\RuntimeException If the file cannot be written.
      */
     public static function write(string $filename, string $content): void
     {
-        if ('' === $filename) {
-            throw new Exception\InvalidArgumentException('No file name specified');
-        }
-
+        $filename  = self::resolve($filename);
         $temporary = self::createTemporary(Filesystem\get_directory($filename));
 
         try {
@@ -92,11 +142,14 @@ final class FileWriter
      */
     private static function adoptAttributes(string $temporary, string $filename): void
     {
-        self::inheritAttributes(
-            $temporary,
-            $filename,
-            posixPermissions: 'Windows' !== PHP_OS_FAMILY,
-        );
+        // Windows is skipped entirely. It does not model POSIX permissions: chmod
+        // there toggles only the read-only bit, and a read-only destination cannot be
+        // renamed over, so adopting a mode would break the next write. Ownership is
+        // not settable without elevation either. The temporary file keeps the mode it
+        // was created with, which on Windows means writable.
+        if ('Windows' !== PHP_OS_FAMILY) {
+            self::inheritAttributes($temporary, $filename);
+        }
     }
 
     /**
@@ -196,24 +249,12 @@ final class FileWriter
     /**
      * @param non-empty-string $temporary
      * @param non-empty-string $filename
-     * @param bool $posixPermissions Whether the platform models POSIX permission bits.
      * @throws PslExceptionInterface
      */
-    // @mago-expect lint:no-boolean-flag-parameter
     private static function inheritAttributes(
         string $temporary,
         string $filename,
-        bool $posixPermissions,
     ): void {
-        if (! $posixPermissions) {
-            // Windows does not model POSIX permissions: chmod there toggles only the
-            // read-only bit, and a read-only destination cannot be renamed over, so
-            // adopting a mode would break the next write. Ownership is not settable
-            // without elevation either. The temporary file keeps the mode it was
-            // created with, which on Windows means writable.
-            return;
-        }
-
         if (! Filesystem\is_file($filename)) {
             Filesystem\change_permissions($temporary, self::MODE & ~umask());
 
