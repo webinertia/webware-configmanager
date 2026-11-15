@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Provider\ConfigProviderResolver;
 use Webware\ConfigManager\Provider\PhpFileProvider;
+use Webware\ConfigManager\Shape;
 
 use function iterator_to_array;
 use function realpath;
@@ -18,6 +19,7 @@ use function sprintf;
 use const DIRECTORY_SEPARATOR;
 
 #[CoversClass(PhpFileProvider::class)]
+#[CoversClass(Shape::class)]
 final class PhpFileProviderTest extends TestCase
 {
     private const string FIXTURES = __DIR__ . '/TestAssets/Php';

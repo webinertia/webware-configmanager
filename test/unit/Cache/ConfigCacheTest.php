@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Cache\ConfigCache;
 use Webware\ConfigManager\Exception;
+use Webware\ConfigManager\Shape;
 
 use function file_get_contents;
 use function file_put_contents;
@@ -20,6 +21,7 @@ use function uniqid;
 use function unlink;
 
 #[CoversClass(ConfigCache::class)]
+#[CoversClass(Shape::class)]
 final class ConfigCacheTest extends TestCase
 {
     private string $path;

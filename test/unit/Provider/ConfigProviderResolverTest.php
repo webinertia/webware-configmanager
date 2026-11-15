@@ -13,12 +13,14 @@ use stdClass;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Merge\MergeDirective;
 use Webware\ConfigManager\Provider\ConfigProviderResolver;
+use Webware\ConfigManager\Shape;
 use WebwareTest\ConfigManager\Provider\TestAssets\AbstractConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\ArrayConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\NotAnArrayConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\RequiresArgumentConfigProvider;
 
 #[CoversClass(ConfigProviderResolver::class)]
+#[CoversClass(Shape::class)]
 final class ConfigProviderResolverTest extends TestCase
 {
     #[Test]

@@ -12,6 +12,7 @@ use Webware\ConfigManager\Config;
 use Webware\ConfigManager\ConfigAggregator;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Provider\ArrayProvider;
+use Webware\ConfigManager\Shape;
 use WebwareTest\ConfigManager\Processor\TestAssets\AddsInjectedProviderPreProcessor;
 use WebwareTest\ConfigManager\Provider\OrderTestAssets\BaseKeyProvider;
 use WebwareTest\ConfigManager\Provider\OrderTestAssets\WinningProvider;
@@ -24,6 +25,7 @@ use function uniqid;
 use function unlink;
 
 #[CoversClass(ConfigAggregator::class)]
+#[CoversClass(Shape::class)]
 final class ConfigAggregatorTest extends TestCase
 {
     private string $path;
