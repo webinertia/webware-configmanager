@@ -6,6 +6,7 @@ namespace Webware\ConfigManager;
 
 use Laminas\Stdlib\ArrayUtils;
 use Psr\Container\ContainerInterface;
+use Webware\FileWriter\Exception as WriterException;
 
 use function array_key_exists;
 use function file_exists;
@@ -254,6 +255,8 @@ class Factory
      * @return bool TRUE on success | FALSE on failure
      * @throws Exception\RuntimeException
      * @throws Exception\InvalidArgumentException
+     * @throws WriterException\InvalidArgumentException
+     * @throws WriterException\RuntimeException If the resolved writer cannot write the file
      */
     public static function toFile($filename, $config)
     {

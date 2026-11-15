@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f56b4968e1a12dbb99a6e95e439ab002",
+    "content-hash": "d625e7977f7cd88ac06d993248d292e9",
     "packages": [
         {
             "name": "laminas/laminas-stdlib",
@@ -1064,6 +1064,64 @@
             },
             "time": "2026-05-16T17:55:38+00:00",
             "published-time": "2026-05-16T18:04:08+00:00"
+        },
+        {
+            "name": "webware/webware-filewriter",
+            "version": "1.0.0-alpha.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webinertia/webware-filewriter.git",
+                "reference": "abad21bbef90861591c74db95222221562f60d1e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webinertia/webware-filewriter/zipball/abad21bbef90861591c74db95222221562f60d1e",
+                "reference": "abad21bbef90861591c74db95222221562f60d1e",
+                "shasum": ""
+            },
+            "require": {
+                "php": "~8.4.1 || ~8.5.0",
+                "php-standard-library/file": "^6.4.2",
+                "php-standard-library/filesystem": "^6.4.2"
+            },
+            "require-dev": {
+                "infection/infection": "^0.35.0",
+                "phpbench/phpbench": "^1.7",
+                "phpunit/phpunit": "^13.4.4",
+                "roave/backward-compatibility-check": "^8.21.0",
+                "roave/security-advisories": "dev-master",
+                "webware/webware-tools": "^1.0.0-rc.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webware\\FileWriter\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Joey Smith",
+                    "email": "jsmith@webinertia.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Atomic file writer and directory-tree writer for the Webware ecosystem",
+            "keywords": [
+                "atomic",
+                "file",
+                "webware",
+                "writer"
+            ],
+            "support": {
+                "issues": "https://github.com/webinertia/webware-filewriter/issues",
+                "source": "https://github.com/webinertia/webware-filewriter/tree/1.0.0-alpha.1"
+            },
+            "time": "2026-11-15T04:19:20+00:00",
+            "published-time": "2026-11-15T04:21:39+00:00"
         }
     ],
     "packages-dev": [
