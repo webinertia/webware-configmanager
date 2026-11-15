@@ -103,26 +103,6 @@ abstract class AbstractReader implements ReaderInterface
     }
 
     /**
-     * Read the file named by an `@include` directive.
-     *
-     * The clone matters: reading the included file reassigns `$directory`, so reading it
-     * on `$this` would leave every later include in the same document resolving against
-     * the wrong directory.
-     *
-     * @param mixed $value The directive's value, used as the path below the directory.
-     * @throws Exception\RuntimeException If there is no directory to resolve against.
-     * @return array<array-key, mixed>
-     */
-    protected function readInclude(mixed $value): array
-    {
-        $directory = $this->directory ?? throw new Exception\RuntimeException(
-            $this->includeStatementMessage(),
-        );
-
-        return (clone $this)->fromFile("{$directory}/{$value}");
-    }
-
-    /**
      * Resolve every `@include` directive in a decoded document, recursively.
      *
      * A directive is a key named `@include` whose value names a sibling file. Its content
@@ -148,5 +128,25 @@ abstract class AbstractReader implements ReaderInterface
         }
 
         return $data;
+    }
+
+    /**
+     * Read the file named by an `@include` directive.
+     *
+     * The clone matters: reading the included file reassigns `$directory`, so reading it
+     * on `$this` would leave every later include in the same document resolving against
+     * the wrong directory.
+     *
+     * @param mixed $value The directive's value, used as the path below the directory.
+     * @throws Exception\RuntimeException If there is no directory to resolve against.
+     * @return array<array-key, mixed>
+     */
+    private function readInclude(mixed $value): array
+    {
+        $directory = $this->directory ?? throw new Exception\RuntimeException(
+            $this->includeStatementMessage(),
+        );
+
+        return (clone $this)->fromFile("{$directory}/{$value}");
     }
 }

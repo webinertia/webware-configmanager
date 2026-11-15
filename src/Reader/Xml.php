@@ -173,6 +173,11 @@ final class Xml extends AbstractReader
                     continue;
                 }
 
+                // Either the value is not a list yet, or it is. Index 0 rather than 1
+                // because the wrap below always produces a single element, and the
+                // append after it always follows, so a one-element list is never the
+                // value seen here. Swapping the index is therefore indistinguishable.
+                // @infection-ignore-all
                 if (! is_array($children[$name]) || ! array_key_exists(0, $children[$name])) {
                     $children[$name] = [$children[$name]];
                 }

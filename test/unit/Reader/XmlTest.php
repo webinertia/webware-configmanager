@@ -18,6 +18,22 @@ use function sys_get_temp_dir;
 final class XmlTest extends AbstractReaderTestCase
 {
     #[Test]
+    public function adjacentTextNodesAreConcatenated(): void
+    {
+        // A text node and a CDATA section are separate nodes, and both belong to the
+        // element's value. Assigning rather than appending would keep only the last.
+        $xml = <<<ECS
+            <?xml version="1.0" encoding="UTF-8"?>
+            <config>
+                <one>foo<![CDATA[bar]]></one>
+            </config>
+
+            ECS;
+
+        static::assertSame('foobar', $this->reader->fromString($xml)['one']);
+    }
+
+    #[Test]
     public function closeWhenCallFromFileReaderGetInvalid()
     {
         $configReader = new Xml();
@@ -84,6 +100,21 @@ final class XmlTest extends AbstractReaderTestCase
         // Element value stored in special key '_'
         static::assertArrayHasKey('_', $arrayXml['one'][1]);
         static::assertSame('bazbat', $arrayXml['one'][1]['_']);
+    }
+
+    #[Test]
+    public function everyAttributeOnAnElementIsKept(): void
+    {
+        // Two attributes, so a parser that kept only the first would lose data.
+        $xml = <<<ECS
+            <?xml version="1.0" encoding="UTF-8"?>
+            <config>
+                <one a="1" b="2"/>
+            </config>
+
+            ECS;
+
+        static::assertSame(['a' => '1', 'b' => '2'], $this->reader->fromString($xml)['one']);
     }
 
     #[Test]
