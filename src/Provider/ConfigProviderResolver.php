@@ -153,43 +153,32 @@ final class ConfigProviderResolver
     }
 
     /**
-     * @throws Exception\InvalidArgumentException
-     */
-    private function instantiate(string $class): callable
-    {
-        // Instantiated with no arguments, matching the aggregator. A provider that needs
-        // collaborators is supplied as an instance instead.
-        $instance = NoArgumentInstantiator::instantiate(
-            class: $class,
-            label: 'Config provider',
-        );
-
-        if (! is_callable($instance)) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'Config provider must be a class-string or a callable; received "%s"',
-                get_debug_type($instance),
-            ));
-        }
-
-        return $instance;
-    }
-
-    /**
+     * Turn one supplied reference into a callable.
+     *
+     * A class-string is instantiated with no arguments, matching the aggregator, and must
+     * then be callable. Anything else is used verbatim. Both failures are reported with
+     * the message the aggregator used, so a provider list that worked there fails here
+     * for the same reason with the same wording.
+     *
      * @throws Exception\InvalidArgumentException
      */
     private function resolveOne(ProviderReference $reference): callable
     {
-        if (is_string($reference->value)) {
-            return $this->instantiate($reference->value);
-        }
+        /** @var mixed $candidate */
+        $candidate = is_string($reference->value)
+            ? NoArgumentInstantiator::instantiate(
+                class: $reference->value,
+                label: 'Config provider',
+            )
+            : $reference->value;
 
-        if (! is_callable($reference->value)) {
+        if (! is_callable($candidate)) {
             throw new Exception\InvalidArgumentException(sprintf(
                 'Config provider must be a class-string or a callable; received "%s"',
-                get_debug_type($reference->value),
+                get_debug_type($candidate),
             ));
         }
 
-        return $reference->value;
+        return $candidate;
     }
 }
