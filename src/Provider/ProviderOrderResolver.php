@@ -6,9 +6,6 @@ namespace Webware\ConfigManager\Provider;
 
 use Webware\ConfigManager\Exception;
 
-use function get_debug_type;
-use function is_string;
-
 /**
  * Orders a provider list by the declarations the providers carry.
  *
@@ -42,7 +39,7 @@ final class ProviderOrderResolver
         $nodes = [];
 
         foreach ($entries as $entry) {
-            $nodes[] = ['name' => self::nameOf($entry), 'entry' => $entry];
+            $nodes[] = ['name' => ProviderReference::of($entry)->label, 'entry' => $entry];
         }
 
         $graph = new OrderGraph($nodes);
@@ -60,17 +57,6 @@ final class ProviderOrderResolver
         }
 
         return $graph;
-    }
-
-    /**
-     * Name an entry the way a declaration elsewhere has to refer to it.
-     *
-     * A class-string is its own name. An instance is named by its class, because nothing
-     * can name an instance.
-     */
-    private static function nameOf(mixed $entry): string
-    {
-        return is_string($entry) ? $entry : get_debug_type($entry);
     }
 
     /**

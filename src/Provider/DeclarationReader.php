@@ -9,8 +9,6 @@ use Webware\ConfigManager\Attribute\LoadAfter;
 use Webware\ConfigManager\Attribute\LoadBefore;
 
 use function class_exists;
-use function is_object;
-use function is_string;
 
 /**
  * Reads the ordering declarations a provider carries.
@@ -60,11 +58,7 @@ final class DeclarationReader
      */
     private static function reflect(mixed $provider): ?ReflectionClass
     {
-        $class = match (true) {
-            is_string($provider) => $provider,
-            is_object($provider) => $provider::class,
-            default              => null,
-        };
+        $class = ProviderReference::of($provider)->class;
 
         if (null === $class || ! class_exists($class)) {
             return null;
