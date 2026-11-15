@@ -220,15 +220,15 @@ class PhpArray extends AbstractWriter
      * shared atomic write in AbstractWriter::toFile().
      */
     #[Override]
-    protected function toContent(mixed $config, string $_filename): string
+    protected function toContent(mixed $config, string $filename): string
     {
-        $content = parent::toContent($config, $_filename);
+        $content = parent::toContent($config, $filename);
 
         // for Windows, paths are escaped.
         $dirname = str_replace(
             search : '\\',
             replace: '\\\\',
-            subject: dirname($_filename),
+            subject: dirname($filename),
         );
 
         return str_replace(

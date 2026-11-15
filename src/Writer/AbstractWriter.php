@@ -78,11 +78,12 @@ abstract class AbstractWriter implements WriterInterface
      * already validated and resolved by the time this is called, so an override can
      * rely on it naming the directory the file really lives in.
      *
-     * @param string $_filename Unused here; it exists so an override can see the
-     *                          destination.
      * @throws Exception\InvalidArgumentException
      */
-    protected function toContent(mixed $config, string $_filename): string
+    // $filename exists for an override to read; this implementation only forwards to
+    // toString(). It is not underscore-prefixed because this project forbids that.
+    // @mago-expect analysis:unused-parameter
+    protected function toContent(mixed $config, string $filename): string
     {
         return $this->toString($config);
     }
