@@ -15,12 +15,16 @@ use Webware\ConfigManager\Writer\WriterInterface;
 
 use function chmod;
 use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
 use function getenv;
 use function is_writable;
 use function sys_get_temp_dir;
 use function system;
 use function tempnam;
 use function unlink;
+
+use const PHP_OS_FAMILY;
 
 abstract class AbstractWriterTestCase extends TestCase
 {
@@ -41,26 +45,41 @@ abstract class AbstractWriterTestCase extends TestCase
     }
 
     #[Test]
-    public function testFileNotWritable()
-    {
-        $testAssetFileName = $this->getTestAssetFileName();
-        chmod(
-            filename   : $testAssetFileName,
-            permissions: 0o444,
-        );
-        if (getenv('USER') === 'root') {
-            system("chattr +i {$testAssetFileName}");
-        }
-        $this->expectException(RuntimeException::class);
-        $this->writer->toFile($testAssetFileName, new Config([]));
-    }
-
-    #[Test]
     public function testNoFilenameSet()
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('No file name specified');
         $this->writer->toFile('', '');
+    }
+
+    #[Test]
+    public function testReadOnlyDestination()
+    {
+        if ('Windows' !== PHP_OS_FAMILY && getenv('USER') === 'root') {
+            static::markTestSkipped('A privileged user ignores file and directory permissions');
+        }
+
+        $testAssetFileName = $this->getTestAssetFileName();
+        file_put_contents(
+            filename: $testAssetFileName,
+            data    : 'previous document',
+        );
+        chmod(
+            filename   : $testAssetFileName,
+            permissions: 0o444,
+        );
+
+        // The destination is replaced by renaming a sibling temporary file over it,
+        // which needs write permission on the directory rather than on the file, so
+        // POSIX replaces a read-only destination. Windows refuses to rename over a
+        // read-only file, so there the write still fails.
+        if ('Windows' === PHP_OS_FAMILY) {
+            $this->expectException(RuntimeException::class);
+        }
+
+        $this->writer->toFile($testAssetFileName, new Config(['test' => 'foo']));
+
+        static::assertNotSame('previous document', file_get_contents($testAssetFileName));
     }
 
     #[Test]
