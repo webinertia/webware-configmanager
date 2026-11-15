@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Cache\ConfigCache;
+use Webware\ConfigManager\Config;
 use Webware\ConfigManager\ConfigAggregator;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Provider\ArrayProvider;
@@ -38,9 +39,37 @@ final class ConfigAggregatorTest extends TestCase
     }
 
     #[Test]
+    public function aMergedConfigIsReadOnly(): void
+    {
+        $aggregator = new ConfigAggregator([new ArrayProvider(['value' => 'merged'])]);
+
+        static::assertTrue($aggregator->isReadOnly());
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Config is read only');
+
+        $aggregator['value'] = 'overwritten';
+    }
+
+    #[Test]
     public function anEmptyProviderListMergesToAnEmptyConfig(): void
     {
         static::assertSame([], new ConfigAggregator()->getMergedConfig());
+    }
+
+    #[Test]
+    public function aNestedArrayInAMergedConfigIsAPlainConfig(): void
+    {
+        // The constructor of this class takes a provider list, so a nested value cannot be
+        // built by forwarding to it. If it were, this would raise a TypeError.
+        $aggregator = new ConfigAggregator([
+            new ArrayProvider(['dependencies' => ['factories' => ['Service' => 'Factory']]]),
+        ]);
+
+        $nested = $aggregator->get('dependencies');
+
+        static::assertInstanceOf(Config::class, $nested);
+        static::assertNotInstanceOf(ConfigAggregator::class, $nested);
+        static::assertSame(['factories' => ['Service' => 'Factory']], $nested->toArray());
     }
 
     #[Test]
@@ -152,6 +181,22 @@ final class ConfigAggregatorTest extends TestCase
     }
 
     #[Test]
+    public function iterationYieldsTheMergedValues(): void
+    {
+        $aggregator = new ConfigAggregator([
+            new ArrayProvider(['a' => 1, 'b' => 2]),
+        ]);
+
+        $seen = [];
+
+        foreach ($aggregator as $key => $value) {
+            $seen[$key] = $value;
+        }
+
+        static::assertSame(['a' => 1, 'b' => 2], $seen);
+    }
+
+    #[Test]
     public function orderingIsAppliedToProvidersFromAPreProcessor(): void
     {
         // The pre-processor's output is the base order and ordering refines it. WinningProvider
@@ -237,6 +282,30 @@ final class ConfigAggregatorTest extends TestCase
         static::assertSame(
             ['config_cache_enabled' => true, 'value' => 'from-providers'],
             $second->getMergedConfig(),
+        );
+    }
+
+    #[Test]
+    public function theMergedConfigIsReadableThroughTheConfigAccessors(): void
+    {
+        // A provider returns an array and a Config consumes one, so the merged result is
+        // the configuration itself rather than an array that has to be wrapped again.
+        $aggregator = new ConfigAggregator([
+            new ArrayProvider(['first' => 'value', 'second' => 2]),
+        ]);
+
+        static::assertSame('value', $aggregator->get('first'));
+        static::assertSame('fallback', $aggregator->get(
+            name   : 'absent',
+            default: 'fallback',
+        ));
+        static::assertSame(2, $aggregator['second']);
+        static::assertTrue($aggregator->offsetExists(offset: 'first'));
+        static::assertFalse($aggregator->offsetExists(offset: 'absent'));
+        static::assertCount(2, $aggregator);
+        static::assertSame(
+            ['first' => 'value', 'second' => 2],
+            $aggregator->toArray(),
         );
     }
 

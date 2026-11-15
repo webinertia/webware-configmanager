@@ -97,7 +97,7 @@ final class ConfigTest extends TestCase
     #[Test]
     public function countAfterMerge()
     {
-        $data = new Config($this->toCombineB);
+        $data = new Config($this->toCombineB, true);
         $data->merge(
             new Config($this->toCombineA),
         );
@@ -290,7 +290,7 @@ final class ConfigTest extends TestCase
             'bSpecific' => 100,
         ];
 
-        $configA = new Config($arrayA);
+        $configA = new Config($arrayA, true);
         $configB = new Config($arrayB);
 
         $configA->merge($configB); // merge B onto A
@@ -390,7 +390,7 @@ final class ConfigTest extends TestCase
     #[Test]
     public function merge()
     {
-        $configA = new Config($this->toCombineA);
+        $configA = new Config($this->toCombineA, true);
         $configB = new Config($this->toCombineB);
         $configA->merge($configB);
 
@@ -453,6 +453,32 @@ final class ConfigTest extends TestCase
         $config2->key->nested = 'no';
 
         static::assertSame('no', $config2->key->nested);
+    }
+
+    #[Test]
+    public function mergeIsRefusedAfterSetReadOnly(): void
+    {
+        $config = new Config(['a' => 'a'], true);
+        $config->merge(new Config(['b' => 'b'], true));
+        $config->setReadOnly();
+
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Config is read only');
+
+        $config->merge(new Config(['c' => 'c'], true));
+    }
+
+    #[Test]
+    public function mergeIsRefusedOnAReadOnlyConfig(): void
+    {
+        // Merging changes the data, so it is refused for the same reason assigning is.
+        // Configuration loaded for reading, such as a cached config, takes this path.
+        $config = new Config(['a' => 'a']);
+
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs('Config is read only');
+
+        $config->merge(new Config(['b' => 'b'], true));
     }
 
     #[Test]
@@ -534,6 +560,16 @@ final class ConfigTest extends TestCase
             condition: $config->one->two->isReadOnly(),
             message  : 'Second level children are writable',
         );
+    }
+
+    #[Test]
+    public function theSourceOfAMergeMayBeReadOnly(): void
+    {
+        // Only the receiver is modified, so a read-only source is usable.
+        $config = new Config(['a' => 'a'], true);
+        $config->merge(new Config(['b' => 'b']));
+
+        static::assertSame(['a' => 'a', 'b' => 'b'], $config->toArray());
     }
 
     /**

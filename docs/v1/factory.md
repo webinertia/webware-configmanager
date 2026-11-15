@@ -233,6 +233,27 @@ $aggregator = new ConfigAggregator(
 return $aggregator->getMergedConfig();
 ```
 
+### It is a Config
+
+`ConfigAggregator` extends `Webware\ConfigManager\Config`. A provider returns an array and
+a `Config` consumes one, so aggregating is how that array comes to exist rather than a
+second container for it. The merged configuration is therefore readable through the same
+accessors as any other `Config`:
+
+```php
+$aggregator->get('dependencies');
+$aggregator['dependencies'];
+count($aggregator);
+$aggregator->toArray();
+```
+
+It is read-only, as a `Config` built for reading is. `getMergedConfig()` is kept because
+it is the aggregator's signature; it returns `toArray()`.
+
+The name is unchanged deliberately. `Laminas\ComponentInstaller`'s aggregator injector
+matches a literal `new ConfigAggregator(`, so a consumer's `composer require` can keep
+registering providers into `config/config.php` after the swap.
+
 ### Cache behaviour
 
 The cache rules are the aggregator's, reproduced rather than tidied, because moving here
@@ -280,3 +301,23 @@ $config = [
 
 Webware\ConfigManager\Factory::toFile(__DIR__ . '/config/my.config.php', $config);
 ```
+
+### Merging an update back into a config file
+
+A Config is read only unless it is built with `$allowModifications`, and `merge()` is a
+modification, so it refuses a read-only receiver for the same reason assigning does. A
+config loaded for reading, including one produced by `ConfigAggregator`, is read only.
+To change it, build a mutable copy:
+
+```php
+$loaded  = new Webware\ConfigManager\ConfigAggregator($providers, $cacheFile);
+$updated = new Webware\ConfigManager\Config($loaded->toArray(), allowModifications: true);
+
+$updated->merge(new Webware\ConfigManager\Config($submitted, allowModifications: true));
+
+Webware\ConfigManager\Factory::toFile($cacheFile, $updated);
+```
+
+Only the receiver is changed, so the Config being merged in may be read only. Merging
+rebuilds the receiver's children rather than patching them in place, so a Config object
+obtained from it before the merge does not observe the change.

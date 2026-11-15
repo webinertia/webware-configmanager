@@ -8,12 +8,12 @@ use ArrayAccess;
 use Countable;
 use Iterator;
 use Override;
+use Webware\ConfigManager\Merge\ConfigMerger;
 
 use function array_key_exists;
 use function count;
 use function current;
 use function is_array;
-use function is_int;
 use function key;
 use function next;
 use function reset;
@@ -62,7 +62,7 @@ class Config implements Countable, Iterator, ArrayAccess
 
         foreach ($array as $key => $value) {
             $this->data[$key] = is_array($value)
-                ? new static($value, $this->allowModifications)
+                ? $this->newNested($value, $this->allowModifications)
                 : $value;
         }
     }
@@ -130,36 +130,34 @@ class Config implements Countable, Iterator, ArrayAccess
     /**
      * Merge another Config with this one.
      *
+     * The rules are the ones {@see ConfigMerger} applies to arrays, which is the same
+     * thing stated once: nested arrays are merged recursively, integer keys append, and
+     * string keys overwrite. Both sides are reduced to arrays first, so a Config merges
+     * exactly as the equivalent arrays would.
+     *
+     * The result is rebuilt rather than patched key by key, which is what lets the nested
+     * construction stay behind {@see newNested()} for a subclass. A consequence is that
+     * children are new objects: a Config held from before the merge does not observe it.
+     *
+     * Merging is a modification, so a read-only Config refuses it for the same reason
+     * assigning to one does. To merge into configuration that was loaded read-only, such
+     * as a cached config, build a mutable copy first.
+     *
      * For duplicate keys, the following will be performed:
      * - Nested Configs will be recursively merged.
      * - Items in $merge with INTEGER keys will be appended.
      * - Items in $merge with STRING keys will overwrite current values.
+     *
+     * @throws Exception\RuntimeException If this Config is read only.
      */
     public function merge(Config $merge): static
     {
-        /** @var mixed $value */
-        foreach ($merge as $key => $value) {
-            if (! array_key_exists($key, $this->data)) {
-                $this->data[$key] = $value instanceof self
-                    ? new static($value->toArray(), $this->allowModifications)
-                    : $value;
-                continue;
-            }
+        $this->assertModifiable();
 
-            if (is_int($key)) {
-                $this->data[] = $value;
-                continue;
-            }
-
-            if ($value instanceof self && $this->data[$key] instanceof self) {
-                $this->data[$key]->merge($value);
-                continue;
-            }
-
-            $this->data[$key] = $value instanceof self
-                ? new static($value->toArray(), $this->allowModifications)
-                : $value;
-        }
+        $this->data = $this->newNested(
+            ConfigMerger::merge($this->toArray(), $merge->toArray()),
+            $this->allowModifications,
+        )->data;
 
         return $this;
     }
@@ -289,6 +287,34 @@ class Config implements Countable, Iterator, ArrayAccess
     }
 
     /**
+     * Build the Config that holds a nested array.
+     *
+     * Children are Configs, not necessarily this subclass. A subclass whose constructor
+     * takes something other than config data cannot be built from a nested array, so
+     * construction is routed through here and an override supplies whatever a nested
+     * value should be. {@see ConfigAggregator} is that case: it builds from a provider
+     * list, so one of its nested values is an ordinary read-only Config.
+     *
+     * @param array<array-key, mixed> $array
+     */
+    protected function newNested(array $array, bool $allowModifications): self
+    {
+        return new static($array, $allowModifications);
+    }
+
+    /**
+     * Refuse a modification when this Config was built read only.
+     *
+     * @throws Exception\RuntimeException If modifications are not allowed.
+     */
+    private function assertModifiable(): void
+    {
+        if (! $this->allowModifications) {
+            throw new Exception\RuntimeException('Config is read only');
+        }
+    }
+
+    /**
      * Deep clone of this instance to ensure that nested Webware\ConfigManager
      * instances are also cloned.
      */
@@ -333,12 +359,10 @@ class Config implements Countable, Iterator, ArrayAccess
      */
     public function __set(string|int|null $name, mixed $value): void
     {
-        if (! $this->allowModifications) {
-            throw new Exception\RuntimeException('Config is read only');
-        }
+        $this->assertModifiable();
 
         if (is_array($value)) {
-            $value = new static($value, true);
+            $value = $this->newNested($value, allowModifications: true);
         }
 
         if (null === $name) {

@@ -168,7 +168,11 @@ The provider contract, the merge rules and the cache semantics are the aggregato
 the provider list needs no rewriting. See [the factory](factory.md) for the provider
 table, the file ordering, and how the cache is read and written.
 
-Once the array is built, `Webware\ConfigManager\Config` gives it object access, and
+`ConfigAggregator` extends `Webware\ConfigManager\Config`, so the merged result is the
+configuration rather than an array that has to be wrapped again: `get()`, array access,
+iteration and `toArray()` all work on it directly. `config/container.php` can therefore
+return the aggregator where it returns a `Config`, with no second construction step.
+
 `Webware\ConfigManager\AbstractConfigFactory` makes its subtrees injectable.
 
 ## Declaring provider order
