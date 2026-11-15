@@ -22,7 +22,7 @@
     "require": {
         "php": "~8.4.1 || ~8.5.0",
         "ext-json": "*",
-        "laminas/laminas-stdlib": "^3.20",
+        "php-standard-library/type": "^6.4.2",
         "psr/container": "^2.0",
         "webware/webware-filewriter": "^1.0.0-alpha.1"
     },

@@ -13,6 +13,7 @@ use Webware\ConfigManager\Reader\ReaderInterface;
 use Webware\ConfigManager\Writer\WriterInterface;
 use Webware\FileWriter\Exception\InvalidArgumentException as WriterInvalidArgumentException;
 use Webware\FileWriter\Exception\RuntimeException as WriterRuntimeException;
+use WebwareTest\ConfigManager\Writer\TestAssets\AggregateWithToArray;
 
 use function chmod;
 use function file_exists;
@@ -119,6 +120,17 @@ abstract class AbstractWriterTestCase extends TestCase
         $this->expectExceptionMessage('expects an array or Traversable config');
 
         $this->writer->toString('not a configuration');
+    }
+
+    #[Test]
+    public function testToStringTrustsAnAggregateThatProvidesItsOwnArrayForm()
+    {
+        // The aggregate iterates a key the writer must not contain, so the rendered
+        // output proves toArray() was used rather than iteration.
+        $content = $this->writer->toString(new AggregateWithToArray(['iterated' => 'fromIterator']));
+
+        static::assertStringContainsString('fromToArray', $content);
+        static::assertStringNotContainsString('fromIterator', $content);
     }
 
     #[Test]

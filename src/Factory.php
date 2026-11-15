@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Webware\ConfigManager;
 
-use Laminas\Stdlib\ArrayUtils;
 use Psr\Container\ContainerInterface;
+use Webware\ConfigManager\Merge\ConfigMerger;
 use Webware\FileWriter\Exception as WriterException;
 
 use function array_key_exists;
@@ -77,7 +77,7 @@ class Factory
      * @param  string  $filename
      * @param  bool $returnConfigObject
      * @param  bool $useIncludePath
-     * @return array|Config
+     * @return ($returnConfigObject is true ? Config : array<array-key, mixed>)
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
      */
@@ -158,7 +158,10 @@ class Factory
         $config = [];
 
         foreach ($files as $file) {
-            $config = ArrayUtils::merge($config, static::fromFile($file, false, $useIncludePath));
+            $config = ConfigMerger::merge(
+                $config,
+                static::fromFile($file, false, $useIncludePath),
+            );
         }
 
         return $returnConfigObject ? new Config($config) : $config;

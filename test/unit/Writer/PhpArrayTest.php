@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager\Writer;
 
+use ArrayIterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use Webware\ConfigManager\Config;
@@ -75,6 +76,25 @@ final class PhpArrayTest extends AbstractWriterTestCase
         $expected .= ");\n";
 
         static::assertEquals($expected, $configString);
+    }
+
+    #[Test]
+    public function testRenderConvertsNestedTraversables()
+    {
+        $configString = $this->writer->toString([
+            'default' => new ArrayIterator(['test' => new ArrayIterator(['deep' => 'foo'])]),
+        ]);
+
+        $expected = "<?php\n";
+        $expected .= "return array(\n";
+        $expected .= "    'default' => array(\n";
+        $expected .= "        'test' => array(\n";
+        $expected .= "            'deep' => 'foo',\n";
+        $expected .= "        ),\n";
+        $expected .= "    ),\n";
+        $expected .= ");\n";
+
+        static::assertSame($expected, $configString);
     }
 
     #[Test]
@@ -176,6 +196,18 @@ final class PhpArrayTest extends AbstractWriterTestCase
     public function testUseClassNameScalarsIsFalseByDefault()
     {
         static::assertFalse($this->writer->getUseClassNameScalars(), 'useClassNameScalars should be false by default');
+    }
+
+    #[Test]
+    public function testWriteAndReadANestedTraversableValue()
+    {
+        $filename = $this->getTestAssetFileName();
+
+        $this->writer->toFile($filename, new Config(['default' => new ArrayIterator(['test' => 'foo'])]));
+
+        $read = $this->reader->fromFile($filename);
+
+        static::assertSame('foo', $read['default']['test']);
     }
 
     #[Test]
