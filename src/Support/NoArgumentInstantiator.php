@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Webware\ConfigManager\Support;
 
 use ReflectionClass;
-use ReflectionException;
 use Webware\ConfigManager\Exception;
 
 use function class_exists;
@@ -32,6 +31,7 @@ final class NoArgumentInstantiator
      * @param string $class The class to build; a missing one is reported, not ignored.
      * @param string $label The noun used in the message, such as "Config provider".
      * @throws Exception\InvalidArgumentException
+     * @mago-expect analysis:unhandled-thrown-type
      */
     public static function instantiate(string $class, string $label): object
     {
@@ -43,41 +43,34 @@ final class NoArgumentInstantiator
             ));
         }
 
-        try {
-            $reflection = new ReflectionClass($class);
+        // Both reflection calls below declare ReflectionException, and neither can raise it
+        // here: class_exists() above has already resolved the name, so construction cannot
+        // fail, and isInstantiable() has already rejected every class that newInstance()
+        // would refuse. That is why the acknowledgement is on the method rather than a
+        // catch that could never run.
+        $reflection = new ReflectionClass($class);
 
-            if (! $reflection->isInstantiable()) {
-                throw new Exception\InvalidArgumentException(sprintf(
-                    '%s class "%s" cannot be instantiated: it is abstract or its constructor '
-                        . 'is not public, so supply an instance instead',
-                    $label,
-                    $class,
-                ));
-            }
-
-            $constructor = $reflection->getConstructor();
-
-            if (null !== $constructor && $constructor->getNumberOfRequiredParameters() > 0) {
-                throw new Exception\InvalidArgumentException(sprintf(
-                    '%s class "%s" cannot be instantiated without arguments: its constructor '
-                        . 'requires %d',
-                    $label,
-                    $class,
-                    $constructor->getNumberOfRequiredParameters(),
-                ));
-            }
-
-            return $reflection->newInstance();
-        } catch (ReflectionException $exception) {
-            // newInstance() declares ReflectionException, and the checks above cover every
-            // documented cause, so this keeps the public contract to our own exception
-            // rather than letting a reflection failure escape.
+        if (! $reflection->isInstantiable()) {
             throw new Exception\InvalidArgumentException(sprintf(
-                '%s class "%s" cannot be instantiated: %s',
+                '%s class "%s" cannot be instantiated: it is abstract or its constructor '
+                    . 'is not public, so supply an instance instead',
                 $label,
                 $class,
-                $exception->getMessage(),
-            ), previous: $exception);
+            ));
         }
+
+        $constructor = $reflection->getConstructor();
+
+        if (null !== $constructor && $constructor->getNumberOfRequiredParameters() > 0) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                '%s class "%s" cannot be instantiated without arguments: its constructor '
+                    . 'requires %d',
+                $label,
+                $class,
+                $constructor->getNumberOfRequiredParameters(),
+            ));
+        }
+
+        return $reflection->newInstance();
     }
 }

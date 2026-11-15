@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Webware\ConfigManager\Provider;
 
 use ReflectionClass;
-use ReflectionException;
 use Webware\ConfigManager\Attribute\LoadAfter;
 use Webware\ConfigManager\Attribute\LoadBefore;
 
@@ -57,6 +56,7 @@ final class DeclarationReader
 
     /**
      * @return ReflectionClass<object>|null
+     * @mago-expect analysis:unhandled-thrown-type
      */
     private static function reflect(mixed $provider): ?ReflectionClass
     {
@@ -70,10 +70,9 @@ final class DeclarationReader
             return null;
         }
 
-        try {
-            return new ReflectionClass($class);
-        } catch (ReflectionException) {
-            return null;
-        }
+        // ReflectionClass::__construct() declares ReflectionException, and class_exists()
+        // above has already resolved the name, so it cannot raise it here. The
+        // acknowledgement is on the method rather than a catch that could never run.
+        return new ReflectionClass($class);
     }
 }
