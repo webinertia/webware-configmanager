@@ -11,11 +11,8 @@ use function array_key_exists;
 use function array_merge_recursive;
 use function array_replace_recursive;
 use function array_shift;
-use function dirname;
 use function explode;
 use function is_array;
-use function is_file;
-use function is_readable;
 use function is_string;
 use function parse_ini_file;
 use function parse_ini_string;
@@ -32,19 +29,12 @@ use const INI_SCANNER_TYPED;
  * INI config reader.
  * @api
  */
-final class Ini implements ReaderInterface
+final class Ini extends AbstractReader
 {
     /**
      * Separator for nesting levels of configuration data identifiers.
      */
     public private(set) string $nestSeparator = '.';
-
-    /**
-     * Directory of the file to process.
-     *
-     * @var string
-     */
-    private ?string $directory = null;
 
     /**
      * Flag which determines whether sections are processed or not.
@@ -60,84 +50,6 @@ final class Ini implements ReaderInterface
      * @see https://www.php.net/parse_ini_file
      */
     public private(set) bool $typedMode = false;
-
-    /**
-     * fromFile(): defined by Reader interface.
-     *
-     * @see    ReaderInterface::fromFile()
-     *
-     * @throws Exception\RuntimeException
-     * @return array<array-key, mixed>
-     */
-    #[Override]
-    public function fromFile(string $filename): array
-    {
-        if (! is_file($filename) || ! is_readable($filename)) {
-            throw new Exception\RuntimeException(sprintf(
-                "File '%s' doesn't exist or not readable",
-                $filename,
-            ));
-        }
-
-        $this->directory = dirname($filename);
-
-        set_error_handler(
-            /**
-             * @throws Exception\RuntimeException If the file cannot be parsed.
-             */
-            static function ($error, $message = '') use ($filename) {
-                throw new Exception\RuntimeException(
-                    sprintf('Error reading INI file "%s": %s', $filename, $message),
-                    $error,
-                );
-            },
-            E_WARNING,
-        );
-
-        try {
-            $ini = parse_ini_file($filename, $this->processSections, $this->getScannerMode());
-        } finally {
-            restore_error_handler();
-        }
-
-        return $this->process($ini);
-    }
-
-    /**
-     * fromString(): defined by Reader interface.
-     *
-     * @throws Exception\RuntimeException
-     * @return array<array-key, mixed>
-     */
-    #[Override]
-    public function fromString(string $string): array
-    {
-        if ('' === $string) {
-            return [];
-        }
-        $this->directory = null;
-
-        set_error_handler(
-            /**
-             * @throws Exception\RuntimeException If the string cannot be parsed.
-             */
-            static function ($error, $message = '') {
-                throw new Exception\RuntimeException(
-                    sprintf('Error reading INI string: %s', $message),
-                    $error,
-                );
-            },
-            E_WARNING,
-        );
-
-        try {
-            $ini = parse_ini_string($string, $this->processSections, $this->getScannerMode());
-        } finally {
-            restore_error_handler();
-        }
-
-        return $this->process($ini);
-    }
 
     /**
      * Get the scanner-mode constant value to be used with the built-in parse_ini_file function.
@@ -188,6 +100,68 @@ final class Ini implements ReaderInterface
         $this->typedMode = $typedMode;
 
         return $this;
+    }
+
+    /**
+     * Read a file whose existence has already been checked.
+     *
+     * @throws Exception\RuntimeException If the file cannot be parsed.
+     * @return array<array-key, mixed>
+     */
+    #[Override]
+    protected function readFile(string $filename): array
+    {
+        set_error_handler(
+            /**
+             * @throws Exception\RuntimeException If the file cannot be parsed.
+             */
+            static function ($error, $message = '') use ($filename) {
+                throw new Exception\RuntimeException(
+                    sprintf('Error reading INI file "%s": %s', $filename, $message),
+                    $error,
+                );
+            },
+            E_WARNING,
+        );
+
+        try {
+            $ini = parse_ini_file($filename, $this->processSections, $this->getScannerMode());
+        } finally {
+            restore_error_handler();
+        }
+
+        return $this->process($ini);
+    }
+
+    /**
+     * Read a document that did not come from a file.
+     *
+     * @throws Exception\RuntimeException If the document cannot be parsed.
+     * @return array<array-key, mixed>
+     */
+    #[Override]
+    protected function readString(string $string): array
+    {
+        set_error_handler(
+            /**
+             * @throws Exception\RuntimeException If the document cannot be parsed.
+             */
+            static function ($error, $message = '') {
+                throw new Exception\RuntimeException(
+                    sprintf('Error reading INI string: %s', $message),
+                    $error,
+                );
+            },
+            E_WARNING,
+        );
+
+        try {
+            $ini = parse_ini_string($string, $this->processSections, $this->getScannerMode());
+        } finally {
+            restore_error_handler();
+        }
+
+        return $this->process($ini);
     }
 
     /**

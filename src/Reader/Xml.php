@@ -12,8 +12,6 @@ use function array_key_exists;
 use function array_replace;
 use function in_array;
 use function is_array;
-use function is_file;
-use function is_readable;
 use function is_string;
 use function restore_error_handler;
 use function set_error_handler;
@@ -26,7 +24,7 @@ use const LIBXML_XINCLUDE;
  * XML config reader.
  * @api
  */
-final class Xml implements ReaderInterface
+final class Xml extends AbstractReader
 {
     /**
      * XML Reader instance.
@@ -53,22 +51,14 @@ final class Xml implements ReaderInterface
     ];
 
     /**
-     * fromFile(): defined by Reader interface.
+     * Read a file whose existence has already been checked.
      *
-     * @see    ReaderInterface::fromFile()
-     *
-     * @throws Exception\RuntimeException
+     * @throws Exception\RuntimeException If the document cannot be parsed.
      * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromFile(string $filename): array
+    protected function readFile(string $filename): array
     {
-        if (! is_file($filename) || ! is_readable($filename)) {
-            throw new Exception\RuntimeException(sprintf(
-                "File '%s' doesn't exist or not readable",
-                $filename,
-            ));
-        }
         $this->reader = new XMLReader();
         $this->reader->open(
             uri     : $filename,
@@ -76,7 +66,7 @@ final class Xml implements ReaderInterface
             flags   : LIBXML_XINCLUDE,
         );
 
-        set_error_handler(
+        return $this->readDocument(
             /**
              * @throws Exception\RuntimeException If the document cannot be parsed.
              */
@@ -86,36 +76,18 @@ final class Xml implements ReaderInterface
                     $error,
                 );
             },
-            E_WARNING,
         );
-
-        try {
-            $return = $this->process();
-        } finally {
-            restore_error_handler();
-            $this->reader->close();
-        }
-
-        // A document whose root holds only text parsed to a bare string before typing;
-        // the array contract rejects it here instead.
-        // @mago-expect analysis:invalid-return-statement
-        return $return;
     }
 
     /**
-     * fromString(): defined by Reader interface.
+     * Read a document that did not come from a file.
      *
-     * @see    ReaderInterface::fromString()
-     *
-     * @throws Exception\RuntimeException
+     * @throws Exception\RuntimeException If the document cannot be parsed.
      * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromString(string $string): array
+    protected function readString(string $string): array
     {
-        if ('' === $string) {
-            return [];
-        }
         $this->reader = new XMLReader();
 
         $this->reader->XML(
@@ -124,7 +96,7 @@ final class Xml implements ReaderInterface
             flags   : LIBXML_XINCLUDE,
         );
 
-        set_error_handler(
+        return $this->readDocument(
             /**
              * @throws Exception\RuntimeException If the document cannot be parsed.
              */
@@ -134,20 +106,7 @@ final class Xml implements ReaderInterface
                     $error,
                 );
             },
-            E_WARNING,
         );
-
-        try {
-            $return = $this->process();
-        } finally {
-            restore_error_handler();
-            $this->reader->close();
-        }
-
-        // A document whose root holds only text parsed to a bare string before typing;
-        // the array contract rejects it here instead.
-        // @mago-expect analysis:invalid-return-statement
-        return $return;
     }
 
     /**
@@ -232,5 +191,31 @@ final class Xml implements ReaderInterface
         }
 
         return [] === $children ? $text : $children;
+    }
+
+    /**
+     * Walk the open document, turning a parse warning into the package exception.
+     *
+     * The handler is installed around the walk only, so a warning raised while opening is
+     * left alone, and it is always restored, so a throw cannot leave it installed.
+     *
+     * @param callable(int, string): never $onWarning
+     * @return array<array-key, mixed>
+     */
+    private function readDocument(callable $onWarning): array
+    {
+        set_error_handler($onWarning, E_WARNING);
+
+        try {
+            $return = $this->process();
+        } finally {
+            restore_error_handler();
+            $this->reader->close();
+        }
+
+        // A document whose root holds only text parsed to a bare string before typing;
+        // the array contract rejects it here instead.
+        // @mago-expect analysis:invalid-return-statement
+        return $return;
     }
 }

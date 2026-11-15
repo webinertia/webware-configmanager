@@ -7,30 +7,17 @@ namespace Webware\ConfigManager\Reader;
 use Override;
 use Webware\ConfigManager\Exception;
 
-use function array_replace_recursive;
 use function call_user_func;
-use function dirname;
 use function file_get_contents;
 use function function_exists;
-use function is_array;
 use function is_callable;
-use function is_file;
-use function is_readable;
-use function is_string;
-use function sprintf;
-use function trim;
 
 /**
  * YAML config reader.
  * @api
  */
-final class Yaml implements ReaderInterface
+final class Yaml extends AbstractReader
 {
-    /**
-     * Directory of the YAML file
-     */
-    private ?string $directory = null;
-
     /**
      * YAML decoder callback
      *
@@ -51,47 +38,6 @@ final class Yaml implements ReaderInterface
         if (function_exists('yaml_parse')) {
             $this->setYamlDecoder('yaml_parse');
         }
-    }
-
-    /**
-     * fromFile(): defined by Reader interface.
-     *
-     * @see    ReaderInterface::fromFile()
-     * @throws Exception\RuntimeException If the file cannot be read or parsed.
-     * @return array<array-key, mixed>
-     */
-    #[Override]
-    public function fromFile(string $filename): array
-    {
-        if (! is_file($filename) || ! is_readable($filename)) {
-            throw new Exception\RuntimeException(sprintf(
-                "File '%s' doesn't exist or not readable",
-                $filename,
-            ));
-        }
-
-        $this->directory = dirname($filename);
-
-        return $this->process($this->decode(file_get_contents($filename)));
-    }
-
-    /**
-     * fromString(): defined by Reader interface.
-     *
-     * @see    ReaderInterface::fromString()
-     * @throws Exception\RuntimeException If the string cannot be parsed.
-     * @return array<array-key, mixed>
-     */
-    #[Override]
-    public function fromString(string $string): array
-    {
-        if ('' === $string) {
-            return [];
-        }
-
-        $this->directory = null;
-
-        return $this->process($this->decode($string));
     }
 
     /**
@@ -119,6 +65,36 @@ final class Yaml implements ReaderInterface
         return $this;
     }
 
+    #[Override]
+    protected function includeStatementMessage(): string
+    {
+        return 'Cannot process @include statement for a json string';
+    }
+
+    /**
+     * Read a file whose existence has already been checked.
+     *
+     * @throws Exception\RuntimeException If the file cannot be parsed.
+     * @return array<array-key, mixed>
+     */
+    #[Override]
+    protected function readFile(string $filename): array
+    {
+        return $this->withIncludes($this->decode(file_get_contents($filename)));
+    }
+
+    /**
+     * Read a document that did not come from a file.
+     *
+     * @throws Exception\RuntimeException If the document cannot be parsed.
+     * @return array<array-key, mixed>
+     */
+    #[Override]
+    protected function readString(string $string): array
+    {
+        return $this->withIncludes($this->decode($string));
+    }
+
     /**
      * Decode a YAML document into an array.
      *
@@ -139,33 +115,5 @@ final class Yaml implements ReaderInterface
 
         // @mago-expect analysis:mixed-return-statement
         return $config;
-    }
-
-    /**
-     * Process the array for @include
-     *
-     * @param array<array-key, mixed> $data
-     * @return array<array-key, mixed>
-     * @throws Exception\RuntimeException
-     */
-    private function process(array $data): array
-    {
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $data[$key] = $this->process($value);
-            }
-
-            if (is_string($key) && trim($key) === '@include') {
-                if (null === $this->directory) {
-                    throw new Exception\RuntimeException('Cannot process @include statement for a json string');
-                }
-
-                $reader = clone $this;
-                unset($data[$key]);
-                $data = array_replace_recursive($data, $reader->fromFile("{$this->directory}/{$value}"));
-            }
-        }
-
-        return $data;
     }
 }
