@@ -170,3 +170,28 @@ table, the file ordering, and how the cache is read and written.
 
 Once the array is built, `Webware\ConfigManager\Config` gives it object access, and
 `Webware\ConfigManager\AbstractConfigFactory` makes its subtrees injectable.
+
+## Declaring provider order
+
+A provider list cannot express merge order reliably, because the component installer
+prepends every provider it adds. A provider can declare its own position instead, which
+keeps the knowledge in the package that owns it:
+
+```php
+use Mezzio\LaminasView\ConfigProvider as LaminasViewConfigProvider;
+use Webware\ConfigManager\Attribute\LoadAfter;
+
+#[LoadAfter(LaminasViewConfigProvider::class)]
+final class ConfigProvider
+{
+    public function __invoke(): array
+    {
+        // ...
+    }
+}
+```
+
+`LoadAfter` and `LoadBefore` both accept several targets and both may be repeated. A
+provider that declares nothing keeps its position, and a target that is not installed is
+ignored, so adding this changes nothing until a declaration exists. See
+[the factory](factory.md#controlling-the-order-providers-are-merged) for the full rules.

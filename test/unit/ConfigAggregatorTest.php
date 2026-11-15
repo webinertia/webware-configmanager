@@ -11,6 +11,9 @@ use Webware\ConfigManager\Cache\ConfigCache;
 use Webware\ConfigManager\ConfigAggregator;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Provider\ArrayProvider;
+use WebwareTest\ConfigManager\Processor\TestAssets\AddsInjectedProviderPreProcessor;
+use WebwareTest\ConfigManager\Provider\OrderTestAssets\BaseKeyProvider;
+use WebwareTest\ConfigManager\Provider\OrderTestAssets\WinningProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\ArrayConfigProvider;
 
 use function file_put_contents;
@@ -62,6 +65,119 @@ final class ConfigAggregatorTest extends TestCase
             $aggregator->getMergedConfig(),
         );
         static::assertFileDoesNotExist($this->path);
+    }
+
+    #[Test]
+    public function anUnusableProcessorIsReported(): void
+    {
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('A config processor must be a class-string or a callable; received "int"');
+
+        new ConfigAggregator([new ArrayProvider([])], null, [42]);
+    }
+
+    #[Test]
+    public function aPostProcessorThatDoesNotReturnAnArrayIsReported(): void
+    {
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(
+            'A config post-processor must return an array; it returned "string"',
+        );
+
+        new ConfigAggregator([new ArrayProvider([])], null, [static fn(array $c): string => 'nope']);
+    }
+
+    #[Test]
+    public function aPostProcessorTransformsTheMergedConfig(): void
+    {
+        $stamp = static fn(array $config): array => [...$config, 'stamped' => true];
+
+        $aggregator = new ConfigAggregator(
+            [new ArrayProvider(['named' => true])],
+            null,
+            [$stamp],
+        );
+
+        static::assertSame(['named' => true, 'stamped' => true], $aggregator->getMergedConfig());
+    }
+
+    #[Test]
+    public function aPreProcessorThatDoesNotReturnAnIterableIsReported(): void
+    {
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(
+            'A config pre-processor must return an iterable of providers; it returned "string"',
+        );
+
+        new ConfigAggregator([new ArrayProvider([])], null, [], [static fn(iterable $p): string => 'nope']);
+    }
+
+    #[Test]
+    public function aPreProcessorTransformsTheProviderList(): void
+    {
+        // A pre-processor receives the provider list and returns a replacement, so it can
+        // inject providers the caller did not name.
+        $appended = static function (iterable $providers): array {
+            $list = [];
+            foreach ($providers as $provider) {
+                $list[] = $provider;
+            }
+
+            $list[] = new ArrayProvider(['injected' => true]);
+
+            return $list;
+        };
+
+        $aggregator = new ConfigAggregator(
+            [new ArrayProvider(['named' => true])],
+            null,
+            [],
+            [$appended],
+        );
+
+        static::assertSame(['named' => true, 'injected' => true], $aggregator->getMergedConfig());
+    }
+
+    #[Test]
+    public function aProcessorClassStringIsInstantiated(): void
+    {
+        $aggregator = new ConfigAggregator(
+            [new ArrayProvider(['named' => true])],
+            null,
+            [],
+            [AddsInjectedProviderPreProcessor::class],
+        );
+
+        static::assertSame(['named' => true, 'injected' => true], $aggregator->getMergedConfig());
+    }
+
+    #[Test]
+    public function orderingIsAppliedToProvidersFromAPreProcessor(): void
+    {
+        // The pre-processor's output is the base order and ordering refines it. WinningProvider
+        // is listed FIRST, which is what the installer does to a newly installed package, and
+        // it must still win the shared key.
+        $installerOrder = static fn(iterable $providers): array => [
+            WinningProvider::class,
+            BaseKeyProvider::class,
+        ];
+
+        $aggregator = new ConfigAggregator([new ArrayProvider([])], null, [], [$installerOrder]);
+
+        static::assertSame(['shared' => 'winner'], $aggregator->getMergedConfig());
+    }
+
+    #[Test]
+    public function postProcessorsAreTheThirdArgumentAndPreProcessorsTheFourth(): void
+    {
+        // The aggregator's order is post then pre, which is unintuitive. A caller using
+        // positional arguments must not have them swapped.
+        $appended = static fn(iterable $providers): array => [new ArrayProvider(['pre' => true])];
+        $stamp    = static fn(array $config): array => [...$config, 'post' => true];
+
+        $aggregator = new ConfigAggregator([new ArrayProvider(['named' => true])], null, [$stamp], [$appended]);
+
+        static::assertSame(['pre' => true, 'post' => true], $aggregator->getMergedConfig());
     }
 
     #[Test]

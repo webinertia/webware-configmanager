@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Webware\ConfigManager\Provider;
 
 use Generator;
-use ReflectionClass;
-use ReflectionException;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Merge\ConfigMerger;
+use Webware\ConfigManager\Support\NoArgumentInstantiator;
 
 use function array_key_exists;
 use function array_map;
-use function class_exists;
 use function get_debug_type;
 use function is_array;
 use function is_callable;
@@ -94,6 +92,10 @@ final class ConfigProviderResolver
     /**
      * Merge every provider's output into a single configuration array.
      *
+     * Providers are ordered by their own declarations before anything runs, so a package
+     * installed last does not lose the keys it shares with a package it builds on. See
+     * {@see ProviderOrderResolver}.
+     *
      * @param iterable<class-string|callable> $providers
      * @return array<array-key, mixed>
      * @throws Exception\InvalidArgumentException
@@ -102,7 +104,7 @@ final class ConfigProviderResolver
     {
         $config = [];
 
-        foreach ($this->resolve($providers) as $provider) {
+        foreach ($this->resolve(new ProviderOrderResolver()->order($providers)) as $provider) {
             $contribution = $provider();
 
             // A provider may stream several arrays rather than return one, which is how
@@ -155,56 +157,12 @@ final class ConfigProviderResolver
      */
     private function instantiate(string $class): callable
     {
-        if (! class_exists($class)) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'Config provider class "%s" does not exist',
-                $class,
-            ));
-        }
-
         // Instantiated with no arguments, matching the aggregator. A provider that needs
         // collaborators is supplied as an instance instead.
-        //
-        // isInstantiable() is checked before instantiating because an abstract class
-        // raises Error rather than ReflectionException, and a class with a non-public
-        // constructor raises ReflectionException. Checking first turns both into one
-        // reported mistake without catching Error. The required-parameter check does the
-        // same for a constructor that demands arguments, which would otherwise escape as
-        // an ArgumentCountError.
-        try {
-            $reflection = new ReflectionClass($class);
-
-            if (! $reflection->isInstantiable()) {
-                throw new Exception\InvalidArgumentException(sprintf(
-                    'Config provider class "%s" cannot be instantiated: it is abstract or '
-                        . 'its constructor is not public, so supply an instance instead',
-                    $class,
-                ));
-            }
-
-            $constructor = $reflection->getConstructor();
-            $required    = null === $constructor ? 0 : $constructor->getNumberOfRequiredParameters();
-
-            if ($required > 0) {
-                throw new Exception\InvalidArgumentException(sprintf(
-                    'Config provider class "%s" cannot be instantiated without arguments: '
-                        . 'its constructor requires %d',
-                    $class,
-                    $required,
-                ));
-            }
-
-            $instance = $reflection->newInstance();
-        } catch (ReflectionException $exception) {
-            // newInstance() declares ReflectionException. isInstantiable() above covers
-            // every documented cause, so this is a guard rather than a reachable path;
-            // it stays so the public contract reports only our own exception.
-            throw new Exception\InvalidArgumentException(sprintf(
-                'Config provider class "%s" cannot be instantiated: %s',
-                $class,
-                $exception->getMessage(),
-            ), previous: $exception);
-        }
+        $instance = NoArgumentInstantiator::instantiate(
+            class: $class,
+            label: 'Config provider',
+        );
 
         if (! is_callable($instance)) {
             throw new Exception\InvalidArgumentException(sprintf(

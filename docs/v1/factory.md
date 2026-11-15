@@ -140,6 +140,75 @@ the pattern produced. That order is the part that matters, and it is reproduced 
 order, then `local.php`, then every `*.local.php`. A file that does not return an array is
 reported with its path.
 
+## Controlling the order providers are merged
+
+Order decides which provider wins a shared key, and a provider list cannot express that
+reliably on its own: `laminas-component-installer` **prepends** every provider it writes to
+`config/config.php`, so a package installed last loads first and loses every key it shares
+with a package it builds on. The usual workaround is editing the array by hand after each
+install.
+
+A provider now declares its own position, which puts the decision where the knowledge is:
+the package that must override something.
+
+```php
+namespace Webware\Theme;
+
+use Mezzio\LaminasView\ConfigProvider as LaminasViewConfigProvider;
+use Webware\ConfigManager\Attribute\LoadAfter;
+
+#[LoadAfter(LaminasViewConfigProvider::class)]
+final class ConfigProvider
+{
+    public function __invoke(): array
+    {
+        // ...
+    }
+}
+```
+
+Two attributes are available:
+
+| Attribute | Meaning |
+|---|---|
+| `#[LoadAfter(Target::class, ...)]` | This provider is merged **after** every listed provider |
+| `#[LoadBefore(Target::class, ...)]` | This provider is merged **before** every listed provider |
+
+Both accept several targets in one attribute, both may appear more than once, and both may
+be used together. They require no interface and no dependency on this package in order to
+be written: a PHP attribute is only checked against its class when it is instantiated, so a
+`use` import of the attribute is enough, and the declaration is inert wherever this package
+is not installed.
+
+Three rules make the behaviour safe to rely on:
+
+- **Providers that declare nothing keep their position.** The sort is stable, so a list
+  with no declarations is merged in exactly the order it always was. Enabling this changes
+  nothing until a declaration exists.
+- **A target that is not installed is ignored.** A package cannot know which of its peers
+  the host application uses, so a dangling reference is ordinary rather than an error.
+- **A cycle is reported.** If the declarations demand an order that loops, an
+  `InvalidArgumentException` names the providers involved. Silently picking a winner is how
+  the problem this feature exists to solve would come back.
+
+The order is applied by `Provider\ProviderOrderResolver`, which runs inside
+`ConfigProviderResolver::aggregate()` and therefore applies to `Factory::fromProviders()`
+and `ConfigAggregator` alike. Nothing has to be wired up.
+
+### Ordering with the laminas aggregator
+
+A consumer still on `Laminas\ConfigAggregator\ConfigAggregator` can apply the same ordering
+through the aggregator's `preProcessors` hook, passing the resolver:
+
+```php
+$aggregator = new Laminas\ConfigAggregator\ConfigAggregator(
+    providers       : $providers,
+    cachedConfigFile: null,
+    postProcessors  : [],
+    preProcessors   : [new Webware\ConfigManager\Provider\ProviderOrderResolver()],
+);
+```
+
 ## Replacing the Laminas config aggregator
 
 `Webware\ConfigManager\ConfigAggregator` takes the same constructor arguments as
