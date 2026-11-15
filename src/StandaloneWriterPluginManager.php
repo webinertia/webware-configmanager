@@ -6,6 +6,7 @@ namespace Webware\ConfigManager;
 
 use Override;
 use Psr\Container\ContainerInterface;
+use Webware\ConfigManager\Support\NoArgumentInstantiator;
 
 use function in_array;
 use function sprintf;
@@ -19,16 +20,6 @@ use function sprintf;
  */
 final class StandaloneWriterPluginManager implements ContainerInterface
 {
-    /** @var list<class-string<Writer\AbstractWriter>> */
-    private const array PLUGINS = [
-        Writer\Ini::class,
-        Writer\JavaProperties::class,
-        Writer\Json::class,
-        Writer\PhpArray::class,
-        Writer\Xml::class,
-        Writer\Yaml::class,
-    ];
-
     /**
      * @throws Exception\InvalidArgumentException
      * @throws Exception\PluginNotFoundException
@@ -36,23 +27,33 @@ final class StandaloneWriterPluginManager implements ContainerInterface
     #[Override]
     public function get(string $id): Writer\AbstractWriter
     {
-        return match ($id) {
-            Writer\Ini::class            => new Writer\Ini(),
-            Writer\JavaProperties::class => new Writer\JavaProperties(),
-            Writer\Json::class           => new Writer\Json(),
-            Writer\PhpArray::class       => new Writer\PhpArray(),
-            Writer\Xml::class            => new Writer\Xml(),
-            Writer\Yaml::class           => new Writer\Yaml(),
-            default                      => throw new Exception\PluginNotFoundException(sprintf(
+        if (! $this->has($id)) {
+            throw new Exception\PluginNotFoundException(sprintf(
                 'Config writer plugin by name %s not found',
                 $id,
-            )),
-        };
+            ));
+        }
+
+        /** @var class-string<Writer\AbstractWriter> $id */
+        $writer = NoArgumentInstantiator::instantiate(
+            class: $id,
+            label: 'Config writer',
+        );
+
+        if (! $writer instanceof Writer\AbstractWriter) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                '%s is not an instance of %s',
+                $id,
+                Writer\AbstractWriter::class,
+            ));
+        }
+
+        return $writer;
     }
 
     #[Override]
     public function has(string $id): bool
     {
-        return in_array($id, self::PLUGINS, strict: true);
+        return in_array($id, PluginRegistry::writerClasses(), strict: true);
     }
 }

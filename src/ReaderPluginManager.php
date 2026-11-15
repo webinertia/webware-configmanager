@@ -28,22 +28,16 @@ final class ReaderPluginManager extends AbstractSingleInstancePluginManager
     /** @var class-string<Reader\ReaderInterface> */
     protected string $instanceOf = Reader\ReaderInterface::class;
 
-    /** @var array<class-string<Reader\ReaderInterface>, class-string<InvokableFactory>> */
-    private const array FACTORIES = [
-        Reader\Ini::class            => InvokableFactory::class,
-        Reader\Json::class           => InvokableFactory::class,
-        Reader\Xml::class            => InvokableFactory::class,
-        Reader\Yaml::class           => InvokableFactory::class,
-        Reader\JavaProperties::class => InvokableFactory::class,
-    ];
-
     /**
      * @param array<array-key, mixed> $config
      */
     public function __construct(ContainerInterface $creationContext, array $config = [])
     {
         /** @var ServiceManagerConfiguration $merged */
-        $merged = array_replace_recursive(['factories' => self::FACTORIES], $config);
+        $merged = array_replace_recursive(
+            ['factories' => PluginRegistry::factoryMap(PluginRegistry::readerClasses(), InvokableFactory::class)],
+            $config,
+        );
 
         parent::__construct($creationContext, $merged);
     }

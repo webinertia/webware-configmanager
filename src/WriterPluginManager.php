@@ -28,23 +28,16 @@ final class WriterPluginManager extends AbstractSingleInstancePluginManager
     /** @var class-string<Writer\AbstractWriter> */
     protected string $instanceOf = Writer\AbstractWriter::class;
 
-    /** @var array<class-string<Writer\AbstractWriter>, class-string<InvokableFactory>> */
-    private const array FACTORIES = [
-        Writer\Ini::class            => InvokableFactory::class,
-        Writer\JavaProperties::class => InvokableFactory::class,
-        Writer\Json::class           => InvokableFactory::class,
-        Writer\PhpArray::class       => InvokableFactory::class,
-        Writer\Xml::class            => InvokableFactory::class,
-        Writer\Yaml::class           => InvokableFactory::class,
-    ];
-
     /**
      * @param array<array-key, mixed> $config
      */
     public function __construct(ContainerInterface $creationContext, array $config = [])
     {
         /** @var ServiceManagerConfiguration $merged */
-        $merged = array_replace_recursive(['factories' => self::FACTORIES], $config);
+        $merged = array_replace_recursive(
+            ['factories' => PluginRegistry::factoryMap(PluginRegistry::writerClasses(), InvokableFactory::class)],
+            $config,
+        );
 
         parent::__construct($creationContext, $merged);
     }

@@ -6,6 +6,7 @@ namespace Webware\ConfigManager;
 
 use Override;
 use Psr\Container\ContainerInterface;
+use Webware\ConfigManager\Support\NoArgumentInstantiator;
 
 use function in_array;
 use function sprintf;
@@ -19,15 +20,6 @@ use function sprintf;
  */
 final class StandaloneReaderPluginManager implements ContainerInterface
 {
-    /** @var list<class-string<Reader\ReaderInterface>> */
-    private const array PLUGINS = [
-        Reader\Ini::class,
-        Reader\Json::class,
-        Reader\Xml::class,
-        Reader\Yaml::class,
-        Reader\JavaProperties::class,
-    ];
-
     /**
      * @throws Exception\InvalidArgumentException
      * @throws Exception\PluginNotFoundException
@@ -35,22 +27,33 @@ final class StandaloneReaderPluginManager implements ContainerInterface
     #[Override]
     public function get(string $id): Reader\ReaderInterface
     {
-        return match ($id) {
-            Reader\Ini::class            => new Reader\Ini(),
-            Reader\Json::class           => new Reader\Json(),
-            Reader\Xml::class            => new Reader\Xml(),
-            Reader\Yaml::class           => new Reader\Yaml(),
-            Reader\JavaProperties::class => new Reader\JavaProperties(),
-            default                      => throw new Exception\PluginNotFoundException(sprintf(
+        if (! $this->has($id)) {
+            throw new Exception\PluginNotFoundException(sprintf(
                 'Config reader plugin by name %s not found',
                 $id,
-            )),
-        };
+            ));
+        }
+
+        /** @var class-string<Reader\ReaderInterface> $id */
+        $reader = NoArgumentInstantiator::instantiate(
+            class: $id,
+            label: 'Config reader',
+        );
+
+        if (! $reader instanceof Reader\ReaderInterface) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                '%s is not an instance of %s',
+                $id,
+                Reader\ReaderInterface::class,
+            ));
+        }
+
+        return $reader;
     }
 
     #[Override]
     public function has(string $id): bool
     {
-        return in_array($id, self::PLUGINS, strict: true);
+        return in_array($id, PluginRegistry::readerClasses(), strict: true);
     }
 }
