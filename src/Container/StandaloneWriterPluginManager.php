@@ -38,8 +38,10 @@ final class StandaloneWriterPluginManager implements ContainerInterface
 
         /**
          * The registry lists only writers, and PluginRegistryTest asserts it, so the built
-         * instance is a writer. The alternative was an instanceof check that could never
-         * fail, which is a branch no test can reach.
+         * instance is a writer. Instantiating directly here was tried and rejected: a
+         * `class-string<AbstractWriter>` whose constructor is not final is flagged as an
+         * unsafe instantiation at every site, so inlining trades one acknowledgement inside
+         * ProviderFactory for one per manager.
          *
          * @var class-string<Writer\AbstractWriter> $id
          * @var Writer\AbstractWriter

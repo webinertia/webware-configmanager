@@ -41,6 +41,11 @@ final class StandaloneReaderPluginManager implements ContainerInterface
          * instance is a reader. The alternative was an instanceof check that could never
          * fail, which is a branch no test can reach.
          *
+         * Instantiating directly here was tried and rejected: a `class-string<ReaderInterface>`
+         * whose interface constructor is not final is flagged as an unsafe instantiation at
+         * every site, so inlining trades one acknowledgement inside ProviderFactory for one
+         * per manager.
+         *
          * @var class-string<Reader\ReaderInterface> $id
          * @var Reader\ReaderInterface
          */

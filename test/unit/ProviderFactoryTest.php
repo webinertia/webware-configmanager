@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager;
 
+use ArgumentCountError;
+use Error;
 use Not\A\Real\Thing;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,8 +16,6 @@ use Webware\ConfigManager\ProviderFactory;
 use WebwareTest\ConfigManager\Provider\TestAssets\AbstractConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\ArrayConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\RequiresArgumentConfigProvider;
-
-use function sprintf;
 
 #[CoversClass(ProviderFactory::class)]
 final class ProviderFactoryTest extends TestCase
@@ -56,17 +56,11 @@ final class ProviderFactoryTest extends TestCase
     }
 
     #[Test]
-    public function anAbstractClassIsReportedRatherThanRaisingAnError(): void
+    public function anAbstractClassRaisesAnError(): void
     {
-        // newInstance() on an abstract class raises Error, so the check has to come first.
-        $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            sprintf(
-                'Config processor class "%s" cannot be instantiated: it is abstract or its '
-                    . 'constructor is not public, so supply an instance instead',
-                AbstractConfigProvider::class,
-            ),
-        );
+        // Not recovered from: nothing here can choose a concrete subclass, so PHP's own
+        // error is the honest report.
+        $this->expectException(Error::class);
 
         ProviderFactory::create(
             class: AbstractConfigProvider::class,
@@ -75,16 +69,12 @@ final class ProviderFactoryTest extends TestCase
     }
 
     #[Test]
-    public function aRequiredConstructorArgumentIsReportedWithItsCount(): void
+    public function aRequiredConstructorArgumentRaisesAnArgumentCountError(): void
     {
-        $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessageIs(
-            sprintf(
-                'Config provider class "%s" cannot be instantiated without arguments: '
-                    . 'its constructor requires 1',
-                RequiresArgumentConfigProvider::class,
-            ),
-        );
+        // A provider that needs its dependencies injected cannot be built at merge time,
+        // because nothing in this path holds a container. ArgumentCountError names the
+        // class, the constructor and the count, so it is not caught and reworded.
+        $this->expectException(ArgumentCountError::class);
 
         ProviderFactory::create(
             class: RequiresArgumentConfigProvider::class,
