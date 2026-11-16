@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Webware\ConfigManager;
+namespace Webware\ConfigManager\Container;
 
 use Laminas\ServiceManager\AbstractSingleInstancePluginManager;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 use Laminas\ServiceManager\ServiceManager;
 use Psr\Container\ContainerInterface;
+use Webware\ConfigManager\Writer;
 
 use function array_replace_recursive;
 

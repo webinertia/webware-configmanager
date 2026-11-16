@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Webware\ConfigManager;
+namespace Webware\ConfigManager\Container;
+
+use Webware\ConfigManager\Reader;
+use Webware\ConfigManager\Writer;
 
 /**
  * The plugins this package ships, named once.
@@ -21,11 +24,48 @@ namespace Webware\ConfigManager;
  * the plugin manager factories is the caller's job, because doing it here would make this
  * class unloadable for a consumer that never installs the service manager.
  *
+ * The shapes below name every key and pin each key to the one concrete class it selects. A
+ * looser `array<string, class-string<ReaderInterface>>` would permit the interface itself,
+ * which is exactly what an instantiation cannot accept, so the shape is what makes the
+ * mapping reviewable at a glance.
+ *
+ * @type ReaderAliases = array{
+ *     ini: class-string<Reader\Ini>,
+ *     json: class-string<Reader\Json>,
+ *     xml: class-string<Reader\Xml>,
+ *     yaml: class-string<Reader\Yaml>,
+ *     yml: class-string<Reader\Yaml>,
+ *     properties: class-string<Reader\JavaProperties>,
+ * }
+ * @type ReaderClasses = array{
+ *     class-string<Reader\Ini>,
+ *     class-string<Reader\Json>,
+ *     class-string<Reader\Xml>,
+ *     class-string<Reader\Yaml>,
+ *     class-string<Reader\JavaProperties>,
+ * }
+ * @type WriterAliases = array{
+ *     php: class-string<Writer\PhpArray>,
+ *     ini: class-string<Writer\Ini>,
+ *     json: class-string<Writer\Json>,
+ *     xml: class-string<Writer\Xml>,
+ *     yaml: class-string<Writer\Yaml>,
+ *     yml: class-string<Writer\Yaml>,
+ * }
+ * @type WriterClasses = array{
+ *     class-string<Writer\Ini>,
+ *     class-string<Writer\JavaProperties>,
+ *     class-string<Writer\Json>,
+ *     class-string<Writer\PhpArray>,
+ *     class-string<Writer\Xml>,
+ *     class-string<Writer\Yaml>,
+ * }
+ *
  * @internal
  */
 final class PluginRegistry
 {
-    /** @var list<class-string<Reader\ReaderInterface>> */
+    /** @var ReaderClasses */
     private const array READER_CLASSES = [
         Reader\Ini::class,
         Reader\Json::class,
@@ -34,7 +74,7 @@ final class PluginRegistry
         Reader\JavaProperties::class,
     ];
 
-    /** @var list<class-string<Writer\AbstractWriter>> */
+    /** @var WriterClasses */
     private const array WRITER_CLASSES = [
         Writer\Ini::class,
         Writer\JavaProperties::class,
@@ -44,7 +84,7 @@ final class PluginRegistry
         Writer\Yaml::class,
     ];
 
-    /** @var array<string, class-string<Reader\ReaderInterface>> */
+    /** @var ReaderAliases */
     private const array READER_EXTENSIONS = [
         'ini'        => Reader\Ini::class,
         'json'       => Reader\Json::class,
@@ -54,7 +94,7 @@ final class PluginRegistry
         'properties' => Reader\JavaProperties::class,
     ];
 
-    /** @var array<string, class-string<Writer\AbstractWriter>> */
+    /** @var WriterAliases */
     private const array WRITER_EXTENSIONS = [
         'php'  => Writer\PhpArray::class,
         'ini'  => Writer\Ini::class,
@@ -85,25 +125,25 @@ final class PluginRegistry
         return $factories;
     }
 
-    /** @return list<class-string<Reader\ReaderInterface>> */
+    /** @return ReaderClasses */
     public static function readerClasses(): array
     {
         return self::READER_CLASSES;
     }
 
-    /** @return array<string, class-string<Reader\ReaderInterface>> */
+    /** @return ReaderAliases */
     public static function readerExtensions(): array
     {
         return self::READER_EXTENSIONS;
     }
 
-    /** @return list<class-string<Writer\AbstractWriter>> */
+    /** @return WriterClasses */
     public static function writerClasses(): array
     {
         return self::WRITER_CLASSES;
     }
 
-    /** @return array<string, class-string<Writer\AbstractWriter>> */
+    /** @return WriterAliases */
     public static function writerExtensions(): array
     {
         return self::WRITER_EXTENSIONS;

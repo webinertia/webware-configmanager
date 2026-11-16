@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Webware\ConfigManager\Processor;
 
 use Webware\ConfigManager\Exception;
-use Webware\ConfigManager\Support\NoArgumentInstantiator;
+use Webware\ConfigManager\ProviderFactory;
 
 use function get_debug_type;
 use function is_callable;
@@ -30,7 +30,7 @@ final class ProcessorResolver
     public function resolve(mixed $processor): callable
     {
         if (is_string($processor)) {
-            $processor = NoArgumentInstantiator::instantiate(
+            $processor = ProviderFactory::create(
                 class: $processor,
                 label: 'Config processor',
             );

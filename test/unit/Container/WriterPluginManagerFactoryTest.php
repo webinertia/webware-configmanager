@@ -8,9 +8,9 @@ use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Webware\ConfigManager\Container\WriterPluginManager;
 use Webware\ConfigManager\Container\WriterPluginManagerFactory;
 use Webware\ConfigManager\Writer;
-use Webware\ConfigManager\WriterPluginManager;
 
 #[CoversClass(WriterPluginManagerFactory::class)]
 final class WriterPluginManagerFactoryTest extends TestCase

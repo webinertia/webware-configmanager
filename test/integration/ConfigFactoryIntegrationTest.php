@@ -9,9 +9,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Config;
+use Webware\ConfigManager\Container\ReaderPluginManager;
+use Webware\ConfigManager\Container\WriterPluginManager;
 use Webware\ConfigManager\Factory;
-use Webware\ConfigManager\ReaderPluginManager;
-use Webware\ConfigManager\WriterPluginManager;
 
 use function file_exists;
 use function file_put_contents;

@@ -8,9 +8,9 @@ use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Webware\ConfigManager\Container\ReaderPluginManager;
 use Webware\ConfigManager\Container\ReaderPluginManagerFactory;
 use Webware\ConfigManager\Reader;
-use Webware\ConfigManager\ReaderPluginManager;
 
 #[CoversClass(ReaderPluginManagerFactory::class)]
 final class ReaderPluginManagerFactoryTest extends TestCase

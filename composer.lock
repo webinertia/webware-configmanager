@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0f5072915396ea41f59f5b5809c4768e",
+    "content-hash": "db5efc7aec14c94b527166c02de3db89",
     "packages": [
         {
             "name": "brick/varexporter",
@@ -1467,16 +1467,16 @@
         },
         {
             "name": "webware/webware-filewriter",
-            "version": "1.0.0-alpha.1",
+            "version": "1.0.0-alpha.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webinertia/webware-filewriter.git",
-                "reference": "abad21bbef90861591c74db95222221562f60d1e"
+                "reference": "7ce846349659c7ab8c4b2802db87c90460891e76"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webinertia/webware-filewriter/zipball/abad21bbef90861591c74db95222221562f60d1e",
-                "reference": "abad21bbef90861591c74db95222221562f60d1e",
+                "url": "https://api.github.com/repos/webinertia/webware-filewriter/zipball/7ce846349659c7ab8c4b2802db87c90460891e76",
+                "reference": "7ce846349659c7ab8c4b2802db87c90460891e76",
                 "shasum": ""
             },
             "require": {
@@ -1518,10 +1518,10 @@
             ],
             "support": {
                 "issues": "https://github.com/webinertia/webware-filewriter/issues",
-                "source": "https://github.com/webinertia/webware-filewriter/tree/1.0.0-alpha.1"
+                "source": "https://github.com/webinertia/webware-filewriter/tree/1.0.0-alpha.2"
             },
-            "time": "2026-11-15T04:19:20+00:00",
-            "published-time": "2026-11-15T04:21:39+00:00"
+            "time": "2026-11-16T01:58:32+00:00",
+            "published-time": "2026-11-16T02:01:26+00:00"
         }
     ],
     "packages-dev": [

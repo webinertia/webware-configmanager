@@ -2,28 +2,43 @@
 
 declare(strict_types=1);
 
-namespace WebwareTest\ConfigManager;
+namespace WebwareTest\ConfigManager\Container;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Webware\ConfigManager\Container\PluginRegistry;
+use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader;
-use Webware\ConfigManager\StandaloneReaderPluginManager;
 
 #[CoversClass(StandaloneReaderPluginManager::class)]
 final class StandaloneReaderPluginManagerTest extends TestCase
 {
+    /**
+     * @return array<string, array{string, class-string<Reader\ReaderInterface>}>
+     */
+    public static function extensionAliasProvider(): array
+    {
+        $cases = [];
+
+        foreach (PluginRegistry::readerExtensions() as $extension => $class) {
+            $cases[$extension] = [$extension, $class];
+        }
+
+        return $cases;
+    }
+
     /**
      * @return array<string, array{string}>
      */
     public static function shortNameProvider(): array
     {
         return [
-            'ini'            => ['ini'],
             'INI'            => ['INI'],
+            'Json'           => ['Json'],
             'javaproperties' => ['javaproperties'],
         ];
     }
@@ -43,6 +58,21 @@ final class StandaloneReaderPluginManagerTest extends TestCase
     }
 
     /**
+     * @param class-string<Reader\ReaderInterface> $expected
+     */
+    #[DataProvider('extensionAliasProvider')]
+    #[Test]
+    public function aFormatExtensionResolvesToItsReader(string $extension, string $expected): void
+    {
+        // An extension is an alias for its reader, resolved through the registry so the
+        // alias map has one home rather than being repeated in the match below.
+        $manager = new StandaloneReaderPluginManager();
+
+        static::assertTrue($manager->has($extension));
+        static::assertInstanceOf($expected, $manager->get($extension));
+    }
+
+    /**
      * @param class-string<Reader\ReaderInterface> $class Plugin class to retrieve and expect.
      */
     #[DataProvider('supportedConfigClassNames')]
@@ -53,6 +83,20 @@ final class StandaloneReaderPluginManagerTest extends TestCase
 
         static::assertTrue($manager->has($class));
         static::assertInstanceOf($class, $manager->get($class));
+    }
+
+    #[Test]
+    public function everyReaderInTheRegistryIsBuilt(): void
+    {
+        // get() maps identifiers to concrete classes in a match, which is a second place
+        // the reader list has to be kept. This fails the moment a reader is added to
+        // PluginRegistry and the match is not extended, which is the only way the two can
+        // drift.
+        $manager = new StandaloneReaderPluginManager();
+
+        foreach (PluginRegistry::readerClasses() as $class) {
+            static::assertInstanceOf($class, $manager->get($class));
+        }
     }
 
     #[Test]
@@ -79,8 +123,10 @@ final class StandaloneReaderPluginManagerTest extends TestCase
 
     #[DataProvider('shortNameProvider')]
     #[Test]
-    public function shortNamesAreNotSupported(string $id): void
+    public function shortNamesThatAreNotAliasesAreNotSupported(string $id): void
     {
+        // Aliases are the lowercase format extensions and nothing else: matching is exact,
+        // so a differently cased or differently spelled short name is still rejected.
         $manager = new StandaloneReaderPluginManager();
 
         static::assertFalse($manager->has($id));

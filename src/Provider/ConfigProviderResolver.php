@@ -7,8 +7,8 @@ namespace Webware\ConfigManager\Provider;
 use Generator;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Merge\ConfigMerger;
+use Webware\ConfigManager\ProviderFactory;
 use Webware\ConfigManager\Shape;
-use Webware\ConfigManager\Support\NoArgumentInstantiator;
 
 use function array_key_exists;
 use function array_map;
@@ -161,7 +161,7 @@ final class ConfigProviderResolver
     {
         /** @var mixed $candidate */
         $candidate = is_string($reference->value)
-            ? NoArgumentInstantiator::instantiate(
+            ? ProviderFactory::create(
                 class: $reference->value,
                 label: 'Config provider',
             )

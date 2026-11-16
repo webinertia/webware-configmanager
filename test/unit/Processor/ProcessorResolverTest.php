@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WebwareTest\ConfigManager\Processor;
 
+use ArgumentCountError;
+use Error;
 use Not\A\Real\Processor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -40,12 +42,9 @@ final class ProcessorResolverTest extends TestCase
     #[Test]
     public function aClassStringWhoseConstructorRequiresArgumentsIsReported(): void
     {
-        $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains(
-            'Config processor class "'
-                . RequiresArgumentConfigProvider::class
-                . '" cannot be instantiated without arguments',
-        );
+        // Nothing in the merge path holds a container, so a processor that needs its
+        // dependencies injected cannot be built. PHP reports that precisely.
+        $this->expectException(ArgumentCountError::class);
 
         new ProcessorResolver()->resolve(RequiresArgumentConfigProvider::class);
     }
@@ -62,10 +61,9 @@ final class ProcessorResolverTest extends TestCase
     #[Test]
     public function anAbstractClassStringIsReported(): void
     {
-        $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains(
-            'Config processor class "' . AbstractConfigProvider::class . '" cannot be instantiated',
-        );
+        // Nothing in the merge path can choose a concrete subclass, so PHPs own Error is
+        // the report. It names the class, which is what the caller needs to act on.
+        $this->expectException(Error::class);
 
         new ProcessorResolver()->resolve(AbstractConfigProvider::class);
     }

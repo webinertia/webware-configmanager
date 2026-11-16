@@ -8,10 +8,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\ConfigProvider;
+use Webware\ConfigManager\Container\ReaderPluginManager;
 use Webware\ConfigManager\Container\ReaderPluginManagerFactory;
+use Webware\ConfigManager\Container\WriterPluginManager;
 use Webware\ConfigManager\Container\WriterPluginManagerFactory;
-use Webware\ConfigManager\ReaderPluginManager;
-use Webware\ConfigManager\WriterPluginManager;
 
 #[CoversClass(ConfigProvider::class)]
 final class ConfigProviderTest extends TestCase

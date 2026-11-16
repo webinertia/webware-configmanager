@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace WebwareTest\ConfigManager;
+namespace WebwareTest\ConfigManager\Container;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Webware\ConfigManager\PluginRegistry;
+use Webware\ConfigManager\Container\PluginRegistry;
+use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
+use Webware\ConfigManager\Container\StandaloneWriterPluginManager;
 use Webware\ConfigManager\Reader\ReaderInterface;
-use Webware\ConfigManager\StandaloneReaderPluginManager;
-use Webware\ConfigManager\StandaloneWriterPluginManager;
 use Webware\ConfigManager\Writer\AbstractWriter;
 
 use function array_diff;

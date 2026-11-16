@@ -11,15 +11,10 @@ use Webware\ConfigManager\Shape;
 use Webware\FileWriter\Exception\ExceptionInterface as FileWriterException;
 use Webware\FileWriter\FileWriter;
 
-use function chmod;
 use function date;
 use function file_exists;
 use function is_int;
-use function restore_error_handler;
-use function set_error_handler;
 use function sprintf;
-
-use const PHP_OS_FAMILY;
 
 /**
  * Reads and writes the merged configuration cache.
@@ -56,26 +51,24 @@ final class ConfigCache
     ) {}
 
     /**
-     * Apply an explicitly configured file mode.
+     * The configured cache file mode, when the configuration named an integer.
      *
-     * FileWriter preserves the mode of a file it replaces and derives one from umask for
-     * a new file, so an explicit mode is the only case it cannot honour on its own.
+     * The mode is handed to the writer rather than applied afterwards, so the file never
+     * exists with any other mode and a failed write cannot leave a mode applied to
+     * whatever is at that path.
      *
-     * @param mixed $mode Whatever the configuration held; only an integer is applied.
+     * Only an integer is honoured. A string such as `'0600'` would be coerced by `chmod`
+     * but is much more likely to be a typo in a configuration file than an intent, and a
+     * cache file's permissions are not worth guessing at.
+     *
+     * @param array<array-key, mixed> $config
      */
-    private static function applyMode(string $path, mixed $mode): void
+    private static function fileMode(array $config): ?int
     {
-        if (! is_int($mode) || 'Windows' === PHP_OS_FAMILY) {
-            return;
-        }
+        /** @var mixed $mode */
+        $mode = $config[self::CACHE_FILEMODE] ?? null;
 
-        set_error_handler(static fn(): bool => true);
-
-        try {
-            chmod($path, $mode);
-        } finally {
-            restore_error_handler();
-        }
+        return is_int($mode) ? $mode : null;
     }
 
     /**
@@ -141,13 +134,11 @@ final class ConfigCache
         }
 
         try {
-            FileWriter::write($this->path, $contents);
+            FileWriter::write($this->path, $contents, self::fileMode($config));
         } catch (FileWriterException) {
             // Parity with the aggregator: an unwritable cache is a performance problem,
             // not a correctness one, so the application keeps running without it.
             return;
         }
-
-        self::applyMode($this->path, $config[self::CACHE_FILEMODE] ?? null);
     }
 }
