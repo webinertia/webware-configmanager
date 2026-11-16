@@ -29,6 +29,7 @@
     },
     "require-dev": {
         "infection/infection": "^0.35.0",
+        "laminas/laminas-config-aggregator": "1.21",
         "laminas/laminas-filter": "^3.5",
         "laminas/laminas-i18n": "^3.1",
         "laminas/laminas-servicemanager": "^4.6",

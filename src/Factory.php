@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Webware\ConfigManager;
 
 use Psr\Container\ContainerInterface;
-use Webware\ConfigManager\Container\PluginRegistry;
 use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
 use Webware\ConfigManager\Container\StandaloneWriterPluginManager;
 use Webware\ConfigManager\Merge\ConfigMerger;
@@ -58,7 +57,7 @@ final class Factory
      * key is extension, value is reader instance or reader class name
      *
      * Starts as the shipped set and is replaced as readers are resolved, so it stays a
-     * cache of what this process will use. {@see PluginRegistry} owns the shipped set.
+     * cache of what this process will use. {@see ConfigProvider} owns the shipped set.
      *
      * @var null|array<string, class-string<Reader\ReaderInterface>|Reader\ReaderInterface>
      */
@@ -381,7 +380,7 @@ final class Factory
      */
     private static function extensions(): array
     {
-        return self::$extensions ??= PluginRegistry::readerExtensions();
+        return self::$extensions ??= new ConfigProvider()->getReaderDependencies()['aliases'];
     }
 
     /**
@@ -448,6 +447,6 @@ final class Factory
      */
     private static function writerExtensions(): array
     {
-        return self::$writerExtensions ??= PluginRegistry::writerExtensions();
+        return self::$writerExtensions ??= new ConfigProvider()->getWriterDependencies()['aliases'];
     }
 }

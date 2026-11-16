@@ -9,10 +9,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
-use Webware\ConfigManager\Container\PluginRegistry;
+use Webware\ConfigManager\ConfigProvider;
 use Webware\ConfigManager\Container\StandaloneWriterPluginManager;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Writer;
+
+use function array_keys;
 
 #[CoversClass(StandaloneWriterPluginManager::class)]
 final class StandaloneWriterPluginManagerTest extends TestCase
@@ -24,7 +26,7 @@ final class StandaloneWriterPluginManagerTest extends TestCase
     {
         $cases = [];
 
-        foreach (PluginRegistry::writerExtensions() as $extension => $class) {
+        foreach (new ConfigProvider()->getWriterDependencies()['aliases'] as $extension => $class) {
             $cases[$extension] = [$extension, $class];
         }
 
@@ -87,14 +89,14 @@ final class StandaloneWriterPluginManagerTest extends TestCase
     }
 
     #[Test]
-    public function everyWriterInTheRegistryIsBuilt(): void
+    public function everyWriterInTheProviderIsBuilt(): void
     {
-        // get() maps identifiers to concrete classes in a match, and the alias lookup runs
-        // before it. This fails the moment a writer is added to PluginRegistry and either
-        // is not extended, which is the only way they can drift.
+        // There is no second list to keep: the manager reads the factories table, so this
+        // guards that every registered class, including JavaProperties which has no
+        // extension, is buildable through the mapped factory.
         $manager = new StandaloneWriterPluginManager();
 
-        foreach (PluginRegistry::writerClasses() as $class) {
+        foreach (array_keys(new ConfigProvider()->getWriterDependencies()['factories']) as $class) {
             static::assertInstanceOf($class, $manager->get($class));
         }
     }

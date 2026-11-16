@@ -10,9 +10,10 @@ use Not\A\Real\Thing;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use stdClass;
+use Webware\ConfigManager\Container\ProviderFactory;
 use Webware\ConfigManager\Exception;
-use Webware\ConfigManager\ProviderFactory;
 use WebwareTest\ConfigManager\Provider\TestAssets\AbstractConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\ArrayConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\RequiresArgumentConfigProvider;
@@ -80,5 +81,32 @@ final class ProviderFactoryTest extends TestCase
             class: RequiresArgumentConfigProvider::class,
             label: 'Config provider',
         );
+    }
+
+    #[Test]
+    public function invokeBuildsTheRequestedServiceSoItWorksAsAFactoriesValue(): void
+    {
+        // The service manager resolves a string factory by instantiating it and asking
+        // whether it is callable, then invokes it with (container, name, options). Without
+        // this path a `factories => [Class => ProviderFactory::class]` entry is a class
+        // string that is not callable, and every plugin fails to resolve.
+        $factory = new ProviderFactory();
+
+        static::assertSame(
+            stdClass::class,
+            $factory(
+                $this->createStub(ContainerInterface::class),
+                stdClass::class,
+            )::class,
+        );
+    }
+
+    #[Test]
+    public function invokeReportsAMissingClassAsAPlugin(): void
+    {
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessageIs('Plugin class "' . Thing::class . '" does not exist');
+
+        new ProviderFactory()($this->createStub(ContainerInterface::class), Thing::class);
     }
 }

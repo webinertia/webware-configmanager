@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Webware\ConfigManager\Processor;
 
+use Webware\ConfigManager\Container\ProviderFactory;
 use Webware\ConfigManager\Exception;
-use Webware\ConfigManager\ProviderFactory;
 
 use function get_debug_type;
 use function is_callable;

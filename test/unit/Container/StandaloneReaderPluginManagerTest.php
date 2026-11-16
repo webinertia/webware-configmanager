@@ -9,10 +9,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
-use Webware\ConfigManager\Container\PluginRegistry;
+use Webware\ConfigManager\ConfigProvider;
 use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader;
+
+use function array_keys;
 
 #[CoversClass(StandaloneReaderPluginManager::class)]
 final class StandaloneReaderPluginManagerTest extends TestCase
@@ -24,7 +26,7 @@ final class StandaloneReaderPluginManagerTest extends TestCase
     {
         $cases = [];
 
-        foreach (PluginRegistry::readerExtensions() as $extension => $class) {
+        foreach (new ConfigProvider()->getReaderDependencies()['aliases'] as $extension => $class) {
             $cases[$extension] = [$extension, $class];
         }
 
@@ -86,15 +88,13 @@ final class StandaloneReaderPluginManagerTest extends TestCase
     }
 
     #[Test]
-    public function everyReaderInTheRegistryIsBuilt(): void
+    public function everyReaderInTheProviderIsBuilt(): void
     {
-        // get() maps identifiers to concrete classes in a match, which is a second place
-        // the reader list has to be kept. This fails the moment a reader is added to
-        // PluginRegistry and the match is not extended, which is the only way the two can
-        // drift.
+        // There is no second list to keep: the manager reads the factories table, so this
+        // guards that every registered class is buildable through the mapped factory.
         $manager = new StandaloneReaderPluginManager();
 
-        foreach (PluginRegistry::readerClasses() as $class) {
+        foreach (array_keys(new ConfigProvider()->getReaderDependencies()['factories']) as $class) {
             static::assertInstanceOf($class, $manager->get($class));
         }
     }
