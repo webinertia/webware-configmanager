@@ -20,9 +20,11 @@ use function sprintf;
  * message reads "Config provider class ..." rather than a generic phrase that hides what
  * failed.
  *
- * This is deliberately not a PSR-11 factory and not under `\Container`. It does not resolve a
- * service name against a container and it holds no configuration; it is given a concrete
- * class-string, and either builds it or reports that it does not exist.
+ * This is not a PSR-11 factory in the resolving sense: it does not resolve a service name
+ * against a container and it holds no configuration; it is given a concrete class-string,
+ * and either builds it or reports that it does not exist. It sits under `\Container`
+ * because {@see \Webware\ConfigManager\ConfigProvider} names it as the `factories` value
+ * for every plugin, and `__invoke` is what makes that work.
  *
  * A class whose constructor requires arguments is a mistake in the caller's configuration, not
  * something to recover from here: nothing in the merge path holds a container, so there is
