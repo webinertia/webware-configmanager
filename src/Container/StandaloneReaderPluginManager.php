@@ -7,7 +7,6 @@ namespace Webware\ConfigManager\Container;
 use Override;
 use Psr\Container\ContainerInterface;
 use Webware\ConfigManager\Exception;
-use Webware\ConfigManager\ProviderFactory;
 use Webware\ConfigManager\Reader;
 
 use function in_array;
@@ -29,30 +28,25 @@ final class StandaloneReaderPluginManager implements ContainerInterface
     #[Override]
     public function get(string $id): Reader\ReaderInterface
     {
-        if (! $this->has($id)) {
-            throw new Exception\PluginNotFoundException(sprintf(
+        // Each arm names one concrete class, so the instantiation is statically known and
+        // needs no analysis acknowledgement. Indexing a class-string array would not: mago
+        // reports `ambiguous-instantiation-target` for the variable, which is why this is a
+        // match over the identifiers rather than a lookup.
+        //
+        // The cost is that this map duplicates the one in PluginRegistry::readerExtensions().
+        // PluginRegistryTest asserts the two agree, and both have to be edited to add a
+        // reader, which is the price of removing the acknowledgement.
+        return match ($id) {
+            Reader\Ini::class            => new Reader\Ini(),
+            Reader\Json::class           => new Reader\Json(),
+            Reader\Xml::class            => new Reader\Xml(),
+            Reader\Yaml::class           => new Reader\Yaml(),
+            Reader\JavaProperties::class => new Reader\JavaProperties(),
+            default                      => throw new Exception\PluginNotFoundException(sprintf(
                 'Config reader plugin by name %s not found',
                 $id,
-            ));
-        }
-
-        /**
-         * The registry lists only readers, and PluginRegistryTest asserts it, so the built
-         * instance is a reader. The alternative was an instanceof check that could never
-         * fail, which is a branch no test can reach.
-         *
-         * Instantiating directly here was tried and rejected: a `class-string<ReaderInterface>`
-         * whose interface constructor is not final is flagged as an unsafe instantiation at
-         * every site, so inlining trades one acknowledgement inside ProviderFactory for one
-         * per manager.
-         *
-         * @var class-string<Reader\ReaderInterface> $id
-         * @var Reader\ReaderInterface
-         */
-        return ProviderFactory::create(
-            class: $id,
-            label: 'Config reader',
-        );
+            )),
+        };
     }
 
     #[Override]

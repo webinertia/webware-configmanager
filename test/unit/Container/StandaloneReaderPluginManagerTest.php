@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Webware\ConfigManager\Container\PluginRegistry;
 use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader;
@@ -53,6 +54,20 @@ final class StandaloneReaderPluginManagerTest extends TestCase
 
         static::assertTrue($manager->has($class));
         static::assertInstanceOf($class, $manager->get($class));
+    }
+
+    #[Test]
+    public function everyReaderInTheRegistryIsBuilt(): void
+    {
+        // get() maps identifiers to concrete classes in a match, which is a second place
+        // the reader list has to be kept. This fails the moment a reader is added to
+        // PluginRegistry and the match is not extended, which is the only way the two can
+        // drift.
+        $manager = new StandaloneReaderPluginManager();
+
+        foreach (PluginRegistry::readerClasses() as $class) {
+            static::assertInstanceOf($class, $manager->get($class));
+        }
     }
 
     #[Test]
