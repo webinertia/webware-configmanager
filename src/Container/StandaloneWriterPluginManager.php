@@ -31,18 +31,18 @@ final class StandaloneWriterPluginManager implements ContainerInterface
     #[Override]
     public function get(string $id): Writer\AbstractWriter
     {
-        // An extension is an alias for its class, resolved through the registry so the
-        // alias map has a single home. See StandaloneReaderPluginManager::get() for why
-        // this precedes the match and what it buys.
-        $class = PluginRegistry::writerExtensions()[$id] ?? $id;
+        // See StandaloneReaderPluginManager::get(). JavaProperties needs its own arm
+        // because it is a registered writer with no extension, so the map cannot reach it.
+        $byExtension = PluginRegistry::writerExtensions();
+        $class       = $byExtension[$id] ?? $id;
 
         return match ($class) {
-            Writer\Ini::class            => new Writer\Ini(),
+            $byExtension['php']          => new $byExtension['php'](),
+            $byExtension['ini']          => new $byExtension['ini'](),
+            $byExtension['json']         => new $byExtension['json'](),
+            $byExtension['xml']          => new $byExtension['xml'](),
+            $byExtension['yaml']         => new $byExtension['yaml'](),
             Writer\JavaProperties::class => new Writer\JavaProperties(),
-            Writer\Json::class           => new Writer\Json(),
-            Writer\PhpArray::class       => new Writer\PhpArray(),
-            Writer\Xml::class            => new Writer\Xml(),
-            Writer\Yaml::class           => new Writer\Yaml(),
             default                      => throw new Exception\PluginNotFoundException(sprintf(
                 'Config writer plugin by name %s not found',
                 $id,

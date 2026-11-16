@@ -31,22 +31,21 @@ final class StandaloneReaderPluginManager implements ContainerInterface
     #[Override]
     public function get(string $id): Reader\ReaderInterface
     {
-        // An extension is an alias for its class, resolved through the registry so the
-        // alias map has a single home. That leaves the match below with nothing but
-        // concrete classes, which is what keeps the instantiation statically known: an
-        // index into a class-string array instead trips ambiguous-instantiation-target.
-        $class = PluginRegistry::readerExtensions()[$id] ?? $id;
+        // An identifier is either an extension or a class name, so resolve it to a class
+        // first. Every arm indexes the shape with a literal key, which resolves to exactly
+        // one class; indexing with $id itself is a variable index and trips
+        // ambiguous-instantiation-target. `yml` needs no arm of its own because it names
+        // the same class as `yaml`.
+        $byExtension = PluginRegistry::readerExtensions();
+        $class       = $byExtension[$id] ?? $id;
 
-        // Each arm names one concrete class, so no analysis acknowledgement is needed.
-        // The cost is that this list has to be extended alongside PluginRegistry; both
-        // everyReaderInTheRegistryIsBuilt and every... test here fail if it is not.
         return match ($class) {
-            Reader\Ini::class            => new Reader\Ini(),
-            Reader\Json::class           => new Reader\Json(),
-            Reader\Xml::class            => new Reader\Xml(),
-            Reader\Yaml::class           => new Reader\Yaml(),
-            Reader\JavaProperties::class => new Reader\JavaProperties(),
-            default                      => throw new Exception\PluginNotFoundException(sprintf(
+            $byExtension['ini']        => new $byExtension['ini'](),
+            $byExtension['json']       => new $byExtension['json'](),
+            $byExtension['xml']        => new $byExtension['xml'](),
+            $byExtension['yaml']       => new $byExtension['yaml'](),
+            $byExtension['properties'] => new $byExtension['properties'](),
+            default                    => throw new Exception\PluginNotFoundException(sprintf(
                 'Config reader plugin by name %s not found',
                 $id,
             )),

@@ -125,25 +125,25 @@ final class PluginRegistry
         return $factories;
     }
 
-    /** @return list<class-string<Reader\ReaderInterface>> */
+    /** @return ReaderClasses */
     public static function readerClasses(): array
     {
         return self::READER_CLASSES;
     }
 
-    /** @return array<string, class-string<Reader\ReaderInterface>> */
+    /** @return ReaderAliases */
     public static function readerExtensions(): array
     {
         return self::READER_EXTENSIONS;
     }
 
-    /** @return list<class-string<Writer\AbstractWriter>> */
+    /** @return WriterClasses */
     public static function writerClasses(): array
     {
         return self::WRITER_CLASSES;
     }
 
-    /** @return array<string, class-string<Writer\AbstractWriter>> */
+    /** @return WriterAliases */
     public static function writerExtensions(): array
     {
         return self::WRITER_EXTENSIONS;
