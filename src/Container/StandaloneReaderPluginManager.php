@@ -9,14 +9,17 @@ use Psr\Container\ContainerInterface;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader;
 
+use function array_key_exists;
 use function in_array;
 use function sprintf;
 
 /**
  * Container for reader plugins that does not require a service manager.
  *
- * Implements PSR-11 2.x, so identifiers are typed strings. Readers are
- * identified by their fully qualified class name; no aliases are registered.
+ * Implements PSR-11 2.x, so identifiers are typed strings. A reader is identified
+ * either by its fully qualified class name or by its format extension, which is
+ * registered as an alias: `ini`, `json`, `xml`, `yaml`, `yml`, `properties`.
+ *
  * @internal
  */
 final class StandaloneReaderPluginManager implements ContainerInterface
@@ -28,15 +31,16 @@ final class StandaloneReaderPluginManager implements ContainerInterface
     #[Override]
     public function get(string $id): Reader\ReaderInterface
     {
-        // Each arm names one concrete class, so the instantiation is statically known and
-        // needs no analysis acknowledgement. Indexing a class-string array would not: mago
-        // reports `ambiguous-instantiation-target` for the variable, which is why this is a
-        // match over the identifiers rather than a lookup.
-        //
-        // The cost is that this map duplicates the one in PluginRegistry::readerExtensions().
-        // PluginRegistryTest asserts the two agree, and both have to be edited to add a
-        // reader, which is the price of removing the acknowledgement.
-        return match ($id) {
+        // An extension is an alias for its class, resolved through the registry so the
+        // alias map has a single home. That leaves the match below with nothing but
+        // concrete classes, which is what keeps the instantiation statically known: an
+        // index into a class-string array instead trips ambiguous-instantiation-target.
+        $class = PluginRegistry::readerExtensions()[$id] ?? $id;
+
+        // Each arm names one concrete class, so no analysis acknowledgement is needed.
+        // The cost is that this list has to be extended alongside PluginRegistry; both
+        // everyReaderInTheRegistryIsBuilt and every... test here fail if it is not.
+        return match ($class) {
             Reader\Ini::class            => new Reader\Ini(),
             Reader\Json::class           => new Reader\Json(),
             Reader\Xml::class            => new Reader\Xml(),
@@ -52,6 +56,9 @@ final class StandaloneReaderPluginManager implements ContainerInterface
     #[Override]
     public function has(string $id): bool
     {
-        return in_array($id, PluginRegistry::readerClasses(), strict: true);
+        return (
+            array_key_exists($id, PluginRegistry::readerExtensions())
+                || in_array($id, PluginRegistry::readerClasses(), strict: true)
+        );
     }
 }

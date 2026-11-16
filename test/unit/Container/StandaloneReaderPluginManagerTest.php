@@ -18,13 +18,27 @@ use Webware\ConfigManager\Reader;
 final class StandaloneReaderPluginManagerTest extends TestCase
 {
     /**
+     * @return array<string, array{string, class-string<Reader\ReaderInterface>}>
+     */
+    public static function extensionAliasProvider(): array
+    {
+        $cases = [];
+
+        foreach (PluginRegistry::readerExtensions() as $extension => $class) {
+            $cases[$extension] = [$extension, $class];
+        }
+
+        return $cases;
+    }
+
+    /**
      * @return array<string, array{string}>
      */
     public static function shortNameProvider(): array
     {
         return [
-            'ini'            => ['ini'],
             'INI'            => ['INI'],
+            'Json'           => ['Json'],
             'javaproperties' => ['javaproperties'],
         ];
     }
@@ -41,6 +55,21 @@ final class StandaloneReaderPluginManagerTest extends TestCase
             Reader\Yaml::class           => [Reader\Yaml::class],
             Reader\JavaProperties::class => [Reader\JavaProperties::class],
         ];
+    }
+
+    /**
+     * @param class-string<Reader\ReaderInterface> $expected
+     */
+    #[DataProvider('extensionAliasProvider')]
+    #[Test]
+    public function aFormatExtensionResolvesToItsReader(string $extension, string $expected): void
+    {
+        // An extension is an alias for its reader, resolved through the registry so the
+        // alias map has one home rather than being repeated in the match below.
+        $manager = new StandaloneReaderPluginManager();
+
+        static::assertTrue($manager->has($extension));
+        static::assertInstanceOf($expected, $manager->get($extension));
     }
 
     /**
@@ -94,8 +123,10 @@ final class StandaloneReaderPluginManagerTest extends TestCase
 
     #[DataProvider('shortNameProvider')]
     #[Test]
-    public function shortNamesAreNotSupported(string $id): void
+    public function shortNamesThatAreNotAliasesAreNotSupported(string $id): void
     {
+        // Aliases are the lowercase format extensions and nothing else: matching is exact,
+        // so a differently cased or differently spelled short name is still rejected.
         $manager = new StandaloneReaderPluginManager();
 
         static::assertFalse($manager->has($id));

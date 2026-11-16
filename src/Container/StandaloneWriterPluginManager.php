@@ -9,14 +9,17 @@ use Psr\Container\ContainerInterface;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Writer;
 
+use function array_key_exists;
 use function in_array;
 use function sprintf;
 
 /**
  * Container for writer plugins that does not require a service manager.
  *
- * Implements PSR-11 2.x, so identifiers are typed strings. Writers are
- * identified by their fully qualified class name; no aliases are registered.
+ * Implements PSR-11 2.x, so identifiers are typed strings. A writer is identified
+ * either by its fully qualified class name or by its format extension, which is
+ * registered as an alias: `php`, `ini`, `json`, `xml`, `yaml`, `yml`.
+ *
  * @internal
  */
 final class StandaloneWriterPluginManager implements ContainerInterface
@@ -28,11 +31,12 @@ final class StandaloneWriterPluginManager implements ContainerInterface
     #[Override]
     public function get(string $id): Writer\AbstractWriter
     {
-        // Each arm names one concrete class, so the instantiation is statically known and
-        // needs no analysis acknowledgement. See StandaloneReaderPluginManager::get() for
-        // why this is a match over identifiers rather than a lookup in a class-string array,
-        // and for the duplication this accepts.
-        return match ($id) {
+        // An extension is an alias for its class, resolved through the registry so the
+        // alias map has a single home. See StandaloneReaderPluginManager::get() for why
+        // this precedes the match and what it buys.
+        $class = PluginRegistry::writerExtensions()[$id] ?? $id;
+
+        return match ($class) {
             Writer\Ini::class            => new Writer\Ini(),
             Writer\JavaProperties::class => new Writer\JavaProperties(),
             Writer\Json::class           => new Writer\Json(),
@@ -49,6 +53,9 @@ final class StandaloneWriterPluginManager implements ContainerInterface
     #[Override]
     public function has(string $id): bool
     {
-        return in_array($id, PluginRegistry::writerClasses(), strict: true);
+        return (
+            array_key_exists($id, PluginRegistry::writerExtensions())
+                || in_array($id, PluginRegistry::writerClasses(), strict: true)
+        );
     }
 }
