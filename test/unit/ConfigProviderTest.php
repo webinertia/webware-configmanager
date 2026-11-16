@@ -45,7 +45,11 @@ final class ConfigProviderTest extends TestCase
         $provider = new ConfigProvider();
 
         static::assertSame(
-            ['dependencies' => $provider->getDependencies()],
+            [
+                'dependencies'             => $provider->getDependencies(),
+                ReaderPluginManager::class => $provider->getReaderDependencies(),
+                WriterPluginManager::class => $provider->getWriterDependencies(),
+            ],
             $provider(),
         );
     }

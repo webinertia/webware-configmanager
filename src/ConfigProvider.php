@@ -26,8 +26,18 @@ use Webware\ConfigManager\Container\WriterPluginManagerFactory;
  *     abstract_factories?: list<class-string>,
  *     factories: array<class-string, class-string>,
  * }
+ * @type ReaderPluginManagerConfig array{
+ *     aliases: array<string, class-string<Reader\ReaderInterface>>,
+ *     factories: array<class-string, class-string<Container\ProviderFactory>>,
+ * }
+ * @type WriterPluginManagerConfig array{
+ *     aliases: array<string, class-string<Writer\AbstractWriter>>,
+ *     factories: array<class-string, class-string<Container\ProviderFactory>>,
+ * }
  * @type ProviderConfig array{
  *     dependencies: DependenciesConfig,
+ *     Webware\ConfigManager\Container\ReaderPluginManager: ReaderPluginManagerConfig,
+ *     Webware\ConfigManager\Container\WriterPluginManager: WriterPluginManagerConfig,
  * }
  * @internal
  */
@@ -53,11 +63,58 @@ final class ConfigProvider
         ];
     }
 
+    /** @return ReaderPluginManagerConfig */
+    public function getReaderDependencies(): array
+    {
+        return [
+            'aliases'   => [
+                'ini'        => Reader\Ini::class,
+                'json'       => Reader\Json::class,
+                'xml'        => Reader\Xml::class,
+                'yaml'       => Reader\Yaml::class,
+                'yml'        => Reader\Yaml::class,
+                'properties' => Reader\JavaProperties::class,
+            ],
+            'factories' => [
+                Reader\Ini::class            => Container\ProviderFactory::class,
+                Reader\Json::class           => Container\ProviderFactory::class,
+                Reader\Xml::class            => Container\ProviderFactory::class,
+                Reader\Yaml::class           => Container\ProviderFactory::class,
+                Reader\JavaProperties::class => Container\ProviderFactory::class,
+            ],
+        ];
+    }
+
+    /** @return WriterPluginManagerConfig */
+    public function getWriterDependencies(): array
+    {
+        return [
+            'aliases'   => [
+                'php'  => Writer\PhpArray::class,
+                'ini'  => Writer\Ini::class,
+                'json' => Writer\Json::class,
+                'xml'  => Writer\Xml::class,
+                'yaml' => Writer\Yaml::class,
+                'yml'  => Writer\Yaml::class,
+            ],
+            'factories' => [
+                Writer\Ini::class            => Container\ProviderFactory::class,
+                Writer\JavaProperties::class => Container\ProviderFactory::class,
+                Writer\Json::class           => Container\ProviderFactory::class,
+                Writer\PhpArray::class       => Container\ProviderFactory::class,
+                Writer\Xml::class            => Container\ProviderFactory::class,
+                Writer\Yaml::class           => Container\ProviderFactory::class,
+            ],
+        ];
+    }
+
     /** @return ProviderConfig */
     public function __invoke(): array
     {
         return [
-            'dependencies' => $this->getDependencies(),
+            'dependencies'             => $this->getDependencies(),
+            ReaderPluginManager::class => $this->getReaderDependencies(),
+            WriterPluginManager::class => $this->getWriterDependencies(),
         ];
     }
 }

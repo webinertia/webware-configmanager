@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Webware\ConfigManager\Provider;
 
 use Generator;
+use Webware\ConfigManager\Container\ProviderFactory;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Merge\ConfigMerger;
-use Webware\ConfigManager\ProviderFactory;
 use Webware\ConfigManager\Shape;
 
 use function array_key_exists;

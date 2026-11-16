@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Webware\ConfigManager;
+namespace Webware\ConfigManager\Container;
+
+use Psr\Container\ContainerInterface;
+use Webware\ConfigManager\Exception;
 
 use function class_exists;
 use function sprintf;
@@ -63,5 +66,32 @@ final class ProviderFactory
         //
         // @mago-expect analysis:unknown-class-instantiation
         return new $class();
+    }
+
+    /**
+     * Build the class named by the requested service id.
+     *
+     * This is what makes the class usable as a `factories` value: the service manager
+     * resolves a string factory by instantiating it and asking whether it is callable, so a
+     * factory value has to be invokable with this signature.
+     *
+     * Both other arguments are accepted and unused. They are named with a leading underscore
+     * because the service manager always passes them and the contract requires the positions,
+     * but no reader, writer, provider or processor takes a creation context or options: every
+     * one of them is built with no arguments.
+     *
+     * @param ContainerInterface $_container Creation context, unused; nothing here needs it.
+     * @param array<array-key, mixed>|null $_options Options, unused; nothing here is configurable at construction.
+     * @throws Exception\InvalidArgumentException If the class does not exist.
+     */
+    public function __invoke(
+        ContainerInterface $_container,
+        string $requestedName,
+        ?array $_options = null,
+    ): object {
+        return self::create(
+            class: $requestedName,
+            label: 'Plugin',
+        );
     }
 }
