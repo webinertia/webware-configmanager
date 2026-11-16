@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WebwareTest\ConfigManager\Support;
+namespace WebwareTest\ConfigManager;
 
 use Not\A\Real\Thing;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -10,15 +10,15 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Webware\ConfigManager\Exception;
-use Webware\ConfigManager\Support\NoArgumentInstantiator;
+use Webware\ConfigManager\ProviderFactory;
 use WebwareTest\ConfigManager\Provider\TestAssets\AbstractConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\ArrayConfigProvider;
 use WebwareTest\ConfigManager\Provider\TestAssets\RequiresArgumentConfigProvider;
 
 use function sprintf;
 
-#[CoversClass(NoArgumentInstantiator::class)]
-final class NoArgumentInstantiatorTest extends TestCase
+#[CoversClass(ProviderFactory::class)]
+final class ProviderFactoryTest extends TestCase
 {
     #[Test]
     public function aClassWithAnOptionalConstructorArgumentIsBuilt(): void
@@ -27,7 +27,7 @@ final class NoArgumentInstantiatorTest extends TestCase
         // class that cannot be built without arguments.
         static::assertInstanceOf(
             ArrayConfigProvider::class,
-            NoArgumentInstantiator::instantiate(
+            ProviderFactory::create(
                 class: ArrayConfigProvider::class,
                 label: 'Config provider',
             ),
@@ -37,7 +37,7 @@ final class NoArgumentInstantiatorTest extends TestCase
     #[Test]
     public function aClassWithNoConstructorIsBuilt(): void
     {
-        static::assertInstanceOf(stdClass::class, NoArgumentInstantiator::instantiate(
+        static::assertInstanceOf(stdClass::class, ProviderFactory::create(
             class: stdClass::class,
             label: 'Thing',
         ));
@@ -49,7 +49,7 @@ final class NoArgumentInstantiatorTest extends TestCase
         $this->expectException(Exception\InvalidArgumentException::class);
         $this->expectExceptionMessageIs('Config provider class "' . Thing::class . '" does not exist');
 
-        NoArgumentInstantiator::instantiate(
+        ProviderFactory::create(
             class: Thing::class,
             label: 'Config provider',
         );
@@ -68,7 +68,7 @@ final class NoArgumentInstantiatorTest extends TestCase
             ),
         );
 
-        NoArgumentInstantiator::instantiate(
+        ProviderFactory::create(
             class: AbstractConfigProvider::class,
             label: 'Config processor',
         );
@@ -86,7 +86,7 @@ final class NoArgumentInstantiatorTest extends TestCase
             ),
         );
 
-        NoArgumentInstantiator::instantiate(
+        ProviderFactory::create(
             class: RequiresArgumentConfigProvider::class,
             label: 'Config provider',
         );

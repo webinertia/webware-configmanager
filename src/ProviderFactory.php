@@ -2,30 +2,35 @@
 
 declare(strict_types=1);
 
-namespace Webware\ConfigManager\Support;
+namespace Webware\ConfigManager;
 
 use ReflectionClass;
-use Webware\ConfigManager\Exception;
 
 use function class_exists;
 use function sprintf;
 
 /**
- * Instantiates a class that must take no constructor arguments.
+ * Provides an instance of a class named by class-string that takes no constructor arguments.
  *
- * Both config providers and config processors are named by class-string and built with no
- * arguments, so the checks and the wording live here once rather than in each caller. The
- * label is the caller's noun, so a message reads "Config provider class ..." or
- * "Config processor class ..." rather than a generic phrase that hides what failed.
+ * Readers, writers, config providers and config processors are all named by class-string and
+ * built with no arguments, so the checks and the wording live here once rather than in each
+ * caller. The name describes the job in the container sense: this provides instances, it is
+ * not a factory for config providers specifically. The label is the caller's noun, so a
+ * message reads "Config provider class ..." rather than a generic phrase that hides what
+ * failed.
  *
- * `isInstantiable()` is checked before instantiating because an abstract class raises
- * `Error` rather than `ReflectionException`, and a non-public constructor raises the
- * latter. Checking first turns both, and a constructor that demands arguments, into one
- * reported mistake instead of escaping as an `Error` or `ArgumentCountError`.
+ * This is deliberately not a PSR-11 factory and not under `\Container`. It does not resolve a
+ * service name against a container and it holds no configuration; it is given a concrete
+ * class-string, and it either builds it or reports why it cannot.
  *
- * @internal
+ * `isInstantiable()` is checked before instantiating because an abstract class raises `Error`
+ * rather than `ReflectionException`, and a non-public constructor raises the latter. Checking
+ * first turns both, and a constructor that demands arguments, into one reported mistake
+ * instead of escaping as an `Error` or `ArgumentCountError`.
+ *
+ * @api
  */
-final class NoArgumentInstantiator
+final class ProviderFactory
 {
     /**
      * @param string $class The class to build; a missing one is reported, not ignored.
@@ -33,7 +38,7 @@ final class NoArgumentInstantiator
      * @throws Exception\InvalidArgumentException
      * @mago-expect analysis:unhandled-thrown-type
      */
-    public static function instantiate(string $class, string $label): object
+    public static function create(string $class, string $label): object
     {
         if (! class_exists($class)) {
             throw new Exception\InvalidArgumentException(sprintf(

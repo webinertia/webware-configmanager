@@ -7,8 +7,8 @@ namespace Webware\ConfigManager\Container;
 use Override;
 use Psr\Container\ContainerInterface;
 use Webware\ConfigManager\Exception;
+use Webware\ConfigManager\ProviderFactory;
 use Webware\ConfigManager\Reader;
-use Webware\ConfigManager\Support\NoArgumentInstantiator;
 
 use function in_array;
 use function sprintf;
@@ -44,7 +44,7 @@ final class StandaloneReaderPluginManager implements ContainerInterface
          * @var class-string<Reader\ReaderInterface> $id
          * @var Reader\ReaderInterface
          */
-        return NoArgumentInstantiator::instantiate(
+        return ProviderFactory::create(
             class: $id,
             label: 'Config reader',
         );

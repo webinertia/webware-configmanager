@@ -7,7 +7,7 @@ namespace Webware\ConfigManager\Container;
 use Override;
 use Psr\Container\ContainerInterface;
 use Webware\ConfigManager\Exception;
-use Webware\ConfigManager\Support\NoArgumentInstantiator;
+use Webware\ConfigManager\ProviderFactory;
 use Webware\ConfigManager\Writer;
 
 use function in_array;
@@ -44,7 +44,7 @@ final class StandaloneWriterPluginManager implements ContainerInterface
          * @var class-string<Writer\AbstractWriter> $id
          * @var Writer\AbstractWriter
          */
-        return NoArgumentInstantiator::instantiate(
+        return ProviderFactory::create(
             class: $id,
             label: 'Config writer',
         );
