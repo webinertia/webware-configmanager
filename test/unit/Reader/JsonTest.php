@@ -13,6 +13,53 @@ use Webware\ConfigManager\Reader\Json;
 final class JsonTest extends AbstractReaderTestCase
 {
     #[Test]
+    public function aDirectoryIsRejectedRatherThanRead(): void
+    {
+        // A directory exists and is readable, so only the is_file() half of the guard
+        // rejects it. The message names the guard, which is what distinguishes this from
+        // whatever the read would otherwise fail with.
+        $directory = __DIR__ . '/TestAssets/Json';
+
+        $this->expectException(Exception\RuntimeException::class);
+        $this->expectExceptionMessageIs("File '{$directory}' doesn't exist or not readable");
+
+        $this->reader->fromFile($directory);
+    }
+
+    #[Test]
+    public function anIncludeIsMergedRecursively(): void
+    {
+        // The document brings its own nested data and the include brings more. Both must
+        // survive; replacing the array wholesale would drop the document's own key.
+        $config = $this->reader->fromFile($this->getTestAssetPath('include-recursive-base'));
+
+        static::assertSame(['a' => 1, 'b' => 2], $config['config']);
+    }
+
+    #[Test]
+    public function anIncludeIsRecognisedWhenItsKeyIsPadded(): void
+    {
+        // The directive is matched after trimming, so " @include " is one too. Without the
+        // trim it stays a literal key and the file it names is never read.
+        $config = $this->reader->fromFile($this->getTestAssetPath('include-padded'));
+
+        static::assertArrayNotHasKey('  @include  ', $config);
+        static::assertArrayHasKey('foo', $config);
+    }
+
+    #[Test]
+    public function anIncludeIsResolvedAgainstTheDocumentThatDeclaredIt(): void
+    {
+        // The second include must resolve against this file's directory. Reading the first
+        // one reassigns the directory, so unless it is read through a copy, the second
+        // resolves under sub/ and the file is not found.
+        $config = $this->reader->fromFile($this->getTestAssetPath('include-scoping'));
+
+        static::assertSame(['inner' => 'value'], $config['first']);
+        static::assertSame(['scoped' => 'value'], $config['second']);
+    }
+
+    #[Test]
     public function aNullJsonDocumentIsRejectedRatherThanReturningNull()
     {
         // "null" is valid JSON, so json_last_error() reports no error, but the result
@@ -59,7 +106,7 @@ final class JsonTest extends AbstractReaderTestCase
     public function includeStatementInStringIsRejected()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessageIs('Cannot process @include statement for a JSON string');
+        $this->expectExceptionMessageIs('Cannot process @include statement for a string');
 
         $this->reader->fromString('{ "@include": "other.json" }');
     }

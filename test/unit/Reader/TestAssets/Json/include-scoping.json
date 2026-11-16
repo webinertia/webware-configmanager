@@ -1,0 +1,8 @@
+{
+    "first": {
+        "@include": "sub/include-inner.json"
+    },
+    "second": {
+        "@include": "include-scoped.json"
+    }
+}

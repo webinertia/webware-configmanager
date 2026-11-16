@@ -108,9 +108,7 @@ final class AbstractConfigFactory implements AbstractFactoryInterface
      */
     public function resolve(ContainerInterface $container, string $requestedName, TypeInterface $type): mixed
     {
-        $entry = $this->find($container, $requestedName) ?? throw new Exception\InvalidArgumentException(
-            sprintf('Unable to resolve a configuration value for the requested service name "%s"', $requestedName),
-        );
+        $entry = $this->require($container, $requestedName);
 
         try {
             return $type->coerce($entry['value']);
@@ -179,6 +177,23 @@ final class AbstractConfigFactory implements AbstractFactoryInterface
     }
 
     /**
+     * Resolve the entry for a requested service name, or report that there is none.
+     *
+     * @return array{key: string, value: mixed}
+     * @throws Exception\InvalidArgumentException If no configuration entry matches.
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function require(ContainerInterface $container, string $requestedName): array
+    {
+        return (
+            $this->find($container, $requestedName) ?? throw new Exception\InvalidArgumentException(
+                sprintf('Unable to resolve a configuration value for the requested service name "%s"', $requestedName),
+            )
+        );
+    }
+
+    /**
      * @param array<array-key, mixed>|null $options
      * @throws Exception\InvalidArgumentException
      * @throws ContainerExceptionInterface
@@ -187,9 +202,7 @@ final class AbstractConfigFactory implements AbstractFactoryInterface
     #[Override]
     public function __invoke(ContainerInterface $container, string $requestedName, ?array $options = null): mixed
     {
-        $entry = $this->find($container, $requestedName) ?? throw new Exception\InvalidArgumentException(
-            sprintf('Unable to resolve a configuration value for the requested service name "%s"', $requestedName),
-        );
+        $entry = $this->require($container, $requestedName);
 
         $this->configs[$requestedName] = $entry['value'];
         $this->configs[$entry['key']]  = $entry['value'];

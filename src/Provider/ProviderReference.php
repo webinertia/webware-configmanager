@@ -22,15 +22,38 @@ use function spl_object_id;
  */
 final class ProviderReference
 {
+    /**
+     * @param null|string $class The class the reference denotes, or null when it denotes none.
+     */
     private function __construct(
         public readonly mixed $value,
         public readonly string $identity,
         public readonly string $label,
+        public readonly ?string $class,
     ) {}
 
     public static function of(mixed $value): self
     {
-        return new self($value, self::identityOf($value), self::labelOf($value));
+        $class = self::classOf($value);
+
+        return new self($value, self::identityOf($value, $class), self::labelOf($value), $class);
+    }
+
+    /**
+     * The class a reference denotes.
+     *
+     * A declaration names a class, so this is the single place that decides what an
+     * entry in a provider list is called. Both a class-string and an instance name
+     * their class; anything else names none, which is also what an ordering
+     * declaration can never match.
+     */
+    private static function classOf(mixed $value): ?string
+    {
+        return match (true) {
+            is_string($value) => $value,
+            is_object($value) => $value::class,
+            default           => null,
+        };
     }
 
     /**
@@ -39,22 +62,21 @@ final class ProviderReference
      * A class-string is its own identity. An instance is identified by object handle,
      * so two instances of one class are not mistaken for a duplicate.
      */
-    private static function identityOf(mixed $value): string
+    private static function identityOf(mixed $value, ?string $class): string
     {
-        if (is_string($value)) {
-            return "class:{$value}";
+        if (null === $class) {
+            $type = get_debug_type($value);
+
+            return "other:{$type}";
         }
 
-        if (is_object($value)) {
-            $id    = spl_object_id($value);
-            $class = $value::class;
-
-            return "object:{$class}:{$id}";
+        if (! is_object($value)) {
+            return "class:{$class}";
         }
 
-        $type = get_debug_type($value);
+        $id = spl_object_id($value);
 
-        return "other:{$type}";
+        return "object:{$class}:{$id}";
     }
 
     /**

@@ -114,7 +114,7 @@ final class YamlTest extends AbstractReaderTestCase
     public function includeStatementInStringIsRejected()
     {
         $this->expectException(Exception\RuntimeException::class);
-        $this->expectExceptionMessageIs('Cannot process @include statement for a json string');
+        $this->expectExceptionMessageIs('Cannot process @include statement for a string');
 
         $this->reader->fromString("'@include': include-target.yaml");
     }

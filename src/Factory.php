@@ -54,31 +54,20 @@ final class Factory
      * Registered config file extensions.
      * key is extension, value is reader instance or reader class name
      *
-     * @var array<string, class-string<Reader\ReaderInterface>|Reader\ReaderInterface>
+     * Starts as the shipped set and is replaced as readers are resolved, so it stays a
+     * cache of what this process will use. {@see PluginRegistry} owns the shipped set.
+     *
+     * @var null|array<string, class-string<Reader\ReaderInterface>|Reader\ReaderInterface>
      */
-    private static array $extensions = [
-        'ini'        => Reader\Ini::class,
-        'json'       => Reader\Json::class,
-        'xml'        => Reader\Xml::class,
-        'yaml'       => Reader\Yaml::class,
-        'yml'        => Reader\Yaml::class,
-        'properties' => Reader\JavaProperties::class,
-    ];
+    private static ?array $extensions = null;
 
     /**
      * Register config file extensions for writing
      * key is extension, value is writer instance or writer class name
      *
-     * @var array<string, class-string<Writer\AbstractWriter>|Writer\AbstractWriter>
+     * @var null|array<string, class-string<Writer\AbstractWriter>|Writer\AbstractWriter>
      */
-    private static array $writerExtensions = [
-        'php'  => Writer\PhpArray::class,
-        'ini'  => Writer\Ini::class,
-        'json' => Writer\Json::class,
-        'xml'  => Writer\Xml::class,
-        'yaml' => Writer\Yaml::class,
-        'yml'  => Writer\Yaml::class,
-    ];
+    private static ?array $writerExtensions = null;
 
     /**
      * Read a config from a file.
@@ -224,12 +213,15 @@ final class Factory
     public static function registerReader(string $extension, mixed $reader): void
     {
         $extension = strtolower($extension);
-
-        static::$extensions[$extension] = self::assertPlugin(
+        $plugin    = self::assertPlugin(
             plugin: $reader,
             type  : Reader\ReaderInterface::class,
             label : 'Reader',
         );
+
+        $extensions             = self::extensions();
+        $extensions[$extension] = $plugin;
+        self::$extensions       = $extensions;
     }
 
     /**
@@ -241,12 +233,15 @@ final class Factory
     public static function registerWriter(string $extension, mixed $writer): void
     {
         $extension = strtolower($extension);
-
-        static::$writerExtensions[$extension] = self::assertPlugin(
+        $plugin    = self::assertPlugin(
             plugin: $writer,
             type  : Writer\AbstractWriter::class,
             label : 'Writer',
         );
+
+        $extensions             = self::writerExtensions();
+        $extensions[$extension] = $plugin;
+        self::$writerExtensions = $extensions;
     }
 
     /**
@@ -296,13 +291,15 @@ final class Factory
 
         $extension = substr(strrchr($filename, needle: '.'), offset: 1);
 
-        if (! array_key_exists($extension, static::$writerExtensions)) {
+        $writers = self::writerExtensions();
+
+        if (! array_key_exists($extension, $writers)) {
             throw new Exception\RuntimeException(
                 "Unsupported config file extension: '.{$extension}' for writing.",
             );
         }
 
-        $writer = static::$writerExtensions[$extension];
+        $writer = $writers[$extension];
         if (! $writer instanceof Writer\AbstractWriter) {
             $resolved = self::getWriterPluginManager()->get($writer);
 
@@ -314,8 +311,10 @@ final class Factory
                 ));
             }
 
-            $writer                               = $resolved;
-            static::$writerExtensions[$extension] = $resolved;
+            $writer                 = $resolved;
+            $writers                = self::writerExtensions();
+            $writers[$extension]    = $resolved;
+            self::$writerExtensions = $writers;
         }
 
         if (is_object($config)) {
@@ -373,6 +372,16 @@ final class Factory
     }
 
     /**
+     * The reader extension table for this process.
+     *
+     * @return array<string, class-string<Reader\ReaderInterface>|Reader\ReaderInterface>
+     */
+    private static function extensions(): array
+    {
+        return self::$extensions ??= PluginRegistry::readerExtensions();
+    }
+
+    /**
      * Read a config file using the strategy its extension selects.
      *
      * A PHP file is included and must return an array; every other extension is
@@ -397,14 +406,16 @@ final class Factory
             return include $filepath;
         }
 
-        if (! array_key_exists($extension, static::$extensions)) {
+        $extensions = self::extensions();
+
+        if (! array_key_exists($extension, $extensions)) {
             throw new Exception\RuntimeException(sprintf(
                 'Unsupported config file extension: .%s',
                 $extension,
             ));
         }
 
-        $reader = static::$extensions[$extension];
+        $reader = $extensions[$extension];
 
         if ($reader instanceof Reader\ReaderInterface) {
             return $reader->fromFile($filepath);
@@ -420,8 +431,20 @@ final class Factory
             ));
         }
 
-        static::$extensions[$extension] = $resolved;
+        $extensions             = self::extensions();
+        $extensions[$extension] = $resolved;
+        self::$extensions       = $extensions;
 
         return $resolved->fromFile($filepath);
+    }
+
+    /**
+     * The writer extension table for this process.
+     *
+     * @return array<string, class-string<Writer\AbstractWriter>|Writer\AbstractWriter>
+     */
+    private static function writerExtensions(): array
+    {
+        return self::$writerExtensions ??= PluginRegistry::writerExtensions();
     }
 }

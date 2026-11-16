@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Provider\ConfigProviderResolver;
 use Webware\ConfigManager\Provider\PhpFileProvider;
+use Webware\ConfigManager\Shape;
 
 use function iterator_to_array;
 use function realpath;
@@ -18,6 +19,7 @@ use function sprintf;
 use const DIRECTORY_SEPARATOR;
 
 #[CoversClass(PhpFileProvider::class)]
+#[CoversClass(Shape::class)]
 final class PhpFileProviderTest extends TestCase
 {
     private const string FIXTURES = __DIR__ . '/TestAssets/Php';
@@ -28,7 +30,7 @@ final class PhpFileProviderTest extends TestCase
         $provider = $this->provider('scalar.php');
         $path     = $this->path('scalar.php');
 
-        $this->expectException(Exception\RuntimeException::class);
+        $this->expectException(Exception\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             sprintf('Config file "%s" must return an array; it returned "string"', $path),
         );

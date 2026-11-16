@@ -140,6 +140,75 @@ the pattern produced. That order is the part that matters, and it is reproduced 
 order, then `local.php`, then every `*.local.php`. A file that does not return an array is
 reported with its path.
 
+## Controlling the order providers are merged
+
+Order decides which provider wins a shared key, and a provider list cannot express that
+reliably on its own: `laminas-component-installer` **prepends** every provider it writes to
+`config/config.php`, so a package installed last loads first and loses every key it shares
+with a package it builds on. The usual workaround is editing the array by hand after each
+install.
+
+A provider now declares its own position, which puts the decision where the knowledge is:
+the package that must override something.
+
+```php
+namespace Webware\Theme;
+
+use Mezzio\LaminasView\ConfigProvider as LaminasViewConfigProvider;
+use Webware\ConfigManager\Attribute\LoadAfter;
+
+#[LoadAfter(LaminasViewConfigProvider::class)]
+final class ConfigProvider
+{
+    public function __invoke(): array
+    {
+        // ...
+    }
+}
+```
+
+Two attributes are available:
+
+| Attribute | Meaning |
+|---|---|
+| `#[LoadAfter(Target::class, ...)]` | This provider is merged **after** every listed provider |
+| `#[LoadBefore(Target::class, ...)]` | This provider is merged **before** every listed provider |
+
+Both accept several targets in one attribute, both may appear more than once, and both may
+be used together. They require no interface and no dependency on this package in order to
+be written: a PHP attribute is only checked against its class when it is instantiated, so a
+`use` import of the attribute is enough, and the declaration is inert wherever this package
+is not installed.
+
+Three rules make the behaviour safe to rely on:
+
+- **Providers that declare nothing keep their position.** The sort is stable, so a list
+  with no declarations is merged in exactly the order it always was. Enabling this changes
+  nothing until a declaration exists.
+- **A target that is not installed is ignored.** A package cannot know which of its peers
+  the host application uses, so a dangling reference is ordinary rather than an error.
+- **A cycle is reported.** If the declarations demand an order that loops, an
+  `InvalidArgumentException` names the providers involved. Silently picking a winner is how
+  the problem this feature exists to solve would come back.
+
+The order is applied by `Provider\ProviderOrderResolver`, which runs inside
+`ConfigProviderResolver::aggregate()` and therefore applies to `Factory::fromProviders()`
+and `ConfigAggregator` alike. Nothing has to be wired up.
+
+### Ordering with the laminas aggregator
+
+A consumer still on `Laminas\ConfigAggregator\ConfigAggregator` can apply the same ordering
+through the aggregator's `preProcessors` hook, passing the resolver:
+
+```php
+$aggregator = new Laminas\ConfigAggregator\ConfigAggregator(
+    providers       : $providers,
+    cachedConfigFile: null,
+    postProcessors  : [],
+    preProcessors   : [new Webware\ConfigManager\Provider\ProviderOrderResolver()],
+);
+```
+
 ## Replacing the Laminas config aggregator
 
 `Webware\ConfigManager\ConfigAggregator` takes the same constructor arguments as
@@ -163,6 +232,27 @@ $aggregator = new ConfigAggregator(
 
 return $aggregator->getMergedConfig();
 ```
+
+### It is a Config
+
+`ConfigAggregator` extends `Webware\ConfigManager\Config`. A provider returns an array and
+a `Config` consumes one, so aggregating is how that array comes to exist rather than a
+second container for it. The merged configuration is therefore readable through the same
+accessors as any other `Config`:
+
+```php
+$aggregator->get('dependencies');
+$aggregator['dependencies'];
+count($aggregator);
+$aggregator->toArray();
+```
+
+It is read-only, as a `Config` built for reading is. `getMergedConfig()` is kept because
+it is the aggregator's signature; it returns `toArray()`.
+
+The name is unchanged deliberately. `Laminas\ComponentInstaller`'s aggregator injector
+matches a literal `new ConfigAggregator(`, so a consumer's `composer require` can keep
+registering providers into `config/config.php` after the swap.
 
 ### Cache behaviour
 
@@ -211,3 +301,23 @@ $config = [
 
 Webware\ConfigManager\Factory::toFile(__DIR__ . '/config/my.config.php', $config);
 ```
+
+### Merging an update back into a config file
+
+A Config is read only unless it is built with `$allowModifications`, and `merge()` is a
+modification, so it refuses a read-only receiver for the same reason assigning does. A
+config loaded for reading, including one produced by `ConfigAggregator`, is read only.
+To change it, build a mutable copy:
+
+```php
+$loaded  = new Webware\ConfigManager\ConfigAggregator($providers, $cacheFile);
+$updated = new Webware\ConfigManager\Config($loaded->toArray(), allowModifications: true);
+
+$updated->merge(new Webware\ConfigManager\Config($submitted, allowModifications: true));
+
+Webware\ConfigManager\Factory::toFile($cacheFile, $updated);
+```
+
+Only the receiver is changed, so the Config being merged in may be read only. Merging
+rebuilds the receiver's children rather than patching them in place, so a Config object
+obtained from it before the merge does not observe the change.

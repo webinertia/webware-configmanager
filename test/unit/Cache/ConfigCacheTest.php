@@ -9,17 +9,25 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\ConfigManager\Cache\ConfigCache;
 use Webware\ConfigManager\Exception;
+use Webware\ConfigManager\Shape;
 
+use function chmod;
 use function file_get_contents;
 use function file_put_contents;
+use function fileperms;
 use function fopen;
 use function is_file;
+use function mkdir;
+use function rmdir;
 use function sprintf;
 use function sys_get_temp_dir;
 use function uniqid;
 use function unlink;
 
+use const PHP_OS_FAMILY;
+
 #[CoversClass(ConfigCache::class)]
+#[CoversClass(Shape::class)]
 final class ConfigCacheTest extends TestCase
 {
     private string $path;
@@ -37,7 +45,7 @@ final class ConfigCacheTest extends TestCase
     {
         file_put_contents($this->path, data: "<?php\n\nreturn 'nope';\n");
 
-        $this->expectException(Exception\RuntimeException::class);
+        $this->expectException(Exception\InvalidArgumentException::class);
         $this->expectExceptionMessageIs(
             sprintf('Config cache file "%s" must return an array; it returned "string"', $this->path),
         );
@@ -75,11 +83,44 @@ final class ConfigCacheTest extends TestCase
 
         $this->expectException(Exception\RuntimeException::class);
         $this->expectExceptionMessageIsOrContains('Unable to export the configuration cache:');
+        $this->expectExceptionCode(0);
 
         new ConfigCache($this->path)->save([
             ConfigCache::ENABLE_CACHE => true,
             'stream'                  => $handle,
         ]);
+    }
+
+    #[Test]
+    public function aFailedWriteLeavesTheExistingPathUntouched(): void
+    {
+        // A directory cannot be replaced by the rename, so the write fails and the cache
+        // is skipped. The explicit mode must not then be applied to the directory that is
+        // still there in place of the file.
+        $directory = "{$this->path}-dir";
+        mkdir(
+            directory  : $directory,
+            permissions: 0o700,
+        );
+        chmod(
+            filename   : $directory,
+            permissions: 0o700,
+        );
+
+        try {
+            new ConfigCache($directory)->save([
+                ConfigCache::ENABLE_CACHE   => true,
+                ConfigCache::CACHE_FILEMODE => 0o777,
+            ]);
+
+            static::assertDirectoryExists($directory);
+
+            if ('Windows' !== PHP_OS_FAMILY) {
+                static::assertSame(0o700, fileperms($directory) & 0o777);
+            }
+        } finally {
+            rmdir($directory);
+        }
     }
 
     #[Test]
@@ -99,6 +140,24 @@ final class ConfigCacheTest extends TestCase
         ]);
 
         static::assertFileExists($this->path);
+    }
+
+    #[Test]
+    public function anIntegerFileModeIsAppliedWhereThePlatformModelsPermissions(): void
+    {
+        // FileWriter derives a new file's mode from umask, so 0o640 is only present if
+        // the explicit mode was applied. Windows does not model POSIX permissions and
+        // the writer skips them there.
+        if ('Windows' === PHP_OS_FAMILY) {
+            static::markTestSkipped('POSIX permissions are not modelled on Windows.');
+        }
+
+        new ConfigCache($this->path)->save([
+            ConfigCache::ENABLE_CACHE   => true,
+            ConfigCache::CACHE_FILEMODE => 0o640,
+        ]);
+
+        static::assertSame(0o640, fileperms($this->path) & 0o777);
     }
 
     #[Test]

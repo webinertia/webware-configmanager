@@ -8,13 +8,10 @@ use Override;
 use Webware\ConfigManager\Exception;
 
 use function array_replace_recursive;
-use function dirname;
 use function explode;
 use function file_get_contents;
 use function gettype;
-use function is_file;
 use function is_object;
-use function is_readable;
 use function is_string;
 use function sprintf;
 use function str_starts_with;
@@ -29,16 +26,9 @@ use function trim;
  * Java-style properties config reader.
  * @api
  */
-final class JavaProperties implements ReaderInterface
+final class JavaProperties extends AbstractReader
 {
     public const string DELIMITER_DEFAULT = ':';
-
-    /**
-     * Directory of the Java-style properties file
-     *
-     * @var string
-     */
-    private ?string $directory = null;
 
     /**
      * Delimiter for key/value pairs.
@@ -73,50 +63,27 @@ final class JavaProperties implements ReaderInterface
     }
 
     /**
-     * fromFile(): defined by Reader interface.
-     *
-     * @see    ReaderInterface::fromFile()
+     * Read a file whose existence has already been checked.
      *
      * @throws Exception\RuntimeException If the file cannot be read.
      * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromFile(string $filename): array
+    protected function readFile(string $filename): array
     {
-        if (! is_file($filename) || ! is_readable($filename)) {
-            throw new Exception\RuntimeException(sprintf(
-                "File '%s' doesn't exist or not readable",
-                $filename,
-            ));
-        }
-
-        $this->directory = dirname($filename);
-
-        $config = $this->parse(file_get_contents($filename));
-
-        return $this->process($config);
+        return $this->process($this->parse(file_get_contents($filename)));
     }
 
     /**
-     * fromString(): defined by Reader interface.
-     *
-     * @see    ReaderInterface::fromString()
+     * Read a document that did not come from a file.
      *
      * @throws Exception\RuntimeException If an @include key is found.
      * @return array<array-key, mixed>
      */
     #[Override]
-    public function fromString(string $string): array
+    protected function readString(string $string): array
     {
-        if ('' === $string) {
-            return [];
-        }
-
-        $this->directory = null;
-
-        $config = $this->parse($string);
-
-        return $this->process($config);
+        return $this->process($this->parse($string));
     }
 
     /**

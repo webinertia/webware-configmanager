@@ -1,0 +1,6 @@
+{
+    "config": {
+        "a": 1
+    },
+    "@include": "include-recursive.json"
+}

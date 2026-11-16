@@ -28,6 +28,16 @@ final class JsonTest extends AbstractWriterTestCase
     }
 
     #[Test]
+    public function toStringIsPrettyPrintedAndLeavesSlashesUnescaped()
+    {
+        $serialized = new JsonWriter()->toString(['path' => '/tmp/one/two', 'nested' => ['key' => 'value']]);
+
+        static::assertStringContainsString('/tmp/one/two', $serialized);
+        static::assertStringNotContainsString('\\/tmp', $serialized);
+        static::assertStringContainsString("\n", $serialized);
+    }
+
+    #[Test]
     public function unencodableDataRaisesException()
     {
         $this->expectException(Exception\RuntimeException::class);

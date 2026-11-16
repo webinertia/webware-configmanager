@@ -470,7 +470,7 @@ final class FactoryTest extends TestCase
     public function fromProvidersRejectsAProviderThatDoesNotReturnAnArray()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageIsOrContains('does not return an array');
+        $this->expectExceptionMessageIsOrContains('must return an array');
 
         Factory::fromProviders([MergeTestAssets\NotAnArrayConfigProvider::class]);
     }

@@ -7,14 +7,13 @@ namespace Webware\ConfigManager\Cache;
 use Brick\VarExporter\VarExporter;
 use Throwable;
 use Webware\ConfigManager\Exception;
+use Webware\ConfigManager\Shape;
 use Webware\FileWriter\Exception\ExceptionInterface as FileWriterException;
 use Webware\FileWriter\FileWriter;
 
 use function chmod;
 use function date;
 use function file_exists;
-use function get_debug_type;
-use function is_array;
 use function is_int;
 use function restore_error_handler;
 use function set_error_handler;
@@ -80,23 +79,6 @@ final class ConfigCache
     }
 
     /**
-     * @return array<array-key, mixed>
-     * @throws Exception\RuntimeException
-     */
-    private static function asConfig(string $path, mixed $cached): array
-    {
-        if (! is_array($cached)) {
-            throw new Exception\RuntimeException(sprintf(
-                'Config cache file "%s" must return an array; it returned "%s"',
-                $path,
-                get_debug_type($cached),
-            ));
-        }
-
-        return $cached;
-    }
-
-    /**
      * Report whether the merged configuration allows the cache to be written.
      *
      * The setting must be the boolean `true`. The aggregator used `empty()`, so `1` or
@@ -115,7 +97,7 @@ final class ConfigCache
      * Return the cached configuration, or null when there is nothing to read.
      *
      * @return null|array<array-key, mixed>
-     * @throws Exception\RuntimeException If the cache file does not return an array.
+     * @throws Exception\InvalidArgumentException If the cache file does not return an array.
      */
     public function load(): ?array
     {
@@ -125,7 +107,10 @@ final class ConfigCache
 
         // Passed straight into the check so the untyped return of an included file never
         // reaches a variable.
-        return self::asConfig($this->path, require $this->path);
+        return Shape::array(
+            require $this->path,
+            sprintf('Config cache file "%s"', $this->path),
+        );
     }
 
     /**
