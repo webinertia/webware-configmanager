@@ -81,7 +81,7 @@ echo $config->webhost; // 'www.example.com'
 
 ## Reading configuration from a container
 
-`Webware\ConfigManager\AbstractConfigFactory` is a Laminas abstract factory that turns
+`Webware\ConfigManager\Container\AbstractConfigFactory` is a Laminas abstract factory that turns
 subtrees of the container's `config` service into individually injectable services, so a
 constructor can depend on `config-db` rather than on the whole `config` array:
 
@@ -90,7 +90,7 @@ constructor can depend on `config-db` rather than on the whole `config` array:
 return [
     'dependencies' => [
         'abstract_factories' => [
-            Webware\ConfigManager\AbstractConfigFactory::class,
+            Webware\ConfigManager\Container\AbstractConfigFactory::class,
         ],
     ],
 ];
@@ -124,7 +124,7 @@ the return type is stated by the caller instead of described in a docblock:
 ```php
 use Psl\Type;
 
-$database = (new Webware\ConfigManager\AbstractConfigFactory())->resolve(
+$database = (new Webware\ConfigManager\Container\AbstractConfigFactory())->resolve(
     container    : $container,
     requestedName: 'config-db',
     type         : Type\shape([
@@ -173,7 +173,7 @@ configuration rather than an array that has to be wrapped again: `get()`, array 
 iteration and `toArray()` all work on it directly. `config/container.php` can therefore
 return the aggregator where it returns a `Config`, with no second construction step.
 
-`Webware\ConfigManager\AbstractConfigFactory` makes its subtrees injectable.
+`Webware\ConfigManager\Container\AbstractConfigFactory` makes its subtrees injectable.
 
 ## Declaring provider order
 

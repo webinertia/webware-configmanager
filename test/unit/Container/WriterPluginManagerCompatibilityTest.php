@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WebwareTest\ConfigManager;
+namespace WebwareTest\ConfigManager\Container;
 
 use Laminas\ServiceManager\Exception\InvalidServiceException;
 use Laminas\ServiceManager\ServiceManager;
@@ -12,8 +12,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use stdClass;
+use Webware\ConfigManager\Container\WriterPluginManager;
 use Webware\ConfigManager\Writer;
-use Webware\ConfigManager\WriterPluginManager;
 
 #[CoversClass(WriterPluginManager::class)]
 final class WriterPluginManagerCompatibilityTest extends TestCase

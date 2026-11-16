@@ -92,34 +92,6 @@ final class ConfigCacheTest extends TestCase
     }
 
     #[Test]
-    public function anIntegerFileModeOverridesAnExistingCacheFileMode(): void
-    {
-        // The real case: a cache file written on an earlier run carries whatever mode
-        // umask produced, and a configured mode must win from then on. Applying the mode
-        // after the rename would still pass this, but dropping it entirely would not.
-        if ('Windows' === PHP_OS_FAMILY) {
-            static::markTestSkipped('POSIX permissions are not modelled on Windows.');
-        }
-
-        file_put_contents(
-            filename: $this->path,
-            data    : '<?php return [];',
-        );
-        chmod(
-            filename   : $this->path,
-            permissions: 0o600,
-        );
-
-        new ConfigCache($this->path)->save([
-            ConfigCache::ENABLE_CACHE   => true,
-            ConfigCache::CACHE_FILEMODE => 0o640,
-        ]);
-
-        clearstatcache();
-        static::assertSame(0o640, fileperms($this->path) & 0o777);
-    }
-
-    #[Test]
     public function aMissingFileReadsNothing(): void
     {
         static::assertNull(new ConfigCache($this->path)->load());
@@ -153,6 +125,34 @@ final class ConfigCacheTest extends TestCase
             ConfigCache::CACHE_FILEMODE => 0o640,
         ]);
 
+        static::assertSame(0o640, fileperms($this->path) & 0o777);
+    }
+
+    #[Test]
+    public function anIntegerFileModeOverridesAnExistingCacheFileMode(): void
+    {
+        // The real case: a cache file written on an earlier run carries whatever mode
+        // umask produced, and a configured mode must win from then on. Applying the mode
+        // after the rename would still pass this, but dropping it entirely would not.
+        if ('Windows' === PHP_OS_FAMILY) {
+            static::markTestSkipped('POSIX permissions are not modelled on Windows.');
+        }
+
+        file_put_contents(
+            filename: $this->path,
+            data    : '<?php return [];',
+        );
+        chmod(
+            filename   : $this->path,
+            permissions: 0o600,
+        );
+
+        new ConfigCache($this->path)->save([
+            ConfigCache::ENABLE_CACHE   => true,
+            ConfigCache::CACHE_FILEMODE => 0o640,
+        ]);
+
+        clearstatcache();
         static::assertSame(0o640, fileperms($this->path) & 0o777);
     }
 

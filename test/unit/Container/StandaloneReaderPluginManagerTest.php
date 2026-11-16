@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace WebwareTest\ConfigManager;
+namespace WebwareTest\ConfigManager\Container;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
 use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Reader;
-use Webware\ConfigManager\StandaloneReaderPluginManager;
 
 #[CoversClass(StandaloneReaderPluginManager::class)]
 final class StandaloneReaderPluginManagerTest extends TestCase

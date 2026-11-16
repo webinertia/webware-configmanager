@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Webware\ConfigManager\Container;
 
 use Psr\Container\ContainerInterface;
-use Webware\ConfigManager\ReaderPluginManager;
 
 /**
  * Builds the ServiceManager-backed reader plugin manager, using the consuming

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WebwareTest\ConfigManager;
+namespace WebwareTest\ConfigManager\Container;
 
 use ArrayIterator;
 use InvalidArgumentException;
@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psl\Type;
 use stdClass;
-use Webware\ConfigManager\AbstractConfigFactory;
+use Webware\ConfigManager\Container\AbstractConfigFactory;
 use Webware\ConfigManager\Exception as WebwareException;
 
 use function count;

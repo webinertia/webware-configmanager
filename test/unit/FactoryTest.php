@@ -13,11 +13,11 @@ use ReflectionClass;
 use RuntimeException;
 use stdClass;
 use Webware\ConfigManager\Config;
+use Webware\ConfigManager\Container\ReaderPluginManager;
+use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
+use Webware\ConfigManager\Container\StandaloneWriterPluginManager;
+use Webware\ConfigManager\Container\WriterPluginManager;
 use Webware\ConfigManager\Factory;
-use Webware\ConfigManager\ReaderPluginManager;
-use Webware\ConfigManager\StandaloneReaderPluginManager;
-use Webware\ConfigManager\StandaloneWriterPluginManager;
-use Webware\ConfigManager\WriterPluginManager;
 
 use function chmod;
 use function file_exists;

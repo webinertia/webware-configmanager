@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Webware\ConfigManager;
 
+use Webware\ConfigManager\Container\AbstractConfigFactory;
+use Webware\ConfigManager\Container\ReaderPluginManager;
 use Webware\ConfigManager\Container\ReaderPluginManagerFactory;
+use Webware\ConfigManager\Container\WriterPluginManager;
 use Webware\ConfigManager\Container\WriterPluginManagerFactory;
 
 /**

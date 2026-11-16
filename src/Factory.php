@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Webware\ConfigManager;
 
 use Psr\Container\ContainerInterface;
+use Webware\ConfigManager\Container\PluginRegistry;
+use Webware\ConfigManager\Container\StandaloneReaderPluginManager;
+use Webware\ConfigManager\Container\StandaloneWriterPluginManager;
 use Webware\ConfigManager\Merge\ConfigMerger;
 use Webware\ConfigManager\Provider\ConfigProviderResolver;
 use Webware\FileWriter\Exception as WriterException;

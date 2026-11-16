@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace WebwareTest\ConfigManager;
+namespace WebwareTest\ConfigManager\Container;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Webware\ConfigManager\Container\StandaloneWriterPluginManager;
 use Webware\ConfigManager\Exception;
-use Webware\ConfigManager\StandaloneWriterPluginManager;
 use Webware\ConfigManager\Writer;
 
 #[CoversClass(StandaloneWriterPluginManager::class)]

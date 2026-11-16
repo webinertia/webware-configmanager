@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Webware\ConfigManager;
+namespace Webware\ConfigManager\Container;
+
+use Webware\ConfigManager\Reader;
+use Webware\ConfigManager\Writer;
 
 /**
  * The plugins this package ships, named once.

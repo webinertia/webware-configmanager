@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Webware\ConfigManager;
+namespace Webware\ConfigManager\Container;
 
 use Override;
 use Psr\Container\ContainerInterface;
+use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Support\NoArgumentInstantiator;
+use Webware\ConfigManager\Writer;
 
 use function in_array;
 use function sprintf;

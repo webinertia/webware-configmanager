@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Webware\ConfigManager;
+namespace Webware\ConfigManager\Container;
 
 use InvalidArgumentException;
 use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
@@ -12,7 +12,7 @@ use Psl\Type\TypeInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Webware\ConfigManager\Container\ConfigService;
+use Webware\ConfigManager\Exception;
 use Webware\ConfigManager\Pattern\PatternValidator;
 
 use function array_key_exists;

@@ -1,12 +1,6 @@
 variant = "loose"
 
 [[issues]]
-file = "src/AbstractConfigFactory.php"
-code = "unhandled-thrown-type"
-message = 'Potentially unhandled exception `InvalidArgumentException` in `Webware\ConfigManager\AbstractConfigFactory::addPattern`.'
-count = 1
-
-[[issues]]
 file = "src/Config.php"
 code = "mixed-argument"
 message = "Invalid argument type for argument #1 of `array_key_exists`: expected `bool|float|int|string`, but found `mixed`."
@@ -34,7 +28,13 @@ count = 1
 file = "src/Config.php"
 code = "unsafe-instantiation"
 message = 'Unsafe `new static()`: constructor of `Webware\ConfigManager\Config` is not final and its signature might change in child classes, potentially leading to runtime errors.'
-count = 4
+count = 1
+
+[[issues]]
+file = "src/Container/AbstractConfigFactory.php"
+code = "unhandled-thrown-type"
+message = 'Potentially unhandled exception `InvalidArgumentException` in `Webware\ConfigManager\Container\AbstractConfigFactory::addPattern`.'
+count = 1
 
 [[issues]]
 file = "src/Container/ConfigService.php"
@@ -358,7 +358,7 @@ count = 1
 file = "src/Reader/Json.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 2
+count = 1
 
 [[issues]]
 file = "src/Reader/Json.php"
@@ -367,28 +367,10 @@ message = 'Argument #1 of method `Webware\ConfigManager\Reader\Json::decode` is 
 count = 1
 
 [[issues]]
-file = "src/Reader/Xml.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #2 of `Exception::__construct`: expected `int`, but found `mixed`."
-count = 2
-
-[[issues]]
-file = "src/Reader/Xml.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #2 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
-count = 1
-
-[[issues]]
-file = "src/Reader/Xml.php"
-code = "mixed-argument"
-message = "Invalid argument type for argument #3 of `sprintf`: expected `Stringable|null|scalar`, but found `mixed`."
-count = 1
-
-[[issues]]
 file = "src/Reader/Yaml.php"
 code = "mixed-assignment"
 message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 2
+count = 1
 
 [[issues]]
 file = "src/Reader/Yaml.php"
