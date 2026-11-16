@@ -148,12 +148,22 @@ final class AbstractConfigFactory implements AbstractFactoryInterface
             return ['key' => $key, 'value' => $this->configs[$key]];
         }
 
-        $config = ConfigService::entriesOf($container);
-        if (! array_key_exists($key, $config) || null === $config[$key]) {
+        /** @var mixed $config */
+        $config = $container->has('config') ? $container->get('config') : [];
+
+        // Upstream reads this as isset($config[$key]), and the tolerance that buys is the
+        // point: a config service that is not an array reports "no entry" rather than
+        // raising halfway through resolution, and a null entry is an absent entry. A
+        // coalescing read is measured to behave identically for string, int, bool, null
+        // and array values, and it reads the entry once instead of twice.
+        /** @var mixed $value */
+        $value = $config[$key] ?? null;
+
+        if (null === $value) {
             return null;
         }
 
-        return ['key' => $key, 'value' => $config[$key]];
+        return ['key' => $key, 'value' => $value];
     }
 
     private function match(string $requestedName): ?string

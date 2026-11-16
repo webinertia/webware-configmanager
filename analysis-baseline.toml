@@ -37,12 +37,6 @@ message = 'Potentially unhandled exception `InvalidArgumentException` in `Webwar
 count = 1
 
 [[issues]]
-file = "src/Container/ConfigService.php"
-code = "mixed-assignment"
-message = "Assigning `mixed` type to a variable may lead to unexpected behavior."
-count = 1
-
-[[issues]]
 file = "src/Factory.php"
 code = "impossible-condition"
 message = "This condition (type `false`) will always evaluate to false."
