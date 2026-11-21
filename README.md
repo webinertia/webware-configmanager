@@ -21,12 +21,14 @@ composer require webware/webware-configmanager
 
 ## Documentation
 
-- [Introduction](docs/v1/intro.md)
-- [Theory of Operation](docs/v1/theory.md)
-- [Readers](docs/v1/reader.md)
-- [Writers](docs/v1/writer.md)
-- [Processors](docs/v1/processor.md)
-- [The Factory](docs/v1/factory.md)
+The 1.0 release line is documented under [docs/1.0](docs/1.0/index.md):
+
+- [Introduction](docs/1.0/intro.md)
+- [Theory of Operation](docs/1.0/theory.md)
+- [Readers](docs/1.0/reader.md)
+- [Writers](docs/1.0/writer.md)
+- [Processors](docs/1.0/processor.md)
+- [The Factory](docs/1.0/factory.md)
 
 ## Usage
 
