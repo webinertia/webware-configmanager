@@ -194,8 +194,8 @@ count = 1
 
 [[issues]]
 file = "src/Processor/Token.php"
-code = "less-specific-argument"
-message = "Argument type mismatch for argument #2 of `strtr`: expected `array<string, string>|string`, but provided type `array<array-key, mixed>` is less specific."
+code = "less-specific-nested-argument-type"
+message = "Argument type mismatch for argument #2 of `strtr`: expected `array<array-key, Stringable|null|scalar>|string`, but provided type `array<array-key, mixed>` is less specific."
 count = 2
 
 [[issues]]
@@ -214,6 +214,12 @@ count = 5
 file = "src/Processor/Token.php"
 code = "mixed-return-statement"
 message = 'Could not infer a precise return type for function `Webware\ConfigManager\Processor\Token::process`. Saw type `mixed`.'
+count = 1
+
+[[issues]]
+file = "src/Processor/Token.php"
+code = "unfulfilled-expect"
+message = "This pragma was not used and may be removed."
 count = 1
 
 [[issues]]
