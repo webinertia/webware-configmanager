@@ -42,7 +42,7 @@ function. Please review this documentation to be aware of its specific behaviors
 > $reader = new Webware\ConfigManager\Reader\Ini();
 > $reader->setNestSeparator('-');
 > ```
-
+>
 > ### Process Sections
 >
 > By default, the INI reader executes `parse_ini_file()`  with the optional parameter `$process_sections` being `true`.
@@ -54,7 +54,7 @@ function. Please review this documentation to be aware of its specific behaviors
 > $reader = new Webware\ConfigManager\Reader\Ini();
 > $reader->setProcessSections(false);
 > ```
-
+>
 > ### Typed Mode
 >
 > By default, the INI reader executes `parse_ini_file()`  with the optional parameter `$scanner_mode` set to `INI_SCANNER_NORMAL`.
