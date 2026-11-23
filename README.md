@@ -21,7 +21,7 @@ composer require webware/webware-configmanager
 
 ## Documentation
 
-The 1.0 release line is documented under [docs/1.0](docs/1.0/index.md):
+The 1.0 release line is documented under [docs/1.0](docs/1.0):
 
 - [Introduction](docs/1.0/intro.md)
 - [Theory of Operation](docs/1.0/theory.md)
